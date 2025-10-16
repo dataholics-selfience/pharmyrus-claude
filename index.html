@@ -228,4 +228,105 @@
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(dados),
-                        signal:
+                        signal: state.abortController.signal
+                    });
+
+                    console.log('✅ Resposta recebida:', response.status);
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                    atualizarStatus('📥 Processando resposta...', 90);
+
+                    const resultado = await response.json();
+
+                    console.log('✅ JSON parseado:', resultado);
+
+                    // Salvar e redirecionar
+                    const paraGravar = Array.isArray(resultado) ? resultado : [{ output: JSON.stringify(resultado) }];
+                    
+                    localStorage.setItem('patentAnalysis', JSON.stringify(paraGravar));
+                    
+                    console.log('💾 Salvo no localStorage');
+
+                    atualizarStatus('✅ Redirecionando...', 100);
+
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1000);
+
+                } catch (erro) {
+                    console.error('❌ ERRO:', erro);
+                    alert('Erro: ' + erro.message);
+                    state.isProcessing = false;
+                    esconderStatus();
+                }
+            }
+
+            function mostrarStatus() {
+                processingStatus.classList.remove('hidden');
+                searchForm.style.opacity = '0.5';
+                searchForm.style.pointerEvents = 'none';
+            }
+
+            function esconderStatus() {
+                processingStatus.classList.add('hidden');
+                searchForm.style.opacity = '1';
+                searchForm.style.pointerEvents = 'auto';
+                state.isProcessing = false;
+                if (state.progressInterval) {
+                    clearInterval(state.progressInterval);
+                }
+            }
+
+            function atualizarStatus(msg, prog) {
+                statusMessage.textContent = msg;
+                progressFill.style.width = prog + '%';
+            }
+
+            function iniciarProgresso() {
+                let prog = 10;
+                state.progressInterval = setInterval(() => {
+                    prog += 1;
+                    if (prog <= 85) {
+                        atualizarStatus('⏳ Processando...', prog);
+                        
+                        const elapsed = Date.now() - state.startTime;
+                        const remaining = Math.max(0, Math.ceil((TIMEOUT - elapsed) / 1000));
+                        const min = Math.floor(remaining / 60);
+                        const sec = remaining % 60;
+                        statusTime.textContent = `⏱️ ${min}:${sec.toString().padStart(2, '0')}`;
+                    }
+                }, 3000);
+            }
+
+            // Limpar localStorage
+            localStorage.removeItem('patentAnalysis');
+            console.log('🧹 localStorage limpo');
+            console.log('✅ TUDO PRONTO!');
+        });
+    </script>
+</body>
+</html>
+```
+
+---
+
+### **AGORA TESTE:**
+
+1. **Recarregue a página** (Ctrl+F5)
+2. **Abra o console** (F12)
+3. **Clique em "Teste Rápido"**
+
+**Você DEVE ver:**
+```
+🚀 SCRIPT INLINE INICIADO
+✅ Página carregada
+✅ Elementos capturados
+🧹 localStorage limpo
+✅ TUDO PRONTO!
+🧪 BOTÃO TESTE CLICADO!
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚀 INICIANDO BUSCA
+...
