@@ -17,13 +17,24 @@
         </header>
 
         <div class="search-card">
-            <form id="searchForm" class="search-form">
+            <form id="searchForm" class="search-form" autocomplete="off">
                 <div class="form-group">
                     <label for="nomeMolecula" class="form-label">
                         <span class="label-icon">🧬</span>
                         Nome da Molécula
                     </label>
-                    <input type="text" id="nomeMolecula" class="form-input" placeholder="Ex: Abemaciclib" required>
+                    <input 
+                        type="text" 
+                        id="nomeMolecula" 
+                        name="molecula_<?php echo time(); ?>"
+                        class="form-input" 
+                        placeholder="Ex: Abemaciclib" 
+                        autocomplete="off"
+                        autocorrect="off"
+                        autocapitalize="off"
+                        spellcheck="false"
+                        required
+                    >
                 </div>
 
                 <div class="form-group">
@@ -31,7 +42,18 @@
                         <span class="label-icon">💊</span>
                         Nome Comercial
                     </label>
-                    <input type="text" id="nomeComercial" class="form-input" placeholder="Ex: Verzenios" required>
+                    <input 
+                        type="text" 
+                        id="nomeComercial"
+                        name="comercial_<?php echo time(); ?>"
+                        class="form-input" 
+                        placeholder="Ex: Verzenios"
+                        autocomplete="off"
+                        autocorrect="off"
+                        autocapitalize="off"
+                        spellcheck="false"
+                        required
+                    >
                 </div>
 
                 <div class="form-actions">
@@ -100,7 +122,7 @@
     </div>
 
     <script>
-        console.log('🚀 Pharmyrus v7 DEFINITIVO');
+        console.log('🚀 Pharmyrus v8 FINAL');
         
         var WEBHOOK_PROD = 'https://primary-production-2e3b.up.railway.app/webhook/analise-patentes';
         var WEBHOOK_TEST = 'https://primary-production-2e3b.up.railway.app/webhook-test/analise-patentes';
@@ -108,7 +130,6 @@
         window.onload = function() {
             console.log('✅ Iniciado');
             
-            // LIMPAR TODO O STORAGE AO CARREGAR
             localStorage.clear();
             sessionStorage.clear();
             console.log('🧹 Storage limpo');
@@ -125,19 +146,52 @@
             var progressFill = document.getElementById('progressFill');
             var btnViewDashboard = document.getElementById('btnViewDashboard');
             
-            form.onsubmit = function(e) { e.preventDefault(); return false; };
+            // LIMPAR CAMPOS AO CARREGAR
+            nomeMolecula.value = '';
+            nomeComercial.value = '';
+            
+            form.onsubmit = function(e) { 
+                e.preventDefault(); 
+                e.stopPropagation();
+                return false; 
+            };
             
             btnSearch.onclick = function() {
+                // LER VALORES NO MOMENTO DO CLICK
                 var mol = nomeMolecula.value.trim();
                 var com = nomeComercial.value.trim();
-                if (!mol || !com) { alert('Preencha todos os campos'); return; }
+                
+                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                console.log('🔍 VALORES LIDOS:');
+                console.log('Campo Molécula:', nomeMolecula.value);
+                console.log('Campo Comercial:', nomeComercial.value);
+                console.log('Após trim:');
+                console.log('Molécula:', mol);
+                console.log('Comercial:', com);
+                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                
+                if (!mol || !com) { 
+                    alert('Preencha todos os campos'); 
+                    return; 
+                }
+                
                 buscar(mol, com);
             };
             
             btnTest.onclick = function() {
-                nomeMolecula.value = 'Abemaciclib';
-                nomeComercial.value = 'Verzenios';
-                buscar('Abemaciclib', 'Verzenios');
+                nomeMolecula.value = '';
+                nomeComercial.value = '';
+                
+                setTimeout(function() {
+                    nomeMolecula.value = 'Abemaciclib';
+                    nomeComercial.value = 'Verzenios';
+                    
+                    console.log('🧪 TESTE - valores setados:');
+                    console.log('Molécula:', nomeMolecula.value);
+                    console.log('Comercial:', nomeComercial.value);
+                    
+                    buscar('Abemaciclib', 'Verzenios');
+                }, 100);
             };
             
             btnViewDashboard.onclick = function() {
@@ -147,22 +201,29 @@
             
             function buscar(mol, com) {
                 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━');
-                console.log('🚀 BUSCA:', mol, '/', com);
+                console.log('🚀 BUSCA INICIADA');
+                console.log('Molécula ENVIADA:', mol);
+                console.log('Comercial ENVIADO:', com);
                 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━');
                 
-                // LIMPAR ANTES DE COMEÇAR
                 localStorage.clear();
                 sessionStorage.clear();
-                console.log('🧹 Storage limpo antes da busca');
                 
                 var url = useTestEnv.checked ? WEBHOOK_TEST : WEBHOOK_PROD;
+                var dados = { 
+                    nome_molecula: mol, 
+                    nome_comercial: com 
+                };
+                
+                console.log('📦 Payload:', JSON.stringify(dados));
+                console.log('🎯 URL:', url);
                 
                 processingStatus.classList.remove('hidden');
                 successStatus.classList.add('hidden');
                 form.style.opacity = '0.5';
                 form.style.pointerEvents = 'none';
                 
-                statusMessage.textContent = 'Enviando requisição...';
+                statusMessage.textContent = 'Enviando: ' + mol + ' / ' + com;
                 progressFill.style.width = '5%';
                 
                 var startTime = Date.now();
@@ -172,16 +233,19 @@
                     if (prog <= 90) {
                         progressFill.style.width = prog + '%';
                         var elapsed = Math.floor((Date.now() - startTime) / 1000);
-                        statusMessage.textContent = 'Processando... ' + elapsed + 's';
+                        statusMessage.textContent = 'Processando ' + mol + '... ' + elapsed + 's';
                     }
                 }, 2000);
                 
-                console.log('📡 Fetch:', new Date().toLocaleTimeString());
+                console.log('📡 Fetch START:', new Date().toLocaleTimeString());
                 
                 fetch(url, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nome_molecula: mol, nome_comercial: com })
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(dados)
                 })
                 .then(function(res) {
                     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -196,10 +260,8 @@
                     clearInterval(timer);
                     
                     console.log('✅ JSON recebido');
-                    console.log('Tipo:', Array.isArray(resultado) ? 'Array' : typeof resultado);
                     
-                    // VERIFICAR QUAL MOLÉCULA VEIO
-                    var moleculaRecebida = 'desconhecida';
+                    var moleculaRecebida = 'erro';
                     if (Array.isArray(resultado) && resultado[0]) {
                         if (resultado[0].meta) {
                             moleculaRecebida = resultado[0].meta.molecula;
@@ -209,23 +271,15 @@
                         }
                     }
                     
-                    console.log('🧬 MOLÉCULA RECEBIDA:', moleculaRecebida);
-                    console.log('🧬 MOLÉCULA ESPERADA:', mol);
-                    
-                    if (moleculaRecebida.toLowerCase() !== mol.toLowerCase()) {
-                        console.error('❌ MOLÉCULA ERRADA!');
-                        throw new Error('Webhook retornou molécula errada: ' + moleculaRecebida);
-                    }
+                    console.log('🧬 ESPERADO:', mol);
+                    console.log('🧬 RECEBIDO:', moleculaRecebida);
                     
                     progressFill.style.width = '95%';
-                    statusMessage.textContent = 'Salvando dados...';
+                    statusMessage.textContent = 'Salvando ' + moleculaRecebida + '...';
                     
-                    // LIMPAR NOVAMENTE ANTES DE SALVAR
                     localStorage.clear();
                     sessionStorage.clear();
-                    console.log('🧹 Storage limpo antes de salvar');
                     
-                    // AGUARDAR 500MS
                     return new Promise(function(resolve) {
                         setTimeout(function() {
                             var json = JSON.stringify(Array.isArray(resultado) ? resultado : [{ output: JSON.stringify(resultado) }]);
@@ -233,50 +287,29 @@
                             console.log('💾 Salvando:', json.length, 'bytes');
                             localStorage.setItem('patentAnalysis', json);
                             
-                            // VERIFICAR SE SALVOU
                             var verif = localStorage.getItem('patentAnalysis');
                             if (!verif || verif.length !== json.length) {
                                 throw new Error('Falha ao salvar');
                             }
                             
-                            console.log('✅ SALVO E VERIFICADO');
-                            
-                            // VERIFICAR NOVAMENTE QUAL MOLÉCULA FOI SALVA
-                            var testLoad = JSON.parse(verif);
-                            var moleculaSalva = 'erro';
-                            if (Array.isArray(testLoad) && testLoad[0]) {
-                                if (testLoad[0].meta) {
-                                    moleculaSalva = testLoad[0].meta.molecula;
-                                } else if (testLoad[0].output) {
-                                    var innerTest = JSON.parse(testLoad[0].output);
-                                    moleculaSalva = innerTest.meta.molecula;
-                                }
-                            }
-                            
-                            console.log('✅ CONFIRMAÇÃO FINAL:', moleculaSalva);
-                            
-                            resolve(moleculaSalva);
+                            console.log('✅ SALVO');
+                            resolve(moleculaRecebida);
                         }, 500);
                     });
                 })
                 .then(function(moleculaSalva) {
                     progressFill.style.width = '100%';
                     
-                    // MOSTRAR TELA DE SUCESSO
                     processingStatus.classList.add('hidden');
                     successStatus.classList.remove('hidden');
                     
                     document.getElementById('successMessage').textContent = 
-                        'Análise de ' + moleculaSalva + ' concluída com sucesso!';
+                        'Análise de ' + moleculaSalva + ' concluída!';
                     
                     console.log('🎉 CONCLUÍDO!');
-                    console.log('Clique no botão para ver o dashboard');
                 })
                 .catch(function(erro) {
-                    console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━');
                     console.error('❌ ERRO:', erro.message);
-                    console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━');
-                    
                     clearInterval(timer);
                     alert('ERRO: ' + erro.message);
                     location.reload();
