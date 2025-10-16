@@ -590,6 +590,56 @@
     window.addEventListener('load', function() {
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         console.log('🚀 INICIANDO DASHBOARD');
+        // Verificar se está vindo de uma busca recente
+const urlParams = new URLSearchParams(window.location.search);
+const timestamp = urlParams.get('t');
+
+if (timestamp) {
+    const idade = Date.now() - parseInt(timestamp);
+    console.log('⏰ Idade dos dados:', Math.floor(idade / 1000), 'segundos');
+    
+    // Se passou mais de 10 segundos, pode ser cache antigo
+    if (idade > 10000) {
+        console.warn('⚠️ Dados podem estar desatualizados');
+    }
+}
+```
+
+---
+
+# **RESUMO DAS MUDANÇAS:**
+
+1. ✅ `await` completo na resposta do fetch (espera os 3-5 minutos)
+2. ✅ `localStorage.clear()` para limpar TUDO antes de salvar
+3. ✅ Delays adicionados para garantir que salvou
+4. ✅ Verificação de tamanho dos dados salvos
+5. ✅ Logs detalhados para debug
+6. ✅ Validação da molécula recebida
+
+---
+
+**TESTE AGORA:**
+
+1. **Substitua** a função `iniciarBusca` no `index.html`
+2. **Limpe cache** completamente (Ctrl+Shift+Delete)
+3. **Feche TODAS as abas** do site
+4. **Abra novamente**
+5. **Busque Abemaciclib**
+6. **AGUARDE** até aparecer "Redirecionando..."
+7. **Veja o console**
+
+Você deve ver:
+```
+📡 Fazendo fetch...
+⏰ Início: 14:30:25
+[aguarda 3-5 minutos...]
+📡 RESPOSTA RECEBIDA
+⏰ Fim: 14:33:45
+Molécula recebida: Abemaciclib
+🧹 Limpando localStorage...
+💾 Salvando novos dados...
+✅ Dados salvos e verificados!
+🔀 Redirecionando agora...
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
         try {
@@ -689,4 +739,5 @@
 </script>
 </body>
 </html>
+
 
