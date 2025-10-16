@@ -118,11 +118,9 @@
 <script>
     console.log('🚀 SCRIPT INLINE INICIADO');
 
-    // ⚠️ LIMPAR CACHE AO CARREGAR
     localStorage.removeItem('patentAnalysis');
     console.log('🧹 Cache limpo ao iniciar');
 
-    // Configuração
     const WEBHOOK_PROD = 'https://primary-production-2e3b.up.railway.app/webhook/analise-patentes';
     const WEBHOOK_TEST = 'https://primary-production-2e3b.up.railway.app/webhook-test/analise-patentes';
     const TIMEOUT = 360000; // 6 minutos
@@ -134,11 +132,9 @@
         startTime: null
     };
 
-    // Aguardar DOM carregar
     window.addEventListener('load', function() {
         console.log('✅ Página carregada');
 
-        // Capturar elementos
         const btnSearch = document.getElementById('btnSearch');
         const btnTest = document.getElementById('btnTest');
         const btnCancel = document.getElementById('btnCancel');
@@ -153,52 +149,39 @@
 
         console.log('✅ Elementos capturados');
 
-        // Prevenir submit do form
         searchForm.addEventListener('submit', function(e) {
             e.preventDefault();
             console.log('❌ Submit bloqueado');
             return false;
         });
 
-        // Botão Iniciar Análise
         btnSearch.addEventListener('click', function(e) {
             e.preventDefault();
             console.log('🔍 BOTÃO INICIAR CLICADO!');
-
             const molecula = nomeMolecula.value.trim();
             const comercial = nomeComercial.value.trim();
-
-            console.log('Molécula:', molecula);
-            console.log('Comercial:', comercial);
 
             if (!molecula || !comercial) {
                 alert('❌ Por favor, preencha todos os campos!');
                 return;
             }
 
-            // ⚠️ LIMPAR ANTES DE INICIAR NOVA BUSCA
             localStorage.removeItem('patentAnalysis');
             console.log('🧹 Cache limpo antes da busca');
 
             iniciarBusca({ nome_molecula: molecula, nome_comercial: comercial });
         });
 
-        // Botão Teste
         btnTest.addEventListener('click', function(e) {
             e.preventDefault();
             console.log('🧪 BOTÃO TESTE CLICADO!');
-            
             nomeMolecula.value = 'Abemaciclib';
             nomeComercial.value = 'Verzenios';
-            
-            // ⚠️ LIMPAR ANTES DE INICIAR
             localStorage.removeItem('patentAnalysis');
             console.log('🧹 Cache limpo antes do teste');
-            
             iniciarBusca({ nome_molecula: 'Abemaciclib', nome_comercial: 'Verzenios' });
         });
 
-        // Botão Cancelar
         btnCancel.addEventListener('click', function() {
             console.log('❌ CANCELAR CLICADO');
             if (state.abortController) {
@@ -207,7 +190,7 @@
             esconderStatus();
         });
 
-        // Função principal
+        // 🔁 FUNÇÃO ATUALIZADA
         async function iniciarBusca(dados) {
             console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━');
             console.log('🚀 INICIANDO BUSCA');
@@ -232,60 +215,105 @@
             state.abortController = new AbortController();
 
             try {
-                atualizarStatus('📤 Enviando requisição...', 10);
-
+                atualizarStatus('📤 Enviando requisição ao webhook...', 5);
                 console.log('📡 Fazendo fetch...');
+                console.log('⏰ Início:', new Date().toLocaleTimeString());
 
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(dados),
-                    signal: state.abortController.signal
-                });
+                const response = await Promise.race([
+                    fetch(url, {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(dados),
+                        signal: state.abortController.signal
+                    }),
+                    new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error('TIMEOUT: Análise demorou mais de 6 minutos')), TIMEOUT)
+                    )
+                ]);
 
-                console.log('✅ Resposta recebida:', response.status);
+                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                console.log('📡 RESPOSTA RECEBIDA');
+                console.log('Status:', response.status);
+                console.log('⏰ Fim:', new Date().toLocaleTimeString());
+                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
                 if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
+                    const errorText = await response.text();
+                    console.error('❌ Erro da API:', errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
                 }
 
-                atualizarStatus('📥 Processando resposta...', 90);
-
+                atualizarStatus('📥 Processando dados recebidos...', 92);
                 const resultado = await response.json();
 
-                console.log('✅ JSON parseado:', resultado);
-
-                // ⚠️ LIMPAR ANTES DE SALVAR
-                localStorage.removeItem('patentAnalysis');
-                console.log('🧹 localStorage limpo');
-
-                // Salvar novos dados
-                const paraGravar = Array.isArray(resultado) ? resultado : [{ output: JSON.stringify(resultado) }];
+                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                console.log('✅ JSON PARSEADO');
+                console.log('Tipo:', Array.isArray(resultado) ? 'Array' : typeof resultado);
+                console.log('Tamanho:', JSON.stringify(resultado).length, 'bytes');
                 
-                localStorage.setItem('patentAnalysis', JSON.stringify(paraGravar));
-                
-                console.log('💾 Novos dados salvos');
-
-                // Verificar
-                const verificacao = localStorage.getItem('patentAnalysis');
-                if (!verificacao) {
-                    throw new Error('Falha ao salvar no localStorage');
+                if (Array.isArray(resultado) && resultado.length > 0) {
+                    const primeiro = resultado[0];
+                    if (primeiro.meta) {
+                        console.log('Molécula recebida:', primeiro.meta.molecula);
+                        console.log('Nome comercial:', primeiro.meta.nome_comercial);
+                    } else if (primeiro.output) {
+                        const inner = JSON.parse(primeiro.output);
+                        console.log('Molécula recebida:', inner.meta?.molecula);
+                        console.log('Nome comercial:', inner.meta?.nome_comercial);
+                    }
                 }
+                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+                if (!resultado || (Array.isArray(resultado) && resultado.length === 0)) {
+                    throw new Error('Resposta vazia do webhook');
+                }
+
+                atualizarStatus('💾 Salvando dados...', 95);
+                console.log('🧹 Limpando localStorage...');
+                localStorage.clear();
+                await new Promise(resolve => setTimeout(resolve, 100));
+
+                const paraGravar = Array.isArray(resultado) ? resultado : [{ output: JSON.stringify(resultado) }];
+                const jsonString = JSON.stringify(paraGravar);
+                console.log('💾 Salvando novos dados...');
+                console.log('Tamanho:', jsonString.length, 'bytes');
+                localStorage.setItem('patentAnalysis', jsonString);
+                await new Promise(resolve => setTimeout(resolve, 200));
+
+                const verificacao = localStorage.getItem('patentAnalysis');
+                if (!verificacao) throw new Error('Falha ao salvar no localStorage');
+                if (verificacao.length !== jsonString.length) throw new Error('Dados salvos estão incompletos');
                 
-                console.log('✅ Verificação OK - Tamanho:', verificacao.length);
+                console.log('✅ Dados salvos e verificados!');
+                console.log('Tamanho verificado:', verificacao.length);
 
-                atualizarStatus('✅ Redirecionando...', 100);
+                atualizarStatus('✅ Análise concluída! Redirecionando...', 100);
+                await new Promise(resolve => setTimeout(resolve, 1500));
 
-                setTimeout(() => {
-                    const timestamp = Date.now();
-                    console.log('🔀 Redirecionando com timestamp:', timestamp);
-                    window.location.href = `dashboard.html?t=${timestamp}`;
-                }, 1000);
+                const timestamp = Date.now();
+                console.log('🔀 Redirecionando agora...', timestamp);
+                window.location.href = `dashboard.html?t=${timestamp}`;
 
             } catch (erro) {
-                console.error('❌ ERRO:', erro);
-                alert('Erro: ' + erro.message);
+                console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                console.error('❌ ERRO:', erro.name);
+                console.error('Mensagem:', erro.message);
+                console.error('Stack:', erro.stack);
+                console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                
                 state.isProcessing = false;
+                
+                if (erro.name === 'AbortError') {
+                    alert('⚠️ Busca cancelada pelo usuário');
+                } else if (erro.message.includes('TIMEOUT')) {
+                    alert('⏱️ Timeout: A análise demorou mais de 6 minutos.\n\nPossíveis causas:\n- Muitas patentes para analisar\n- Webhook sobrecarregado\n\nTente novamente ou use o webhook de teste.');
+                } else {
+                    alert('❌ Erro ao processar análise:\n\n' + erro.message + '\n\nVerifique o console (F12) para mais detalhes.');
+                }
+                
                 esconderStatus();
             }
         }
@@ -301,9 +329,7 @@
             searchForm.style.opacity = '1';
             searchForm.style.pointerEvents = 'auto';
             state.isProcessing = false;
-            if (state.progressInterval) {
-                clearInterval(state.progressInterval);
-            }
+            if (state.progressInterval) clearInterval(state.progressInterval);
         }
 
         function atualizarStatus(msg, prog) {
@@ -317,7 +343,6 @@
                 prog += 1;
                 if (prog <= 85) {
                     atualizarStatus('⏳ Processando...', prog);
-                    
                     const elapsed = Date.now() - state.startTime;
                     const remaining = Math.max(0, Math.ceil((TIMEOUT - elapsed) / 1000));
                     const min = Math.floor(remaining / 60);
@@ -330,28 +355,5 @@
         console.log('✅ TUDO PRONTO!');
     });
 </script>
-    
 </body>
 </html>
-```
-
----
-
-### **AGORA TESTE:**
-
-1. **Recarregue a página** (Ctrl+F5)
-2. **Abra o console** (F12)
-3. **Clique em "Teste Rápido"**
-
-**Você DEVE ver:**
-```
-🚀 SCRIPT INLINE INICIADO
-✅ Página carregada
-✅ Elementos capturados
-🧹 localStorage limpo
-✅ TUDO PRONTO!
-🧪 BOTÃO TESTE CLICADO!
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-🚀 INICIANDO BUSCA
-...
-
