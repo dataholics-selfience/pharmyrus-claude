@@ -181,16 +181,71 @@
                     if (!res.ok) throw new Error('HTTP ' + res.status);
                     return res.json();
                 })
-                .then(function(resultado) {
-                    console.log('✅ JSON recebido');
-                    
-                    clearInterval(timer);
-                    
-                    progressFill.style.width = '95%';
-                    statusMessage.textContent = 'Salvando dados...';
-                    
-                    localStorage.clear();
-                    
+              .then(function(resultado) {
+    console.log('✅ JSON recebido');
+    console.log('Tipo:', Array.isArray(resultado) ? 'Array' : typeof resultado);
+    
+    // Verificar qual molécula veio
+    if (Array.isArray(resultado) && resultado[0]) {
+        if (resultado[0].meta) {
+            console.log('🧬 Molécula recebida:', resultado[0].meta.molecula);
+            console.log('💊 Nome comercial:', resultado[0].meta.nome_comercial);
+        } else if (resultado[0].output) {
+            var inner = JSON.parse(resultado[0].output);
+            console.log('🧬 Molécula recebida:', inner.meta.molecula);
+            console.log('💊 Nome comercial:', inner.meta.nome_comercial);
+        }
+    }
+    
+    clearInterval(timer);
+    
+    progressFill.style.width = '92%';
+    statusMessage.textContent = 'Limpando cache antigo...';
+    
+    // ⚠️ CRÍTICO: LIMPAR TUDO ANTES
+    console.log('🧹 LIMPANDO localStorage...');
+    localStorage.clear();
+    
+    // Esperar um pouco para garantir
+    setTimeout(function() {
+        progressFill.style.width = '95%';
+        statusMessage.textContent = 'Salvando novos dados...';
+        
+        var json = JSON.stringify(Array.isArray(resultado) ? resultado : [{ output: JSON.stringify(resultado) }]);
+        
+        console.log('💾 Salvando:', json.length, 'bytes');
+        localStorage.setItem('patentAnalysis', json);
+        
+        // Verificar
+        var verif = localStorage.getItem('patentAnalysis');
+        if (!verif) {
+            throw new Error('Falha ao salvar');
+        }
+        
+        console.log('✅ Salvo e verificado:', verif.length, 'bytes');
+        
+        // Verificar novamente qual molécula foi salva
+        var testeLoad = JSON.parse(verif);
+        if (Array.isArray(testeLoad) && testeLoad[0]) {
+            if (testeLoad[0].meta) {
+                console.log('✅ Confirmado salvo:', testeLoad[0].meta.molecula);
+            } else if (testeLoad[0].output) {
+                var innerTest = JSON.parse(testeLoad[0].output);
+                console.log('✅ Confirmado salvo:', innerTest.meta.molecula);
+            }
+        }
+        
+        progressFill.style.width = '100%';
+        statusMessage.textContent = 'Concluído! Redirecionando...';
+        
+        setTimeout(function() {
+            var timestamp = Date.now();
+            console.log('🔀 Redirecionando:', timestamp);
+            window.location.href = 'dashboard.html?t=' + timestamp;
+        }, 2000);
+        
+    }, 500); // Delay de 500ms para garantir limpeza
+})
                     var json = JSON.stringify(Array.isArray(resultado) ? resultado : [{ output: JSON.stringify(resultado) }]);
                     localStorage.setItem('patentAnalysis', json);
                     
@@ -223,3 +278,4 @@
     </script>
 </body>
 </html>
+
