@@ -1,8 +1,7 @@
 // Configuração
 const WEBHOOK_PROD = 'https://primary-production-2e3b.up.railway.app/webhook/analise-patentes';
 const WEBHOOK_TEST = 'https://primary-production-2e3b.up.railway.app/webhook-test/analise-patentes';
-const POLLING_INTERVAL = 10000; // 10 segundos
-const MAX_WAIT_TIME = 300000; // 5 minutos
+const TIMEOUT = 360000; // 6 minutos
 
 // Elementos DOM
 const searchForm = document.getElementById('searchForm');
@@ -15,9 +14,9 @@ const statusMessage = document.getElementById('statusMessage');
 const progressFill = document.getElementById('progressFill');
 const statusTime = document.getElementById('statusTime');
 
-let pollingInterval = null;
-let startTime = null;
+let progressInterval = null;
 let abortController = null;
+let startTime = null;
 
 // Event Listeners
 searchForm.addEventListener('submit', handleSubmit);
@@ -62,93 +61,90 @@ async function startSearch(data) {
     showProcessingStatus();
     startTime = Date.now();
     
+    // Iniciar animação de progresso
+    startProgressAnimation();
+    
     // Criar AbortController para cancelamento
     abortController = new AbortController();
     
     try {
-        updateStatus('Enviando requisição...', 10);
+        updateStatus('Enviando requisição para análise...', 5);
         
-        // Enviar requisição
-        const response = await fetch(webhookUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data),
-            signal: abortController.signal
-        });
+        console.log('📤 Enviando para:', webhookUrl);
+        console.log('📦 Payload:', data);
+        
+        // Enviar requisição COM TIMEOUT
+        const response = await Promise.race([
+            fetch(webhookUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data),
+                signal: abortController.signal
+            }),
+            new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Timeout: A análise demorou mais de 6 minutos')), TIMEOUT)
+            )
+        ]);
+
+        console.log('📡 Status da resposta:', response.status);
 
         if (!response.ok) {
-            throw new Error(`Erro HTTP: ${response.status}`);
+            const errorText = await response.text();
+            console.error('❌ Erro da API:', errorText);
+            throw new Error(`Erro HTTP ${response.status}: ${errorText}`);
         }
 
+        updateStatus('Recebendo dados da análise...', 90);
+        
         const result = await response.json();
         
-        updateStatus('Processando análise de patentes...', 20);
+        console.log('✅ Dados recebidos:', result);
         
-        // Iniciar polling
-        startPolling(webhookUrl, result.request_id || Date.now());
+        // Verificar se tem dados
+        if (!result || (Array.isArray(result) && result.length === 0)) {
+            throw new Error('Resposta vazia da API');
+        }
+
+        // Processar resultado
+        handleSuccess(result);
         
     } catch (error) {
+        console.error('❌ Erro completo:', error);
+        
         if (error.name === 'AbortError') {
-            updateStatus('Busca cancelada', 0);
+            alert('Busca cancelada pelo usuário');
+        } else if (error.message.includes('Timeout')) {
+            alert('⏱️ A análise está demorando mais que o esperado.\n\nIsso pode acontecer quando há muitas patentes para analisar.\n\nTente novamente ou use o webhook de teste.');
         } else {
-            console.error('Erro na busca:', error);
-            alert('Erro ao iniciar busca: ' + error.message);
+            alert('❌ Erro ao processar análise:\n\n' + error.message + '\n\nVerifique o console do navegador (F12) para mais detalhes.');
         }
+        
         hideProcessingStatus();
     }
 }
 
-// Polling para checar resultado
-function startPolling(webhookUrl, requestId) {
-    let progress = 20;
-    const progressIncrement = 60 / (MAX_WAIT_TIME / POLLING_INTERVAL);
+// Animação de progresso
+function startProgressAnimation() {
+    let progress = 5;
     
-    pollingInterval = setInterval(async () => {
-        const elapsed = Date.now() - startTime;
+    progressInterval = setInterval(() => {
+        progress += 1;
         
-        // Atualizar progresso
-        progress = Math.min(progress + progressIncrement, 95);
-        updateStatus('Analisando patentes e gerando insights...', progress);
-        updateTimeRemaining(elapsed);
-        
-        // Timeout
-        if (elapsed > MAX_WAIT_TIME) {
-            clearInterval(pollingInterval);
-            alert('Tempo limite excedido. Tente novamente.');
-            hideProcessingStatus();
-            return;
+        // Progresso gradual até 95%
+        if (progress <= 95) {
+            updateStatus('Processando análise de patentes...', progress);
+            updateTimeRemaining();
         }
-        
-        try {
-            // Tentar buscar resultado (ajuste conforme sua API)
-            const checkResponse = await fetch(`${webhookUrl}/status/${requestId}`);
-            
-            if (checkResponse.ok) {
-                const data = await checkResponse.json();
-                
-                if (data.status === 'completed') {
-                    clearInterval(pollingInterval);
-                    handleSuccess(data.result);
-                } else if (data.status === 'error') {
-                    clearInterval(pollingInterval);
-                    throw new Error(data.error);
-                }
-            }
-        } catch (error) {
-            // Continue polling em caso de erro (exceto se for erro crítico)
-            console.log('Polling...', error.message);
-        }
-        
-    }, POLLING_INTERVAL);
+    }, 3000); // Incrementa 1% a cada 3 segundos
 }
 
 // Cancelar busca
 function cancelSearch() {
-    if (pollingInterval) {
-        clearInterval(pollingInterval);
-        pollingInterval = null;
+    if (progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = null;
     }
     
     if (abortController) {
@@ -160,15 +156,33 @@ function cancelSearch() {
 
 // Sucesso - redirecionar para dashboard
 function handleSuccess(data) {
-    updateStatus('Análise concluída! Redirecionando...', 100);
+    if (progressInterval) {
+        clearInterval(progressInterval);
+    }
+    
+    updateStatus('✅ Análise concluída! Preparando dashboard...', 100);
+    
+    console.log('💾 Salvando dados no localStorage...');
     
     // Salvar dados no localStorage
-    localStorage.setItem('patentAnalysis', JSON.stringify(data));
-    
-    // Redirecionar após 1 segundo
-    setTimeout(() => {
-        window.location.href = 'dashboard.html';
-    }, 1000);
+    try {
+        // Se vier como array, pegar o primeiro item
+        const dataToSave = Array.isArray(data) ? data : [{ output: JSON.stringify(data) }];
+        localStorage.setItem('patentAnalysis', JSON.stringify(dataToSave));
+        
+        console.log('✅ Dados salvos com sucesso!');
+        
+        // Redirecionar após 1 segundo
+        setTimeout(() => {
+            console.log('🔀 Redirecionando para dashboard...');
+            window.location.href = 'dashboard.html';
+        }, 1000);
+        
+    } catch (error) {
+        console.error('❌ Erro ao salvar dados:', error);
+        alert('Erro ao salvar dados da análise. Verifique o console.');
+        hideProcessingStatus();
+    }
 }
 
 // Funções de UI
@@ -176,12 +190,21 @@ function showProcessingStatus() {
     processingStatus.classList.remove('hidden');
     searchForm.style.opacity = '0.5';
     searchForm.style.pointerEvents = 'none';
+    btnSearch.disabled = true;
+    btnTest.disabled = true;
 }
 
 function hideProcessingStatus() {
     processingStatus.classList.add('hidden');
     searchForm.style.opacity = '1';
     searchForm.style.pointerEvents = 'auto';
+    btnSearch.disabled = false;
+    btnTest.disabled = false;
+    
+    if (progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = null;
+    }
 }
 
 function updateStatus(message, progress) {
@@ -189,17 +212,60 @@ function updateStatus(message, progress) {
     progressFill.style.width = `${progress}%`;
 }
 
-function updateTimeRemaining(elapsed) {
-    const remaining = Math.max(0, Math.ceil((MAX_WAIT_TIME - elapsed) / 1000));
+function updateTimeRemaining() {
+    if (!startTime) return;
+    
+    const elapsed = Date.now() - startTime;
+    const remaining = Math.max(0, Math.ceil((TIMEOUT - elapsed) / 1000));
     const minutes = Math.floor(remaining / 60);
     const seconds = remaining % 60;
+    
     statusTime.textContent = `Tempo restante: ${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
 // Limpar dados ao carregar
 window.addEventListener('load', () => {
-    // Limpar dados antigos
+    // Limpar dados antigos apenas na página inicial
     if (window.location.pathname.includes('index.html') || window.location.pathname === '/') {
         localStorage.removeItem('patentAnalysis');
+        console.log('🧹 LocalStorage limpo');
     }
 });
+
+// Debug
+console.log('✅ app.js carregado');
+console.log('🔗 Webhook PROD:', WEBHOOK_PROD);
+console.log('🔗 Webhook TEST:', WEBHOOK_TEST);
+```
+
+---
+
+### **PRINCIPAIS MUDANÇAS:**
+
+1. ✅ **Removido polling** - agora espera a resposta completa do webhook
+2. ✅ **Timeout de 6 minutos** - aguarda até 6 minutos antes de cancelar
+3. ✅ **Logs de debug** - você verá no console (F12) o que está acontecendo
+4. ✅ **Mensagens de erro claras** - mostra exatamente onde falhou
+5. ✅ **Progresso visual** - barra avança automaticamente enquanto espera
+6. ✅ **Tratamento de resposta** - aceita tanto array quanto objeto direto
+
+---
+
+### **TESTE AGORA:**
+
+1. **Abra o site**
+2. **Abra o Console** (F12 → aba Console)
+3. **Preencha o formulário**
+4. **Clique em "Iniciar Análise"**
+5. **Aguarde** (vai mostrar logs no console)
+
+Você vai ver algo assim no console:
+```
+✅ app.js carregado
+📤 Enviando para: https://...
+📦 Payload: {nome_molecula: "...", nome_comercial: "..."}
+📡 Status da resposta: 200
+✅ Dados recebidos: [...]
+💾 Salvando dados no localStorage...
+✅ Dados salvos com sucesso!
+🔀 Redirecionando para dashboard...
