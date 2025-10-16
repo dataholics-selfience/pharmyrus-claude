@@ -4,184 +4,394 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Pharmyrus</title>
-    <link rel="stylesheet" href="css/dashboard.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: #6b7280;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn:hover {
+            background: #1e40af;
+        }
+
+        .loading {
+            background: white;
+            padding: 3rem;
+            border-radius: 1rem;
+            text-align: center;
+        }
+
+        .loading.hidden {
+            display: none;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #e5e7eb;
+            border-top-color: #2563eb;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h2 {
+            font-size: 2rem;
+            color: #2563eb;
+            margin-bottom: 0.5rem;
+        }
+
+        .card p {
+            color: #6b7280;
+            font-weight: 600;
+        }
+
+        .report {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .report h3 {
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        .report-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .report-item h4 {
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .report-item p {
+            color: #6b7280;
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+
+        table {
+            width: 100%;
+            background: white;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        th {
+            background: #f9fafb;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 1rem;
+            border-top: 1px solid #e5e7eb;
+            font-size: 0.875rem;
+            color: #374151;
+        }
+
+        tr:hover {
+            background: #f9fafb;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-alta { background: #fee2e2; color: #991b1b; }
+        .badge-media { background: #fef3c7; color: #92400e; }
+        .badge-baixa { background: #d1fae5; color: #065f46; }
+        .badge-inpi { background: #dbeafe; color: #1e40af; }
+        .badge-epo { background: #d1fae5; color: #065f46; }
+
+        .error {
+            background: white;
+            padding: 3rem;
+            border-radius: 1rem;
+            text-align: center;
+        }
+
+        .error.hidden {
+            display: none;
+        }
+
+        .error h2 {
+            color: #dc2626;
+            margin-bottom: 1rem;
+        }
+    </style>
 </head>
 <body>
-    <div class="dashboard-container">
-        <!-- Header -->
-        <header class="dashboard-header">
-            <div class="header-content">
-                <img src="images/logo.png" alt="Pharmyrus" class="header-logo">
-                <div class="header-info">
-                    <h1 id="dashboardTitle">Dashboard de Patentes</h1>
-                    <p id="dashboardSubtitle"></p>
-                </div>
-                <div class="header-actions">
-                    <button class="btn-action" id="btnExport">
-                        📥 Exportar PDF
-                    </button>
-                    <button class="btn-action" id="btnNewSearch">
-                        🔍 Nova Busca
-                    </button>
+    <div class="container">
+        <!-- Loading -->
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <h2>Carregando dados...</h2>
+        </div>
+
+        <!-- Error -->
+        <div id="error" class="error hidden">
+            <h2>❌ Erro ao Carregar</h2>
+            <p id="errorMsg"></p>
+            <button class="btn" onclick="window.location.href='index.html'">Voltar</button>
+        </div>
+
+        <!-- Content -->
+        <div id="content" style="display: none;">
+            <!-- Header -->
+            <div class="header">
+                <h1 id="title">Dashboard de Patentes</h1>
+                <p id="subtitle"></p>
+                <div class="buttons">
+                    <button class="btn" onclick="window.print()">📥 Exportar PDF</button>
+                    <button class="btn" onclick="novaConsulta()">🔍 Nova Busca</button>
                 </div>
             </div>
-        </header>
 
-        <!-- Loading State -->
-        <div id="loadingState" class="loading-state">
-            <div class="spinner"></div>
-            <p>Carregando dados...</p>
-        </div>
-
-        <!-- Error State -->
-        <div id="errorState" class="error-state hidden">
-            <div class="error-icon">⚠️</div>
-            <h2>Erro ao Carregar Dados</h2>
-            <p id="errorMessage"></p>
-            <button class="btn-primary" onclick="window.location.href='index.html'">
-                Voltar à Busca
-            </button>
-        </div>
-
-        <!-- Dashboard Content -->
-        <main id="dashboardContent" class="dashboard-content hidden">
-            
-            <!-- Hero Cards -->
-            <section class="hero-cards">
-                <div class="hero-card blue">
-                    <div class="hero-icon">📄</div>
-                    <div class="hero-content">
-                        <h3 id="totalPatentes">0</h3>
-                        <p>Total de Patentes</p>
-                        <small id="fontesInfo"></small>
-                    </div>
+            <!-- Cards -->
+            <div class="cards">
+                <div class="card">
+                    <h2 id="totalPatentes">0</h2>
+                    <p>Total de Patentes</p>
+                    <small id="fontes" style="color: #9ca3af;"></small>
                 </div>
-
-                <div class="hero-card green">
-                    <div class="hero-icon">🛡️</div>
-                    <div class="hero-content">
-                        <h3 id="anosProtecao">0</h3>
-                        <p>Anos de Proteção</p>
-                        <small>Proteção média</small>
-                    </div>
+                <div class="card">
+                    <h2 id="anosProtecao">0</h2>
+                    <p>Anos de Proteção</p>
                 </div>
-
-                <div class="hero-card red">
-                    <div class="hero-icon">⚠️</div>
-                    <div class="hero-content">
-                        <h3 id="altaAmeaca">0</h3>
-                        <p>Alta Ameaça</p>
-                        <small>Patentes críticas</small>
-                    </div>
+                <div class="card">
+                    <h2 id="altaAmeaca">0</h2>
+                    <p>Alta Ameaça</p>
                 </div>
-
-                <div class="hero-card purple">
-                    <div class="hero-icon">🏢</div>
-                    <div class="hero-content">
-                        <h3 id="titularDominante">-</h3>
-                        <p>Titular Dominante</p>
-                        <small id="concentracaoInfo"></small>
-                    </div>
+                <div class="card">
+                    <h2 id="titular">-</h2>
+                    <p>Titular Dominante</p>
                 </div>
-            </section>
+            </div>
 
-            <!-- Relatório Executivo -->
-            <section class="executive-report">
-                <div class="section-header">
-                    <h2>📊 Relatório Executivo</h2>
-                </div>
+            <!-- Report -->
+            <div class="report">
+                <h3>📊 Relatório Executivo</h3>
                 <div class="report-grid">
                     <div class="report-item">
-                        <h3>Panorama Geral</h3>
-                        <p id="panoramaGeral"></p>
+                        <h4>Panorama Geral</h4>
+                        <p id="panorama"></p>
                     </div>
                     <div class="report-item">
-                        <h3>Titular Dominante</h3>
-                        <p id="titularDominanteDesc"></p>
+                        <h4>Titular Dominante</h4>
+                        <p id="titularDesc"></p>
                     </div>
                     <div class="report-item">
-                        <h3>Barreiras Críticas</h3>
-                        <p id="barreirasCriticas"></p>
+                        <h4>Barreiras Críticas</h4>
+                        <p id="barreiras"></p>
                     </div>
                     <div class="report-item">
-                        <h3>Janelas de Oportunidade</h3>
-                        <p id="janelasOportunidade"></p>
+                        <h4>Janelas de Oportunidade</h4>
+                        <p id="janelas"></p>
                     </div>
                 </div>
+            </div>
 
-                <div class="recommendations">
-                    <h3>💡 Recomendações Estratégicas</h3>
-                    <ul id="recomendacoesList"></ul>
-                </div>
-            </section>
-
-            <!-- Filtros -->
-            <section class="filters-section">
-                <div class="section-header">
-                    <h2>🔎 Patentes Analisadas</h2>
-                    <div class="filters-controls">
-                        <select id="filtroFonte" class="filter-select">
-                            <option value="">Todas as Fontes</option>
-                            <option value="INPI">INPI (Brasil)</option>
-                            <option value="EPO">EPO (Europa)</option>
-                        </select>
-                        <select id="filtroAmeaca" class="filter-select">
-                            <option value="">Todos os Níveis</option>
-                            <option value="Alta">Alta Ameaça</option>
-                            <option value="Média">Média Ameaça</option>
-                            <option value="Baixa">Baixa Ameaça</option>
-                        </select>
-                        <button class="btn-clear" id="btnClearFilters">
-                            Limpar Filtros
-                        </button>
-                    </div>
-                </div>
-
-                <div class="results-info">
-                    <span id="resultsCount">0 patentes encontradas</span>
-                </div>
-            </section>
-
-            <!-- Tabela de Patentes -->
-            <section class="patents-table-section">
-                <div class="table-container">
-                    <table class="patents-table">
+            <!-- Table -->
+            <div style="background: white; padding: 1.5rem; border-radius: 1rem;">
+                <h3 style="margin-bottom: 1rem;">Patentes Analisadas</h3>
+                <p id="count" style="color: #6b7280; margin-bottom: 1rem;"></p>
+                <div style="overflow-x: auto;">
+                    <table>
                         <thead>
                             <tr>
                                 <th>Fonte</th>
                                 <th>Número</th>
                                 <th>Título</th>
-                                <th>Titular</th>
                                 <th>Ano</th>
                                 <th>Ameaça</th>
-                                <th>Tipo</th>
                             </tr>
                         </thead>
-                        <tbody id="patentsTableBody">
-                            <!-- Preenchido dinamicamente -->
-                        </tbody>
+                        <tbody id="tbody"></tbody>
                     </table>
-                </div>
-            </section>
-
-        </main>
-
-        <!-- Modal de Detalhes -->
-        <div id="patentModal" class="modal hidden">
-            <div class="modal-overlay" onclick="closeModal()"></div>
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>Detalhes da Patente</h2>
-                    <button class="modal-close" onclick="closeModal()">×</button>
-                </div>
-                <div class="modal-body" id="modalBody">
-                    <!-- Preenchido dinamicamente -->
                 </div>
             </div>
         </div>
-
     </div>
 
-    <script src="js/dashboard.js"></script>
+    <script>
+        console.log('🚀 Dashboard iniciado');
+
+        function novaConsulta() {
+            if (confirm('Iniciar nova busca?')) {
+                localStorage.removeItem('patentAnalysis');
+                window.location.href = 'index.html';
+            }
+        }
+
+        window.addEventListener('load', function() {
+            try {
+                console.log('📦 Buscando dados...');
+                
+                const stored = localStorage.getItem('patentAnalysis');
+                if (!stored) throw new Error('Sem dados no localStorage');
+
+                console.log('✅ Dados encontrados');
+
+                const raw = JSON.parse(stored);
+                let data = raw;
+
+                if (Array.isArray(raw) && raw[0]?.output) {
+                    data = JSON.parse(raw[0].output);
+                }
+
+                console.log('✅ Dados parseados:', data);
+
+                // Renderizar
+                document.getElementById('title').textContent = 
+                    `Dashboard - ${data.meta?.nome_comercial || 'Patentes'}`;
+                document.getElementById('subtitle').textContent = 
+                    `${data.meta?.molecula || ''} | ${data.meta?.classe_terapeutica || ''}`;
+
+                document.getElementById('totalPatentes').textContent = 
+                    data.estatisticas?.total_patentes || 0;
+                document.getElementById('fontes').textContent = 
+                    `INPI: ${data.estatisticas?.por_fonte?.INPI || 0} | EPO: ${data.estatisticas?.por_fonte?.EPO || 0}`;
+                document.getElementById('anosProtecao').textContent = 
+                    data.metricas_chave?.anos_protecao_restantes || 0;
+                document.getElementById('altaAmeaca').textContent = 
+                    data.metricas_chave?.patentes_alta_ameaca || 0;
+                document.getElementById('titular').textContent = 
+                    data.estatisticas?.top_titulares?.[0]?.titular?.substring(0, 20) || 'N/A';
+
+                document.getElementById('panorama').textContent = 
+                    data.relatorio_executivo?.panorama_geral || '';
+                document.getElementById('titularDesc').textContent = 
+                    data.relatorio_executivo?.titular_dominante || '';
+                document.getElementById('barreiras').textContent = 
+                    data.relatorio_executivo?.barreiras_criticas || '';
+                document.getElementById('janelas').textContent = 
+                    data.relatorio_executivo?.janelas_oportunidade || '';
+
+                // Tabela
+                const patentes = data.patentes || [];
+                const tbody = document.getElementById('tbody');
+                
+                const validas = patentes.filter(p => 
+                    p.titulo && !p.titulo.includes('[object Object]')
+                );
+
+                console.log(`📊 ${validas.length} patentes válidas`);
+
+                document.getElementById('count').textContent = 
+                    `${validas.length} patentes encontradas`;
+
+                validas.slice(0, 50).forEach(p => {
+                    const tr = document.createElement('tr');
+                    const fonte = p.fonte || (p.pais === 'BR' ? 'INPI' : 'EPO');
+                    const titulo = (p.titulo || p.titulo_original || 'Sem título').substring(0, 80);
+                    
+                    tr.innerHTML = `
+                        <td><span class="badge badge-${fonte.toLowerCase()}">${fonte === 'INPI' ? 'BR' : p.pais}</span></td>
+                        <td><code style="font-size: 0.75rem;">${p.numero_completo || '-'}</code></td>
+                        <td>${titulo}</td>
+                        <td>${p.ano_deposito || p.ano || '-'}</td>
+                        <td>${p.nivel_ameaca ? 
+                            `<span class="badge badge-${p.nivel_ameaca.toLowerCase()}">${p.nivel_ameaca}</span>` 
+                            : 'N/A'}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                // Mostrar conteúdo
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('content').style.display = 'block';
+
+                console.log('🎉 Dashboard renderizado!');
+
+            } catch (error) {
+                console.error('❌ ERRO:', error);
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('error').classList.remove('hidden');
+                document.getElementById('errorMsg').textContent = error.message;
+            }
+        });
+    </script>
 </body>
 </html>
