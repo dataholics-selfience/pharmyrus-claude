@@ -114,166 +114,148 @@
         </footer>
     </div>
 
-    <script>
-        console.log('🚀 Pharmyrus App v3.0 - Iniciado');
+<script>
+console.log('🚀 INICIADO');
 
-        localStorage.removeItem('patentAnalysis');
-        console.log('🧹 Cache limpo');
+const WEBHOOK_PROD = 'https://primary-production-2e3b.up.railway.app/webhook/analise-patentes';
+const WEBHOOK_TEST = 'https://primary-production-2e3b.up.railway.app/webhook-test/analise-patentes';
+const TIMEOUT = 360000;
 
-        const WEBHOOK_PROD = 'https://primary-production-2e3b.up.railway.app/webhook/analise-patentes';
-        const WEBHOOK_TEST = 'https://primary-production-2e3b.up.railway.app/webhook-test/analise-patentes';
-        const TIMEOUT = 360000;
-
-        let state = {
-            isProcessing: false,
-            progressInterval: null,
-            abortController: null,
-            startTime: null
-        };
-
-        let elements = {};
-
-        window.addEventListener('load', function() {
-            console.log('✅ DOM carregado');
-
-            elements = {
-                btnSearch: document.getElementById('btnSearch'),
-                btnTest: document.getElementById('btnTest'),
-                btnCancel: document.getElementById('btnCancel'),
-                useTestEnv: document.getElementById('useTestEnv'),
-                nomeMolecula: document.getElementById('nomeMolecula'),
-                nomeComercial: document.getElementById('nomeComercial'),
-                processingStatus: document.getElementById('processingStatus'),
-                statusMessage: document.getElementById('statusMessage'),
-                progressFill: document.getElementById('progressFill'),
-                statusTime: document.getElementById('statusTime'),
-                searchForm: document.getElementById('searchForm')
-            };
-
-            elements.searchForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                return false;
-            });
-
-            elements.btnSearch.addEventListener('click', function(e) {
-                e.preventDefault();
-                console.log('🔍 Buscar clicado');
-
-                const molecula = elements.nomeMolecula.value.trim();
-                const comercial = elements.nomeComercial.value.trim();
-
-                if (!molecula || !comercial) {
-                    alert('Por favor, preencha todos os campos');
-                    return;
-                }
-
-                localStorage.removeItem('patentAnalysis');
-                iniciarBusca({ nome_molecula: molecula, nome_comercial: comercial });
-            });
-
-            elements.btnTest.addEventListener('click', function(e) {
-                e.preventDefault();
-                console.log('🧪 Teste clicado');
-                
-                elements.nomeMolecula.value = 'Abemaciclib';
-                elements.nomeComercial.value = 'Verzenios';
-                
-                localStorage.removeItem('patentAnalysis');
-                iniciarBusca({ nome_molecula: 'Abemaciclib', nome_comercial: 'Verzenios' });
-            });
-
-            elements.btnCancel.addEventListener('click', function() {
-                console.log('❌ Cancelar');
-                if (state.abortController) {
-                    state.abortController.abort();
-                }
-                esconderStatus();
-            });
-
-            console.log('✅ Pronto');
-        });
-
-        async function iniciarBusca(dados) {
-            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            console.log('🚀 INICIANDO BUSCA');
-            console.log('Dados:', dados);
-
-            if (state.isProcessing) {
-                alert('Já existe uma busca em andamento');
-                return;
+window.onload = function() {
+    console.log('✅ Página carregada');
+    
+    localStorage.clear();
+    console.log('🧹 Cache limpo');
+    
+    const btnSearch = document.getElementById('btnSearch');
+    const btnTest = document.getElementById('btnTest');
+    const btnCancel = document.getElementById('btnCancel');
+    const useTestEnv = document.getElementById('useTestEnv');
+    const nomeMolecula = document.getElementById('nomeMolecula');
+    const nomeComercial = document.getElementById('nomeComercial');
+    const processingStatus = document.getElementById('processingStatus');
+    const statusMessage = document.getElementById('statusMessage');
+    const progressFill = document.getElementById('progressFill');
+    const statusTime = document.getElementById('statusTime');
+    const searchForm = document.getElementById('searchForm');
+    
+    console.log('Botão:', btnSearch);
+    
+    if (!btnSearch) {
+        console.error('❌ Botão não encontrado!');
+        alert('ERRO: Botão não encontrado!');
+        return;
+    }
+    
+    searchForm.onsubmit = function(e) {
+        e.preventDefault();
+        return false;
+    };
+    
+    btnSearch.onclick = function() {
+        console.log('🔍 CLIQUE DETECTADO!');
+        
+        const mol = nomeMolecula.value.trim();
+        const com = nomeComercial.value.trim();
+        
+        console.log('Molécula:', mol);
+        console.log('Comercial:', com);
+        
+        if (!mol || !com) {
+            alert('Preencha os campos!');
+            return;
+        }
+        
+        buscar(mol, com);
+    };
+    
+    btnTest.onclick = function() {
+        console.log('🧪 TESTE CLICADO!');
+        nomeMolecula.value = 'Abemaciclib';
+        nomeComercial.value = 'Verzenios';
+        buscar('Abemaciclib', 'Verzenios');
+    };
+    
+    btnCancel.onclick = function() {
+        console.log('❌ CANCELAR');
+        location.reload();
+    };
+    
+    function buscar(mol, com) {
+        console.log('━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('🚀 BUSCA INICIADA');
+        console.log('━━━━━━━━━━━━━━━━━━━━━━');
+        
+        const url = useTestEnv.checked ? WEBHOOK_TEST : WEBHOOK_PROD;
+        const dados = { nome_molecula: mol, nome_comercial: com };
+        
+        console.log('URL:', url);
+        console.log('Dados:', dados);
+        
+        processingStatus.classList.remove('hidden');
+        searchForm.style.opacity = '0.5';
+        searchForm.style.pointerEvents = 'none';
+        
+        statusMessage.textContent = 'Enviando requisição...';
+        progressFill.style.width = '10%';
+        
+        let progresso = 10;
+        const intervalo = setInterval(function() {
+            progresso += 1;
+            if (progresso <= 85) {
+                progressFill.style.width = progresso + '%';
+                statusMessage.textContent = 'Processando... ' + progresso + '%';
             }
+        }, 3000);
+        
+        console.log('📡 Enviando fetch...');
+        
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dados)
+        })
+        .then(function(response) {
+            console.log('📡 Resposta recebida:', response.status);
+            
+            if (!response.ok) {
+                throw new Error('HTTP ' + response.status);
+            }
+            
+            return response.json();
+        })
+        .then(function(resultado) {
+            console.log('✅ JSON OK:', resultado);
+            
+            clearInterval(intervalo);
+            
+            statusMessage.textContent = 'Salvando...';
+            progressFill.style.width = '95%';
+            
+            localStorage.clear();
+            
+            const json = JSON.stringify(Array.isArray(resultado) ? resultado : [{ output: JSON.stringify(resultado) }]);
+            localStorage.setItem('patentAnalysis', json);
+            
+            console.log('💾 Salvo:', json.length, 'bytes');
+            
+            statusMessage.textContent = 'Redirecionando...';
+            progressFill.style.width = '100%';
+            
+            setTimeout(function() {
+                console.log('🔀 Redirecionando...');
+                window.location.href = 'dashboard.html?t=' + Date.now();
+            }, 1500);
+        })
+        .catch(function(erro) {
+            console.error('❌ ERRO:', erro);
+            clearInterval(intervalo);
+            alert('Erro: ' + erro.message);
+            location.reload();
+        });
+    }
+    
+    console.log('✅ TUDO PRONTO!');
+};
+</script>
 
-            state.isProcessing = true;
-            const url = elements.useTestEnv.checked ? WEBHOOK_TEST : WEBHOOK_PROD;
-
-            console.log('URL:', url);
-
-            mostrarStatus();
-            state.startTime = Date.now();
-            iniciarProgresso();
-            state.abortController = new AbortController();
-
-            try {
-                atualizarStatus('Enviando requisição...', 5);
-                console.log('📡 Fetch iniciado:', new Date().toLocaleTimeString());
-
-                const response = await Promise.race([
-                    fetch(url, {
-                        method: 'POST',
-                        headers: { 
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify(dados),
-                        signal: state.abortController.signal
-                    }),
-                    new Promise(function(_, reject) {
-                        setTimeout(function() {
-                            reject(new Error('TIMEOUT'));
-                        }, TIMEOUT);
-                    })
-                ]);
-
-                console.log('📡 Resposta:', response.status, new Date().toLocaleTimeString());
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error('HTTP ' + response.status + ': ' + errorText);
-                }
-
-                atualizarStatus('Processando resposta...', 92);
-
-                const resultado = await response.json();
-
-                console.log('✅ JSON OK');
-                console.log('Tipo:', Array.isArray(resultado) ? 'Array' : typeof resultado);
-
-                if (Array.isArray(resultado) && resultado.length > 0) {
-                    const primeiro = resultado[0];
-                    if (primeiro.meta) {
-                        console.log('Molécula:', primeiro.meta.molecula);
-                    } else if (primeiro.output) {
-                        const inner = JSON.parse(primeiro.output);
-                        console.log('Molécula:', inner.meta.molecula);
-                    }
-                }
-
-                if (!resultado || (Array.isArray(resultado) && resultado.length === 0)) {
-                    throw new Error('Resposta vazia');
-                }
-
-                atualizarStatus('Salvando...', 95);
-
-                console.log('🧹 Limpando storage...');
-                localStorage.clear();
-                
-                await new Promise(function(resolve) {
-                    setTimeout(resolve, 100);
-                });
-
-                const paraGravar = Array.isArray(resultado) ? resultado : [{ output: JSON.stringify(resultado) }];
-                const jsonString = JSON.stringify(paraGravar);
-                
-                console.log('💾 Salvando:', jsonString.length, 'bytes');
-                
-                localStorage.setItem('patentAnalysis', jsonString);
