@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharmyrus - Busca Avançada de Patentes</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo-container">
+                <img src="images/logo.png" alt="Pharmyrus Logo" class="logo">
+            </div>
+            <h1 class="title">Busca Avançada de Patentes</h1>
+            <p class="subtitle">Análise inteligente de portfólios de patentes farmacêuticas</p>
+        </header>
+
+        <!-- Formulário de Busca -->
+        <div class="search-card">
+            <form id="searchForm" class="search-form">
+                <div class="form-group">
+                    <label for="nomeMolecula" class="form-label">
+                        <span class="label-icon">🧬</span>
+                        Nome da Molécula
+                    </label>
+                    <input 
+                        type="text" 
+                        id="nomeMolecula" 
+                        name="nome_molecula"
+                        class="form-input"
+                        placeholder="Ex: Abemaciclib"
+                        required
+                    >
+                    <small class="form-hint">Nome científico da substância ativa</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="nomeComercial" class="form-label">
+                        <span class="label-icon">💊</span>
+                        Nome Comercial
+                    </label>
+                    <input 
+                        type="text" 
+                        id="nomeComercial" 
+                        name="nome_comercial"
+                        class="form-input"
+                        placeholder="Ex: Verzenios"
+                        required
+                    >
+                    <small class="form-hint">Nome comercial do medicamento</small>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary" id="btnSearch">
+                        <span class="btn-icon">🔍</span>
+                        Iniciar Análise
+                    </button>
+                    <button type="button" class="btn-secondary" id="btnTest">
+                        <span class="btn-icon">🧪</span>
+                        Teste Rápido
+                    </button>
+                </div>
+
+                <!-- Ambiente de Teste -->
+                <div class="test-mode">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="useTestEnv">
+                        <span>Usar ambiente de testes (webhook-test)</span>
+                    </label>
+                </div>
+            </form>
+
+            <!-- Status de Processamento -->
+            <div id="processingStatus" class="processing-status hidden">
+                <div class="status-card">
+                    <div class="status-spinner"></div>
+                    <h3 class="status-title">Processando Análise</h3>
+                    <p class="status-message" id="statusMessage">
+                        Buscando patentes e gerando análise IA...
+                    </p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <p class="status-time" id="statusTime">Tempo estimado: 3-5 minutos</p>
+                    <button class="btn-cancel" id="btnCancel">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features -->
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Análise Completa</h3>
+                <p>Busca em bases INPI e EPO com análise de IA integrada</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <h3>Insights Estratégicos</h3>
+                <p>Identificação de barreiras críticas e oportunidades</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>Resultados Rápidos</h3>
+                <p>Análise completa em até 5 minutos</p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2025 Pharmyrus. Todos os direitos reservados.</p>
+        </footer>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
