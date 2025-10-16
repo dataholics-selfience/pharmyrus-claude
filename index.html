@@ -19,7 +19,7 @@
 
         <!-- Formulário de Busca -->
         <div class="search-card">
-              <form id="searchForm" class="search-form" onsubmit="return false;">
+            <form id="searchForm" class="search-form">
                 <div class="form-group">
                     <label for="nomeMolecula" class="form-label">
                         <span class="label-icon">🧬</span>
@@ -30,7 +30,7 @@
                         id="nomeMolecula" 
                         name="nome_molecula"
                         class="form-input"
-                        placeholder="Ex: Abemaciclib"
+                        placeholder="Ex: Semaglutida"
                         required
                     >
                     <small class="form-hint">Nome científico da substância ativa</small>
@@ -46,14 +46,14 @@
                         id="nomeComercial" 
                         name="nome_comercial"
                         class="form-input"
-                        placeholder="Ex: Verzenios"
+                        placeholder="Ex: Ozempic"
                         required
                     >
                     <small class="form-hint">Nome comercial do medicamento</small>
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" class="btn-primary" id="btnSearch">
+                    <button type="button" class="btn-primary" id="btnSearch">
                         <span class="btn-icon">🔍</span>
                         Iniciar Análise
                     </button>
@@ -114,7 +114,118 @@
         </footer>
     </div>
 
-    <script src="js/app.js"></script>
-</body>
+    <!-- JAVASCRIPT INLINE - GARANTIDO FUNCIONAR -->
+    <script>
+        console.log('🚀 SCRIPT INLINE INICIADO');
 
-</html>
+        // Configuração
+        const WEBHOOK_PROD = 'https://primary-production-2e3b.up.railway.app/webhook/analise-patentes';
+        const WEBHOOK_TEST = 'https://primary-production-2e3b.up.railway.app/webhook-test/analise-patentes';
+        const TIMEOUT = 360000; // 6 minutos
+
+        let state = {
+            isProcessing: false,
+            progressInterval: null,
+            abortController: null,
+            startTime: null
+        };
+
+        // Aguardar DOM carregar
+        window.addEventListener('load', function() {
+            console.log('✅ Página carregada');
+
+            // Capturar elementos
+            const btnSearch = document.getElementById('btnSearch');
+            const btnTest = document.getElementById('btnTest');
+            const btnCancel = document.getElementById('btnCancel');
+            const useTestEnv = document.getElementById('useTestEnv');
+            const nomeMolecula = document.getElementById('nomeMolecula');
+            const nomeComercial = document.getElementById('nomeComercial');
+            const processingStatus = document.getElementById('processingStatus');
+            const statusMessage = document.getElementById('statusMessage');
+            const progressFill = document.getElementById('progressFill');
+            const statusTime = document.getElementById('statusTime');
+            const searchForm = document.getElementById('searchForm');
+
+            console.log('✅ Elementos capturados');
+
+            // Prevenir submit do form
+            searchForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                console.log('❌ Submit bloqueado');
+                return false;
+            });
+
+            // Botão Iniciar Análise
+            btnSearch.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('🔍 BOTÃO INICIAR CLICADO!');
+
+                const molecula = nomeMolecula.value.trim();
+                const comercial = nomeComercial.value.trim();
+
+                console.log('Molécula:', molecula);
+                console.log('Comercial:', comercial);
+
+                if (!molecula || !comercial) {
+                    alert('❌ Por favor, preencha todos os campos!');
+                    return;
+                }
+
+                iniciarBusca({ nome_molecula: molecula, nome_comercial: comercial });
+            });
+
+            // Botão Teste
+            btnTest.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('🧪 BOTÃO TESTE CLICADO!');
+                
+                nomeMolecula.value = 'Semaglutida';
+                nomeComercial.value = 'Ozempic';
+                
+                iniciarBusca({ nome_molecula: 'Semaglutida', nome_comercial: 'Ozempic' });
+            });
+
+            // Botão Cancelar
+            btnCancel.addEventListener('click', function() {
+                console.log('❌ CANCELAR CLICADO');
+                if (state.abortController) {
+                    state.abortController.abort();
+                }
+                esconderStatus();
+            });
+
+            // Função principal
+            async function iniciarBusca(dados) {
+                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                console.log('🚀 INICIANDO BUSCA');
+                console.log('Dados:', dados);
+                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+                if (state.isProcessing) {
+                    alert('⚠️ Já existe uma busca em andamento!');
+                    return;
+                }
+
+                state.isProcessing = true;
+                const url = useTestEnv.checked ? WEBHOOK_TEST : WEBHOOK_PROD;
+
+                console.log('🎯 URL:', url);
+                console.log('🔧 Teste?', useTestEnv.checked);
+
+                mostrarStatus();
+                state.startTime = Date.now();
+                iniciarProgresso();
+
+                state.abortController = new AbortController();
+
+                try {
+                    atualizarStatus('📤 Enviando requisição...', 10);
+
+                    console.log('📡 Fazendo fetch...');
+
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(dados),
+                        signal:
