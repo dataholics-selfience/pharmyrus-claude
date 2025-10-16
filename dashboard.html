@@ -32,11 +32,10 @@
         table { width: 100%; border-collapse: collapse; }
         th { background: #f9fafb; padding: 1rem; text-align: left; font-weight: 600; color: #374151; font-size: 0.875rem; border-bottom: 2px solid #e5e7eb; }
         td { padding: 1rem; border-bottom: 1px solid #e5e7eb; font-size: 0.875rem; color: #374151; }
-        tbody tr:hover { background: #f9fafb; cursor: pointer; }
+        tbody tr:hover { background: #f9fafb; }
         .badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
         .badge-alta { background: #fee2e2; color: #991b1b; }
         .badge-media { background: #fef3c7; color: #92400e; }
-        .badge-baixa { background: #d1fae5; color: #065f46; }
         .badge-inpi { background: #dbeafe; color: #1e40af; }
         .badge-epo { background: #d1fae5; color: #065f46; }
         .error { background: white; padding: 3rem; border-radius: 1rem; text-align: center; }
@@ -49,79 +48,47 @@
         <div id="loading" class="loading">
             <div class="spinner"></div>
             <h2>Carregando dados...</h2>
+            <p id="loadingMsg" style="color: #6b7280; margin-top: 1rem;"></p>
         </div>
 
         <div id="error" class="error hidden">
-            <h2>❌ Erro ao Carregar</h2>
+            <h2>❌ Erro</h2>
             <p id="errorMsg"></p>
             <button class="btn" onclick="window.location.href='index.html'">Voltar</button>
         </div>
 
         <div id="content" style="display: none;">
             <div class="header">
-                <h1 id="title">Dashboard de Patentes</h1>
+                <h1 id="title">Dashboard</h1>
                 <p id="subtitle"></p>
                 <div class="buttons">
-                    <button class="btn" onclick="window.print()">📥 Exportar PDF</button>
-                    <button class="btn" onclick="if(confirm('Nova busca?')){localStorage.clear();window.location.href='index.html';}">🔍 Nova Busca</button>
+                    <button class="btn" onclick="window.print()">📥 PDF</button>
+                    <button class="btn" onclick="if(confirm('Nova?')){localStorage.clear();window.location.href='index.html';}">🔍 Nova</button>
                 </div>
             </div>
 
             <div class="cards">
-                <div class="card">
-                    <h2 id="totalPatentes">0</h2>
-                    <p>Total de Patentes</p>
-                    <small id="fontes"></small>
-                </div>
-                <div class="card">
-                    <h2 id="anosProtecao">0</h2>
-                    <p>Anos de Proteção</p>
-                </div>
-                <div class="card">
-                    <h2 id="altaAmeaca">0</h2>
-                    <p>Alta Ameaça</p>
-                </div>
-                <div class="card">
-                    <h2 id="titular">-</h2>
-                    <p>Titular Dominante</p>
-                </div>
+                <div class="card"><h2 id="totalPatentes">0</h2><p>Total</p><small id="fontes"></small></div>
+                <div class="card"><h2 id="anosProtecao">0</h2><p>Anos Proteção</p></div>
+                <div class="card"><h2 id="altaAmeaca">0</h2><p>Alta Ameaça</p></div>
+                <div class="card"><h2 id="titular">-</h2><p>Titular</p></div>
             </div>
 
             <div class="report">
-                <h3>📊 Relatório Executivo</h3>
+                <h3>📊 Relatório</h3>
                 <div class="report-grid">
-                    <div class="report-item">
-                        <h4>Panorama Geral</h4>
-                        <p id="panorama"></p>
-                    </div>
-                    <div class="report-item">
-                        <h4>Titular Dominante</h4>
-                        <p id="titularDesc"></p>
-                    </div>
-                    <div class="report-item">
-                        <h4>Barreiras Críticas</h4>
-                        <p id="barreiras"></p>
-                    </div>
-                    <div class="report-item">
-                        <h4>Janelas de Oportunidade</h4>
-                        <p id="janelas"></p>
-                    </div>
+                    <div class="report-item"><h4>Panorama</h4><p id="panorama"></p></div>
+                    <div class="report-item"><h4>Titular</h4><p id="titularDesc"></p></div>
+                    <div class="report-item"><h4>Barreiras</h4><p id="barreiras"></p></div>
+                    <div class="report-item"><h4>Oportunidades</h4><p id="janelas"></p></div>
                 </div>
             </div>
 
             <div class="table-container">
-                <h3>🔎 Patentes Analisadas (<span id="count">0</span>)</h3>
+                <h3>🔎 Patentes (<span id="count">0</span>)</h3>
                 <div style="overflow-x: auto; margin-top: 1rem;">
                     <table>
-                        <thead>
-                            <tr>
-                                <th>Fonte</th>
-                                <th>Número</th>
-                                <th>Título</th>
-                                <th>Ano</th>
-                                <th>Ameaça</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th>Fonte</th><th>Número</th><th>Título</th><th>Ano</th><th>Ameaça</th></tr></thead>
                         <tbody id="tbody"></tbody>
                     </table>
                 </div>
@@ -130,33 +97,61 @@
     </div>
 
     <script>
-        console.log('🚀 Dashboard v5.0');
+        console.log('🚀 Dashboard FINAL v6');
         
-        window.onload = function() {
-            console.log('✅ Iniciando');
+        var urlParams = new URLSearchParams(window.location.search);
+        var timestamp = urlParams.get('t');
+        
+        console.log('Timestamp URL:', timestamp);
+        
+        if (!timestamp) {
+            console.warn('⚠️ Sem timestamp - possível cache');
+        }
+        
+        var tentativa = 0;
+        var maxTentativas = 3;
+        
+        function carregar() {
+            tentativa++;
+            console.log('Tentativa', tentativa, 'de', maxTentativas);
+            
+            document.getElementById('loadingMsg').textContent = 'Tentativa ' + tentativa + ' de ' + maxTentativas;
+            
+            var stored = localStorage.getItem('patentAnalysis');
+            
+            if (!stored) {
+                console.error('❌ Sem dados no localStorage');
+                
+                if (tentativa < maxTentativas) {
+                    console.log('⏳ Aguardando 2s...');
+                    setTimeout(carregar, 2000);
+                    return;
+                }
+                
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('error').classList.remove('hidden');
+                document.getElementById('errorMsg').textContent = 'Nenhum dado encontrado após ' + maxTentativas + ' tentativas. Faça uma nova busca.';
+                return;
+            }
+            
+            console.log('✅ Dados encontrados:', stored.length, 'bytes');
             
             try {
-                var stored = localStorage.getItem('patentAnalysis');
-                if (!stored) throw new Error('Sem dados. Faça uma busca.');
-                
-                console.log('📦 Dados encontrados:', stored.length, 'bytes');
-                
                 var raw = JSON.parse(stored);
                 var dados = Array.isArray(raw) && raw[0] && raw[0].output ? JSON.parse(raw[0].output) : (Array.isArray(raw) && raw[0] ? raw[0] : raw);
                 
-                console.log('✅ Parse OK');
-                console.log('Meta:', dados.meta);
+                console.log('Molécula:', dados.meta.molecula);
+                console.log('Comercial:', dados.meta.nome_comercial);
                 
-                document.getElementById('title').textContent = 'Dashboard - ' + (dados.meta.nome_comercial || 'Patentes');
+                document.getElementById('title').textContent = dados.meta.nome_comercial || 'Dashboard';
                 document.getElementById('subtitle').textContent = (dados.meta.molecula || '') + ' | ' + (dados.meta.classe_terapeutica || '');
-                
                 document.getElementById('totalPatentes').textContent = dados.estatisticas.total_patentes || 0;
                 document.getElementById('fontes').textContent = 'INPI: ' + (dados.estatisticas.por_fonte.INPI || 0) + ' | EPO: ' + (dados.estatisticas.por_fonte.EPO || 0);
                 document.getElementById('anosProtecao').textContent = dados.metricas_chave.anos_protecao_restantes || 0;
                 document.getElementById('altaAmeaca').textContent = dados.metricas_chave.patentes_alta_ameaca || 0;
                 
-                var topTit = dados.estatisticas.top_titulares[0].titular || 'N/A';
-                document.getElementById('titular').textContent = topTit.length > 25 ? topTit.substring(0, 25) + '...' : topTit;
+                var tit = dados.estatisticas.top_titulares[0].titular || 'N/A';
+                document.getElementById('titular').textContent = tit.substring(0, 25);
                 
                 document.getElementById('panorama').textContent = dados.relatorio_executivo.panorama_geral || '';
                 document.getElementById('titularDesc').textContent = dados.relatorio_executivo.titular_dominante || '';
@@ -164,15 +159,11 @@
                 document.getElementById('janelas').textContent = dados.relatorio_executivo.janelas_oportunidade || '';
                 
                 var patentes = dados.patentes || [];
-                var validas = [];
-                for (var i = 0; i < patentes.length; i++) {
-                    if (patentes[i].titulo && patentes[i].titulo.indexOf('[object Object]') === -1) {
-                        validas.push(patentes[i]);
-                    }
-                }
+                var validas = patentes.filter(function(p) {
+                    return p.titulo && p.titulo.indexOf('[object Object]') === -1;
+                });
                 
-                console.log('📊', validas.length, 'patentes válidas');
-                
+                console.log('Patentes:', validas.length);
                 document.getElementById('count').textContent = validas.length;
                 
                 var tbody = document.getElementById('tbody');
@@ -180,11 +171,10 @@
                     var p = validas[i];
                     var tr = document.createElement('tr');
                     var fonte = p.fonte || (p.pais === 'BR' ? 'INPI' : 'EPO');
-                    var titulo = (p.titulo || p.titulo_original || 'Sem título').substring(0, 80);
                     
                     tr.innerHTML = '<td><span class="badge badge-' + fonte.toLowerCase() + '">' + (fonte === 'INPI' ? 'BR' : p.pais) + '</span></td>' +
-                        '<td><code style="font-size:0.75rem">' + (p.numero_completo || '-') + '</code></td>' +
-                        '<td>' + titulo + '</td>' +
+                        '<td><code style="font-size:0.75rem">' + (p.numero_completo || '-').substring(0, 20) + '</code></td>' +
+                        '<td>' + (p.titulo || 'Sem título').substring(0, 80) + '</td>' +
                         '<td>' + (p.ano_deposito || p.ano || '-') + '</td>' +
                         '<td>' + (p.nivel_ameaca ? '<span class="badge badge-' + p.nivel_ameaca.toLowerCase() + '">' + p.nivel_ameaca + '</span>' : 'N/A') + '</td>';
                     
@@ -193,16 +183,18 @@
                 
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('content').style.display = 'block';
-                
-                console.log('🎉 Dashboard pronto!');
+                console.log('✅ Pronto!');
                 
             } catch (erro) {
-                console.error('❌ ERRO:', erro);
+                console.error('❌ Erro:', erro);
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('error').classList.remove('hidden');
                 document.getElementById('errorMsg').textContent = erro.message;
             }
-        };
+        }
+        
+        // Aguardar 1 segundo antes de tentar carregar
+        setTimeout(carregar, 1000);
     </script>
 </body>
 </html>
