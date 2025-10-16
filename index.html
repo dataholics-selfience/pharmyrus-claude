@@ -8,7 +8,6 @@
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
         <header class="header">
             <div class="logo-container">
                 <img src="images/logo.png" alt="Pharmyrus Logo" class="logo">
@@ -17,7 +16,6 @@
             <p class="subtitle">Análise inteligente de portfólios de patentes farmacêuticas</p>
         </header>
 
-        <!-- Formulário de Busca -->
         <div class="search-card">
             <form id="searchForm" class="search-form">
                 <div class="form-group">
@@ -28,7 +26,6 @@
                     <input 
                         type="text" 
                         id="nomeMolecula" 
-                        name="nome_molecula"
                         class="form-input"
                         placeholder="Ex: Abemaciclib"
                         required
@@ -44,7 +41,6 @@
                     <input 
                         type="text" 
                         id="nomeComercial" 
-                        name="nome_comercial"
                         class="form-input"
                         placeholder="Ex: Verzenios"
                         required
@@ -63,7 +59,6 @@
                     </button>
                 </div>
 
-                <!-- Ambiente de Teste -->
                 <div class="test-mode">
                     <label class="checkbox-label">
                         <input type="checkbox" id="useTestEnv">
@@ -72,14 +67,11 @@
                 </div>
             </form>
 
-            <!-- Status de Processamento -->
             <div id="processingStatus" class="processing-status hidden">
                 <div class="status-card">
                     <div class="status-spinner"></div>
                     <h3 class="status-title">Processando Análise</h3>
-                    <p class="status-message" id="statusMessage">
-                        Buscando patentes e gerando análise IA...
-                    </p>
+                    <p class="status-message" id="statusMessage">Aguardando resposta do webhook...</p>
                     <div class="progress-bar">
                         <div class="progress-fill" id="progressFill"></div>
                     </div>
@@ -89,7 +81,6 @@
             </div>
         </div>
 
-        <!-- Features -->
         <div class="features">
             <div class="feature-card">
                 <div class="feature-icon">📊</div>
@@ -108,154 +99,127 @@
             </div>
         </div>
 
-        <!-- Footer -->
         <footer class="footer">
             <p>&copy; 2025 Pharmyrus. Todos os direitos reservados.</p>
         </footer>
     </div>
 
-<script>
-console.log('🚀 INICIADO');
-
-const WEBHOOK_PROD = 'https://primary-production-2e3b.up.railway.app/webhook/analise-patentes';
-const WEBHOOK_TEST = 'https://primary-production-2e3b.up.railway.app/webhook-test/analise-patentes';
-const TIMEOUT = 360000;
-
-window.onload = function() {
-    console.log('✅ Página carregada');
-    
-    localStorage.clear();
-    console.log('🧹 Cache limpo');
-    
-    const btnSearch = document.getElementById('btnSearch');
-    const btnTest = document.getElementById('btnTest');
-    const btnCancel = document.getElementById('btnCancel');
-    const useTestEnv = document.getElementById('useTestEnv');
-    const nomeMolecula = document.getElementById('nomeMolecula');
-    const nomeComercial = document.getElementById('nomeComercial');
-    const processingStatus = document.getElementById('processingStatus');
-    const statusMessage = document.getElementById('statusMessage');
-    const progressFill = document.getElementById('progressFill');
-    const statusTime = document.getElementById('statusTime');
-    const searchForm = document.getElementById('searchForm');
-    
-    console.log('Botão:', btnSearch);
-    
-    if (!btnSearch) {
-        console.error('❌ Botão não encontrado!');
-        alert('ERRO: Botão não encontrado!');
-        return;
-    }
-    
-    searchForm.onsubmit = function(e) {
-        e.preventDefault();
-        return false;
-    };
-    
-    btnSearch.onclick = function() {
-        console.log('🔍 CLIQUE DETECTADO!');
+    <script>
+        console.log('🚀 Pharmyrus v4.0');
         
-        const mol = nomeMolecula.value.trim();
-        const com = nomeComercial.value.trim();
+        var WEBHOOK_PROD = 'https://primary-production-2e3b.up.railway.app/webhook/analise-patentes';
+        var WEBHOOK_TEST = 'https://primary-production-2e3b.up.railway.app/webhook-test/analise-patentes';
         
-        console.log('Molécula:', mol);
-        console.log('Comercial:', com);
-        
-        if (!mol || !com) {
-            alert('Preencha os campos!');
-            return;
-        }
-        
-        buscar(mol, com);
-    };
-    
-    btnTest.onclick = function() {
-        console.log('🧪 TESTE CLICADO!');
-        nomeMolecula.value = 'Abemaciclib';
-        nomeComercial.value = 'Verzenios';
-        buscar('Abemaciclib', 'Verzenios');
-    };
-    
-    btnCancel.onclick = function() {
-        console.log('❌ CANCELAR');
-        location.reload();
-    };
-    
-    function buscar(mol, com) {
-        console.log('━━━━━━━━━━━━━━━━━━━━━━');
-        console.log('🚀 BUSCA INICIADA');
-        console.log('━━━━━━━━━━━━━━━━━━━━━━');
-        
-        const url = useTestEnv.checked ? WEBHOOK_TEST : WEBHOOK_PROD;
-        const dados = { nome_molecula: mol, nome_comercial: com };
-        
-        console.log('URL:', url);
-        console.log('Dados:', dados);
-        
-        processingStatus.classList.remove('hidden');
-        searchForm.style.opacity = '0.5';
-        searchForm.style.pointerEvents = 'none';
-        
-        statusMessage.textContent = 'Enviando requisição...';
-        progressFill.style.width = '10%';
-        
-        let progresso = 10;
-        const intervalo = setInterval(function() {
-            progresso += 1;
-            if (progresso <= 85) {
-                progressFill.style.width = progresso + '%';
-                statusMessage.textContent = 'Processando... ' + progresso + '%';
-            }
-        }, 3000);
-        
-        console.log('📡 Enviando fetch...');
-        
-        fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(dados)
-        })
-        .then(function(response) {
-            console.log('📡 Resposta recebida:', response.status);
-            
-            if (!response.ok) {
-                throw new Error('HTTP ' + response.status);
-            }
-            
-            return response.json();
-        })
-        .then(function(resultado) {
-            console.log('✅ JSON OK:', resultado);
-            
-            clearInterval(intervalo);
-            
-            statusMessage.textContent = 'Salvando...';
-            progressFill.style.width = '95%';
-            
+        window.onload = function() {
+            console.log('✅ Carregado');
             localStorage.clear();
             
-            const json = JSON.stringify(Array.isArray(resultado) ? resultado : [{ output: JSON.stringify(resultado) }]);
-            localStorage.setItem('patentAnalysis', json);
+            var btnSearch = document.getElementById('btnSearch');
+            var btnTest = document.getElementById('btnTest');
+            var btnCancel = document.getElementById('btnCancel');
+            var useTestEnv = document.getElementById('useTestEnv');
+            var nomeMolecula = document.getElementById('nomeMolecula');
+            var nomeComercial = document.getElementById('nomeComercial');
+            var processingStatus = document.getElementById('processingStatus');
+            var statusMessage = document.getElementById('statusMessage');
+            var progressFill = document.getElementById('progressFill');
+            var searchForm = document.getElementById('searchForm');
             
-            console.log('💾 Salvo:', json.length, 'bytes');
+            searchForm.onsubmit = function(e) { e.preventDefault(); return false; };
             
-            statusMessage.textContent = 'Redirecionando...';
-            progressFill.style.width = '100%';
+            btnSearch.onclick = function() {
+                console.log('🔍 Buscar');
+                var mol = nomeMolecula.value.trim();
+                var com = nomeComercial.value.trim();
+                if (!mol || !com) { alert('Preencha os campos'); return; }
+                buscar(mol, com);
+            };
             
-            setTimeout(function() {
-                console.log('🔀 Redirecionando...');
-                window.location.href = 'dashboard.html?t=' + Date.now();
-            }, 1500);
-        })
-        .catch(function(erro) {
-            console.error('❌ ERRO:', erro);
-            clearInterval(intervalo);
-            alert('Erro: ' + erro.message);
-            location.reload();
-        });
-    }
-    
-    console.log('✅ TUDO PRONTO!');
-};
-</script>
-
+            btnTest.onclick = function() {
+                console.log('🧪 Teste');
+                nomeMolecula.value = 'Abemaciclib';
+                nomeComercial.value = 'Verzenios';
+                buscar('Abemaciclib', 'Verzenios');
+            };
+            
+            btnCancel.onclick = function() { location.reload(); };
+            
+            function buscar(mol, com) {
+                console.log('━━━━━━━━━━━━━━━━━━━━━━');
+                console.log('🚀 BUSCA:', mol, com);
+                
+                var url = useTestEnv.checked ? WEBHOOK_TEST : WEBHOOK_PROD;
+                var dados = { nome_molecula: mol, nome_comercial: com };
+                
+                console.log('URL:', url);
+                
+                processingStatus.classList.remove('hidden');
+                searchForm.style.opacity = '0.5';
+                searchForm.style.pointerEvents = 'none';
+                
+                statusMessage.textContent = 'Enviando requisição ao webhook...';
+                progressFill.style.width = '5%';
+                
+                var prog = 5;
+                var timer = setInterval(function() {
+                    prog += 0.5;
+                    if (prog <= 90) {
+                        progressFill.style.width = prog + '%';
+                        statusMessage.textContent = 'Aguardando resposta... ' + Math.floor(prog) + '%';
+                    }
+                }, 2000);
+                
+                console.log('📡 Fetch:', new Date().toLocaleTimeString());
+                
+                fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dados)
+                })
+                .then(function(res) {
+                    console.log('📡 Resposta:', res.status, new Date().toLocaleTimeString());
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    return res.json();
+                })
+                .then(function(resultado) {
+                    console.log('✅ JSON recebido');
+                    
+                    clearInterval(timer);
+                    
+                    progressFill.style.width = '95%';
+                    statusMessage.textContent = 'Salvando dados...';
+                    
+                    localStorage.clear();
+                    
+                    var json = JSON.stringify(Array.isArray(resultado) ? resultado : [{ output: JSON.stringify(resultado) }]);
+                    localStorage.setItem('patentAnalysis', json);
+                    
+                    console.log('💾 Salvo:', json.length, 'bytes');
+                    
+                    var verif = localStorage.getItem('patentAnalysis');
+                    if (!verif) {
+                        throw new Error('Falha ao salvar');
+                    }
+                    console.log('✅ Verificado');
+                    
+                    progressFill.style.width = '100%';
+                    statusMessage.textContent = 'Concluído! Redirecionando...';
+                    
+                    setTimeout(function() {
+                        console.log('🔀 Redirecionando');
+                        window.location.href = 'dashboard.html?t=' + Date.now();
+                    }, 2000);
+                })
+                .catch(function(erro) {
+                    console.error('❌ ERRO:', erro);
+                    clearInterval(timer);
+                    alert('Erro: ' + erro.message);
+                    location.reload();
+                });
+            }
+            
+            console.log('✅ Pronto');
+        };
+    </script>
+</body>
+</html>
