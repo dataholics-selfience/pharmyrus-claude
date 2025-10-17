@@ -1,56 +1,321 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pharmyrus - Busca Avançada</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharmyrus - Busca Avançada de Patentes</title>
+    <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
-  <div class="bg-white shadow-lg rounded-2xl p-8 w-full max-w-lg">
-    <h1 class="text-2xl font-bold mb-4 text-center text-indigo-700">Pharmyrus - Busca de Patentes</h1>
-    <form id="searchForm" class="space-y-4">
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Molécula</label>
-        <input type="text" id="molecula" required class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500">
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Nome Comercial</label>
-        <input type="text" id="nomeComercial" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500">
-      </div>
-      <button type="submit" class="w-full bg-indigo-600 text-white font-semibold py-2 rounded-lg hover:bg-indigo-700 transition">
-        Buscar e Analisar
-      </button>
-    </form>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo-container">
+                <img src="images/logo.png" alt="Pharmyrus Logo" class="logo">
+            </div>
+            <h1 class="title">Busca Avançada de Patentes</h1>
+            <p class="subtitle">Análise inteligente de portfólios de patentes farmacêuticas</p>
+        </header>
 
-    <div id="loading" class="hidden mt-4 text-center text-gray-600">
-      🔍 Analisando dados... aguarde alguns segundos.
+        <div class="search-card">
+            <form id="searchForm" class="search-form" autocomplete="off">
+                <div class="form-group">
+                    <label for="nomeMolecula" class="form-label">
+                        <span class="label-icon">🧬</span>
+                        Nome da Molécula
+                    </label>
+                    <input 
+                        type="text" 
+                        id="nomeMolecula" 
+                        name="molecula_<?php echo time(); ?>"
+                        class="form-input" 
+                        placeholder="Ex: Abemaciclib" 
+                        autocomplete="off"
+                        autocorrect="off"
+                        autocapitalize="off"
+                        spellcheck="false"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="nomeComercial" class="form-label">
+                        <span class="label-icon">💊</span>
+                        Nome Comercial
+                    </label>
+                    <input 
+                        type="text" 
+                        id="nomeComercial"
+                        name="comercial_<?php echo time(); ?>"
+                        class="form-input" 
+                        placeholder="Ex: Verzenios"
+                        autocomplete="off"
+                        autocorrect="off"
+                        autocapitalize="off"
+                        spellcheck="false"
+                        required
+                    >
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-primary" id="btnSearch">🔍 Iniciar Análise</button>
+                    <button type="button" class="btn-secondary" id="btnTest">🧪 Teste</button>
+                </div>
+
+                <div class="test-mode">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="useTestEnv">
+                        <span>Ambiente de testes</span>
+                    </label>
+                </div>
+            </form>
+
+            <div id="processingStatus" class="processing-status hidden">
+                <div class="status-card">
+                    <div class="status-spinner"></div>
+                    <h3 class="status-title">Processando Análise</h3>
+                    <p class="status-message" id="statusMessage">Aguardando webhook...</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <p class="status-time" id="statusTime">Tempo estimado: 3-5 minutos</p>
+                </div>
+            </div>
+
+            <div id="successStatus" class="processing-status hidden" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                <div class="status-card">
+                    <div style="font-size: 4rem; margin-bottom: 1rem;">✅</div>
+                    <h3 class="status-title">Análise Concluída!</h3>
+                    <p class="status-message" id="successMessage" style="margin-bottom: 2rem;">
+                        Dados salvos com sucesso!
+                    </p>
+                    <button class="btn-primary" id="btnViewDashboard" style="font-size: 1.125rem; padding: 1rem 2rem;">
+                        📊 Ver Dashboard
+                    </button>
+                    <button class="btn-secondary" onclick="location.reload()" style="margin-top: 1rem;">
+                        🔍 Nova Busca
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Análise Completa</h3>
+                <p>Busca em bases INPI e EPO</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <h3>Insights Estratégicos</h3>
+                <p>Barreiras e oportunidades</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>Resultados Rápidos</h3>
+                <p>3-5 minutos</p>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>&copy; 2025 Pharmyrus</p>
+        </footer>
     </div>
-  </div>
 
-  <script>
-    document.getElementById("searchForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-
-      const molecula = document.getElementById("molecula").value.trim();
-      const nomeComercial = document.getElementById("nomeComercial").value.trim();
-      document.getElementById("loading").classList.remove("hidden");
-
-      try {
-        const response = await fetch("https://SEU_WEBHOOK_N8N_URL", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ molecula, nomeComercial })
-        });
-
-        const result = await response.json();
-        localStorage.setItem("patentAnalysis", JSON.stringify(result));
-        window.location.href = "dashboard.html";
-      } catch (err) {
-        alert("Erro ao consultar n8n: " + err.message);
-        document.getElementById("loading").classList.add("hidden");
-      }
-    });
-  </script>
+    <script>
+        console.log('🚀 Pharmyrus v8 FINAL');
+        
+        var WEBHOOK_PROD = 'https://primary-production-2e3b.up.railway.app/webhook/analise-patentes';
+        var WEBHOOK_TEST = 'https://primary-production-2e3b.up.railway.app/webhook-test/analise-patentes';
+        
+        window.onload = function() {
+            console.log('✅ Iniciado');
+            
+            localStorage.clear();
+            sessionStorage.clear();
+            console.log('🧹 Storage limpo');
+            
+            var form = document.getElementById('searchForm');
+            var btnSearch = document.getElementById('btnSearch');
+            var btnTest = document.getElementById('btnTest');
+            var useTestEnv = document.getElementById('useTestEnv');
+            var nomeMolecula = document.getElementById('nomeMolecula');
+            var nomeComercial = document.getElementById('nomeComercial');
+            var processingStatus = document.getElementById('processingStatus');
+            var successStatus = document.getElementById('successStatus');
+            var statusMessage = document.getElementById('statusMessage');
+            var progressFill = document.getElementById('progressFill');
+            var btnViewDashboard = document.getElementById('btnViewDashboard');
+            
+            // LIMPAR CAMPOS AO CARREGAR
+            nomeMolecula.value = '';
+            nomeComercial.value = '';
+            
+            form.onsubmit = function(e) { 
+                e.preventDefault(); 
+                e.stopPropagation();
+                return false; 
+            };
+            
+            btnSearch.onclick = function() {
+                // LER VALORES NO MOMENTO DO CLICK
+                var mol = nomeMolecula.value.trim();
+                var com = nomeComercial.value.trim();
+                
+                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                console.log('🔍 VALORES LIDOS:');
+                console.log('Campo Molécula:', nomeMolecula.value);
+                console.log('Campo Comercial:', nomeComercial.value);
+                console.log('Após trim:');
+                console.log('Molécula:', mol);
+                console.log('Comercial:', com);
+                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                
+                if (!mol || !com) { 
+                    alert('Preencha todos os campos'); 
+                    return; 
+                }
+                
+                buscar(mol, com);
+            };
+            
+            btnTest.onclick = function() {
+                nomeMolecula.value = '';
+                nomeComercial.value = '';
+                
+                setTimeout(function() {
+                    nomeMolecula.value = 'Abemaciclib';
+                    nomeComercial.value = 'Verzenios';
+                    
+                    console.log('🧪 TESTE - valores setados:');
+                    console.log('Molécula:', nomeMolecula.value);
+                    console.log('Comercial:', nomeComercial.value);
+                    
+                    buscar('Abemaciclib', 'Verzenios');
+                }, 100);
+            };
+            
+            btnViewDashboard.onclick = function() {
+                console.log('📊 Abrindo dashboard...');
+                window.location.href = 'dashboard.html?t=' + Date.now();
+            };
+            
+            function buscar(mol, com) {
+                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                console.log('🚀 BUSCA INICIADA');
+                console.log('Molécula ENVIADA:', mol);
+                console.log('Comercial ENVIADO:', com);
+                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                
+                localStorage.clear();
+                sessionStorage.clear();
+                
+                var url = useTestEnv.checked ? WEBHOOK_TEST : WEBHOOK_PROD;
+                var dados = { 
+                    nome_molecula: mol, 
+                    nome_comercial: com 
+                };
+                
+                console.log('📦 Payload:', JSON.stringify(dados));
+                console.log('🎯 URL:', url);
+                
+                processingStatus.classList.remove('hidden');
+                successStatus.classList.add('hidden');
+                form.style.opacity = '0.5';
+                form.style.pointerEvents = 'none';
+                
+                statusMessage.textContent = 'Enviando: ' + mol + ' / ' + com;
+                progressFill.style.width = '5%';
+                
+                var startTime = Date.now();
+                var prog = 5;
+                var timer = setInterval(function() {
+                    prog += 0.3;
+                    if (prog <= 90) {
+                        progressFill.style.width = prog + '%';
+                        var elapsed = Math.floor((Date.now() - startTime) / 1000);
+                        statusMessage.textContent = 'Processando ' + mol + '... ' + elapsed + 's';
+                    }
+                }, 2000);
+                
+                console.log('📡 Fetch START:', new Date().toLocaleTimeString());
+                
+                fetch(url, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(dados)
+                })
+                .then(function(res) {
+                    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                    console.log('📡 RESPOSTA:', res.status);
+                    console.log('Tempo:', new Date().toLocaleTimeString());
+                    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                    
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    return res.json();
+                })
+                .then(function(resultado) {
+                    clearInterval(timer);
+                    
+                    console.log('✅ JSON recebido');
+                    
+                    var moleculaRecebida = 'erro';
+                    if (Array.isArray(resultado) && resultado[0]) {
+                        if (resultado[0].meta) {
+                            moleculaRecebida = resultado[0].meta.molecula;
+                        } else if (resultado[0].output) {
+                            var inner = JSON.parse(resultado[0].output);
+                            moleculaRecebida = inner.meta.molecula;
+                        }
+                    }
+                    
+                    console.log('🧬 ESPERADO:', mol);
+                    console.log('🧬 RECEBIDO:', moleculaRecebida);
+                    
+                    progressFill.style.width = '95%';
+                    statusMessage.textContent = 'Salvando ' + moleculaRecebida + '...';
+                    
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    
+                    return new Promise(function(resolve) {
+                        setTimeout(function() {
+                            var json = JSON.stringify(Array.isArray(resultado) ? resultado : [{ output: JSON.stringify(resultado) }]);
+                            
+                            console.log('💾 Salvando:', json.length, 'bytes');
+                            localStorage.setItem('patentAnalysis', json);
+                            
+                            var verif = localStorage.getItem('patentAnalysis');
+                            if (!verif || verif.length !== json.length) {
+                                throw new Error('Falha ao salvar');
+                            }
+                            
+                            console.log('✅ SALVO');
+                            resolve(moleculaRecebida);
+                        }, 500);
+                    });
+                })
+                .then(function(moleculaSalva) {
+                    progressFill.style.width = '100%';
+                    
+                    processingStatus.classList.add('hidden');
+                    successStatus.classList.remove('hidden');
+                    
+                    document.getElementById('successMessage').textContent = 
+                        'Análise de ' + moleculaSalva + ' concluída!';
+                    
+                    console.log('🎉 CONCLUÍDO!');
+                })
+                .catch(function(erro) {
+                    console.error('❌ ERRO:', erro.message);
+                    clearInterval(timer);
+                    alert('ERRO: ' + erro.message);
+                    location.reload();
+                });
+            }
+        };
+    </script>
 </body>
 </html>
