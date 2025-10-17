@@ -206,13 +206,6 @@
         
         let todasPatentes = [];
         let patentesFiltradas = [];
-
-        function safeTitulo(t) {
-            if (!t) return 'Sem título';
-            if (typeof t === 'string') return t;
-            if (typeof t === 'object') return t.titulo || t.title || JSON.stringify(t);
-            return String(t);
-        }
         
         function carregar() {
             console.log('Carregando dados...');
@@ -236,10 +229,10 @@
                 console.log('Estatisticas:', dados.estatisticas);
                 
                 // HEADER
-                document.getElementById('title').textContent = safeTitulo(dados.meta.nome_comercial) || 'Dashboard';
+                document.getElementById('title').textContent = dados.meta.nome_comercial || 'Dashboard';
                 document.getElementById('subtitle').textContent = 'Análise de Portfólio de Patentes';
                 document.getElementById('moleculaName').textContent = dados.meta.molecula || '-';
-                document.getElementById('comercialName').textContent = safeTitulo(dados.meta.nome_comercial) || '-';
+                document.getElementById('comercialName').textContent = dados.meta.nome_comercial || '-';
                 document.getElementById('classeName').textContent = dados.meta.classe_terapeutica || '-';
                 
                 // CARDS
@@ -277,139 +270,143 @@
                 // Verificar distribuição de fontes
                 let countINPI = 0;
                 let countEPO = 0;
-                for (let i = 0; i < todasPatParece que o código HTML ficou muito grande para enviar inteiro de uma vez 😅.  
-Vou dividir em **duas partes**. A primeira vai até a definição das patentes e cards, e a segunda inclui o restante do JavaScript e modal.
-
----
-
-### **Parte 1 — HTML e CSS até cards**
-```html
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard - Pharmyrus</title>
-<style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 2rem; }
-.container { max-width: 1400px; margin: 0 auto; }
-
-.header { background: white; padding: 2rem; border-radius: 1rem; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
-.header h1 { color: #1f2937; margin-bottom: 0.5rem; font-size: 2rem; }
-.header .subtitle { color: #6b7280; font-size: 1.125rem; margin-bottom: 1rem; }
-.header .info-pills { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-.pill { display: inline-block; padding: 0.5rem 1rem; background: #f3f4f6; border-radius: 999px; font-size: 0.875rem; color: #374151; font-weight: 500; }
-.pill strong { color: #1f2937; }
-
-.buttons { display: flex; gap: 1rem; margin-top: 1rem; }
-.btn { padding: 0.75rem 1.5rem; background: #2563eb; color: white; border: none; border-radius: 0.5rem; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-block; }
-.btn:hover { background: #1e40af; }
-.btn-secondary { background: #6b7280; }
-.btn-secondary:hover { background: #4b5563; }
-
-.loading { background: white; padding: 3rem; border-radius: 1rem; text-align: center; }
-.loading.hidden { display: none; }
-.spinner { width: 60px; height: 60px; border: 4px solid #e5e7eb; border-top-color: #2563eb; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem; }
-@keyframes spin { to { transform: rotate(360deg); } }
-
-.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-.card { background: white; padding: 1.5rem; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
-.card h2 { font-size: 2.5rem; color: #2563eb; margin-bottom: 0.5rem; }
-.card p { color: #6b7280; font-weight: 600; margin-bottom: 0.25rem; }
-.card small { color: #9ca3af; font-size: 0.75rem; display: block; }
-
-.report { background: white; padding: 2rem; border-radius: 1rem; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
-.report h3 { color: #1f2937; margin-bottom: 1.5rem; font-size: 1.5rem; }
-.report-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
-.report-item h4 { color: #1f2937; margin-bottom: 0.75rem; font-size: 1rem; font-weight: 600; }
-.report-item p { color: #4b5563; font-size: 0.9375rem; line-height: 1.6; }
-
-.filters { background: white; padding: 1.5rem; border-radius: 1rem; margin-bottom: 1.5rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
-.filters label { font-weight: 600; color: #374151; }
-.filters select { padding: 0.5rem 1rem; border: 2px solid #e5e7eb; border-radius: 0.5rem; font-size: 0.875rem; cursor: pointer; }
-.filters select:focus { outline: none; border-color: #2563eb; }
-
-.table-container { background: white; padding: 1.5rem; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
-.table-container h3 { color: #1f2937; margin-bottom: 1rem; }
-table { width: 100%; border-collapse: collapse; }
-th { background: #f9fafb; padding: 1rem; text-align: left; font-weight: 600; color: #374151; font-size: 0.875rem; border-bottom: 2px solid #e5e7eb; position: sticky; top: 0; }
-td { padding: 1rem; border-bottom: 1px solid #e5e7eb; font-size: 0.875rem; color: #374151; }
-tbody tr { cursor: pointer; transition: background 0.2s; }
-tbody tr:hover { background: #f9fafb; }
-
-.badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
-.badge-alta { background: #fee2e2; color: #991b1b; }
-.badge-media { background: #fef3c7; color: #92400e; }
-.badge-baixa { background: #dbeafe; color: #1e40af; }
-.badge-inpi, .badge-br { background: #dbeafe; color: #1e40af; }
-.badge-epo { background: #d1fae5; color: #065f46; }
-
-.error { background: white; padding: 3rem; border-radius: 1rem; text-align: center; }
-.error.hidden { display: none; }
-.error h2 { color: #dc2626; margin-bottom: 1rem; }
-
-/* MODAL */
-.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center; }
-.modal.show { display: flex; }
-.modal-content { background: white; padding: 2rem; border-radius: 1rem; max-width: 800px; max-height: 90vh; overflow-y: auto; margin: 1rem; }
-.modal-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 1.5rem; }
-.modal-header h2 { color: #1f2937; font-size: 1.25rem; flex: 1; }
-.modal-close { background: #e5e7eb; border: none; padding: 0.5rem 1rem; border-radius: 0.5rem; cursor: pointer; font-weight: 600; }
-.modal-close:hover { background: #d1d5db; }
-.modal-body { color: #4b5563; line-height: 1.6; }
-.modal-body .detail { margin-bottom: 1rem; }
-.modal-body .detail strong { color: #1f2937; display: block; margin-bottom: 0.25rem; }
-</style>
-</head>
-<body>
-<div class="container">
-<div id="loading" class="loading">
-    <div class="spinner"></div>
-    <h2>Carregando dados...</h2>
-    <p id="loadingMsg" style="color: #6b7280; margin-top: 1rem;"></p>
-</div>
-
-<div id="error" class="error hidden">
-    <h2>❌ Erro</h2>
-    <p id="errorMsg"></p>
-    <button class="btn" onclick="window.location.href='index.html'">Voltar</button>
-</div>
-
-<div id="content" style="display: none;">
-    <div class="header">
-        <h1 id="title">Dashboard</h1>
-        <p class="subtitle" id="subtitle"></p>
-        <div class="info-pills">
-            <span class="pill"><strong>Molécula:</strong> <span id="moleculaName">-</span></span>
-            <span class="pill"><strong>Nome Comercial:</strong> <span id="comercialName">-</span></span>
-            <span class="pill"><strong>Classe:</strong> <span id="classeName">-</span></span>
-        </div>
-        <div class="buttons">
-            <button class="btn" onclick="window.print()">📥 Exportar PDF</button>
-            <button class="btn btn-secondary" onclick="if(confirm('Nova busca?')){localStorage.clear();window.location.href='index.html';}">🔍 Nova Busca</button>
-        </div>
-    </div>
-
-    <div class="cards">
-        <div class="card">
-            <h2 id="totalPatentes">0</h2>
-            <p>Total de Patentes</p>
-            <small id="fontes">INPI: 0 | EPO: 0</small>
-        </div>
-        <div class="card">
-            <h2 id="anosProtecao">0</h2>
-            <p>Anos de Proteção</p>
-            <small>Restantes estimados</small>
-        </div>
-        <div class="card">
-            <h2 id="altaAmeaca">0</h2>
-            <p>Alta Ameaça</p>
-            <small>Patentes críticas</small>
-        </div>
-        <div class="card">
-            <h2 id="titular">-</h2>
-            <p>Titular Principal</p>
-            <small id="titularPerc">-</small>
-        </div>
-    </div>
+                for (let i = 0; i < todasPatentes.length; i++) {
+                    const fonte = todasPatentes[i].fonte;
+                    const pais = todasPatentes[i].country || todasPatentes[i].pais;
+                    
+                    if (fonte === 'INPI' || pais === 'BR') {
+                        countINPI++;
+                    } else {
+                        countEPO++;
+                    }
+                }
+                console.log('Distribuição:', countINPI, 'INPI,', countEPO, 'EPO');
+                
+                filtrarPatentes();
+                
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('content').style.display = 'block';
+                console.log('✅ Dashboard pronto!');
+                
+            } catch (erro) {
+                console.error('Erro:', erro);
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('error').classList.remove('hidden');
+                document.getElementById('errorMsg').textContent = erro.message;
+            }
+        }
+        
+        function filtrarPatentes() {
+            const filterFonte = document.getElementById('filterFonte').value;
+            const filterTipo = document.getElementById('filterTipo').value;
+            
+            patentesFiltradas = todasPatentes.filter(function(p) {
+                let passaFonte = true;
+                let passaTipo = true;
+                
+                if (filterFonte !== 'todas') {
+                    const fonte = p.fonte;
+                    const pais = p.country || p.pais;
+                    
+                    if (filterFonte === 'INPI') {
+                        passaFonte = (fonte === 'INPI' || pais === 'BR');
+                    } else if (filterFonte === 'EPO') {
+                        passaFonte = (fonte === 'EPO' && pais !== 'BR');
+                    }
+                }
+                
+                if (filterTipo !== 'todos') {
+                    const tipo = p.tipo_patente || p.categoria_busca || 'outros';
+                    passaTipo = (tipo === filterTipo);
+                }
+                
+                return passaFonte && passaTipo;
+            });
+            
+            renderizarTabela();
+        }
+        
+        function renderizarTabela() {
+            const tbody = document.getElementById('tbody');
+            tbody.innerHTML = '';
+            
+            document.getElementById('count').textContent = patentesFiltradas.length;
+            
+            for (let i = 0; i < Math.min(patentesFiltradas.length, 200); i++) {
+                const p = patentesFiltradas[i];
+                const tr = document.createElement('tr');
+                
+                const fonte = p.fonte;
+                const pais = p.country || p.pais;
+                let fonteDisplay = fonte;
+                let badgeClass = 'badge-epo';
+                
+                if (fonte === 'INPI' || pais === 'BR') {
+                    fonteDisplay = 'BR';
+                    badgeClass = 'badge-br';
+                }
+                
+                const tipo = p.tipo_patente || p.categoria_busca || 'outros';
+                let tipoDisplay = tipo;
+                if (tipo === 'molecula_principal') tipoDisplay = 'Molécula';
+                else if (tipo === 'sal') tipoDisplay = 'Sal';
+                else if (tipo === 'cristal') tipoDisplay = 'Cristal';
+                else if (tipo === 'formulacao') tipoDisplay = 'Formulação';
+                else if (tipo === 'forma_farmaceutica') tipoDisplay = 'Forma Farm.';
+                
+                const ameaca = p.nivel_ameaca || '';
+                let ameacaBadge = '';
+                if (ameaca) {
+                    const badgeAmeaca = ameaca === 'Alta' ? 'badge-alta' : (ameaca === 'Média' ? 'badge-media' : 'badge-baixa');
+                    ameacaBadge = '<span class="badge ' + badgeAmeaca + '">' + ameaca + '</span>';
+                }
+                
+                tr.innerHTML = '<td><span class="badge ' + badgeClass + '">' + fonteDisplay + '</span></td>' +
+                    '<td><code style="font-size:0.75rem">' + (p.numero_completo || p.numero || '-').substring(0, 20) + '</code></td>' +
+                    '<td>' + (p.titulo || 'Sem título').substring(0, 80) + '</td>' +
+                    '<td>' + (p.ano_deposito || p.ano || '-') + '</td>' +
+                    '<td>' + tipoDisplay + '</td>' +
+                    '<td>' + ameacaBadge + '</td>';
+                
+                tr.onclick = function() { abrirModal(p); };
+                
+                tbody.appendChild(tr);
+            }
+        }
+        
+        function abrirModal(patente) {
+            document.getElementById('modalTitle').textContent = patente.numero_completo || patente.numero || 'Patente';
+            
+            let html = '';
+            html += '<div class="detail"><strong>Título:</strong> ' + (patente.titulo || 'N/A') + '</div>';
+            html += '<div class="detail"><strong>Fonte:</strong> ' + (patente.fonte || 'N/A') + '</div>';
+            html += '<div class="detail"><strong>País:</strong> ' + (patente.country || patente.pais || 'N/A') + '</div>';
+            html += '<div class="detail"><strong>Ano de Depósito:</strong> ' + (patente.ano_deposito || patente.ano || 'N/A') + '</div>';
+            html += '<div class="detail"><strong>Titular:</strong> ' + (patente.applicant || 'N/A') + '</div>';
+            html += '<div class="detail"><strong>IPC:</strong> ' + (patente.ipc || 'N/A') + '</div>';
+            html += '<div class="detail"><strong>Tipo:</strong> ' + (patente.tipo_patente || patente.categoria_busca || 'N/A') + '</div>';
+            
+            if (patente.nivel_ameaca) {
+                html += '<div class="detail"><strong>Nível de Ameaça:</strong> ' + patente.nivel_ameaca + '</div>';
+            }
+            
+            if (patente.comentario_ia) {
+                html += '<div class="detail"><strong>Análise IA:</strong> ' + patente.comentario_ia + '</div>';
+            }
+            
+            if (patente.abstract && patente.abstract !== 'N/A') {
+                html += '<div class="detail"><strong>Resumo:</strong> ' + patente.abstract + '</div>';
+            }
+            
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modal').classList.add('show');
+        }
+        
+        function fecharModal() {
+            document.getElementById('modal').classList.remove('show');
+        }
+        
+        setTimeout(carregar, 500);
+    </script>
+</body>
+</html>
