@@ -1,412 +1,145 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Pharmyrus</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 2rem; }
-        .container { max-width: 1400px; margin: 0 auto; }
-        
-        .header { background: white; padding: 2rem; border-radius: 1rem; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
-        .header h1 { color: #1f2937; margin-bottom: 0.5rem; font-size: 2rem; }
-        .header .subtitle { color: #6b7280; font-size: 1.125rem; margin-bottom: 1rem; }
-        .header .info-pills { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-        .pill { display: inline-block; padding: 0.5rem 1rem; background: #f3f4f6; border-radius: 999px; font-size: 0.875rem; color: #374151; font-weight: 500; }
-        .pill strong { color: #1f2937; }
-        
-        .buttons { display: flex; gap: 1rem; margin-top: 1rem; }
-        .btn { padding: 0.75rem 1.5rem; background: #2563eb; color: white; border: none; border-radius: 0.5rem; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-block; }
-        .btn:hover { background: #1e40af; }
-        .btn-secondary { background: #6b7280; }
-        .btn-secondary:hover { background: #4b5563; }
-        
-        .loading { background: white; padding: 3rem; border-radius: 1rem; text-align: center; }
-        .loading.hidden { display: none; }
-        .spinner { width: 60px; height: 60px; border: 4px solid #e5e7eb; border-top-color: #2563eb; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        
-        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-        .card { background: white; padding: 1.5rem; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
-        .card h2 { font-size: 2.5rem; color: #2563eb; margin-bottom: 0.5rem; }
-        .card p { color: #6b7280; font-weight: 600; margin-bottom: 0.25rem; }
-        .card small { color: #9ca3af; font-size: 0.75rem; display: block; }
-        
-        .report { background: white; padding: 2rem; border-radius: 1rem; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
-        .report h3 { color: #1f2937; margin-bottom: 1.5rem; font-size: 1.5rem; }
-        .report-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
-        .report-item h4 { color: #1f2937; margin-bottom: 0.75rem; font-size: 1rem; font-weight: 600; }
-        .report-item p { color: #4b5563; font-size: 0.9375rem; line-height: 1.6; }
-        
-        .filters { background: white; padding: 1.5rem; border-radius: 1rem; margin-bottom: 1.5rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
-        .filters label { font-weight: 600; color: #374151; }
-        .filters select { padding: 0.5rem 1rem; border: 2px solid #e5e7eb; border-radius: 0.5rem; font-size: 0.875rem; cursor: pointer; }
-        .filters select:focus { outline: none; border-color: #2563eb; }
-        
-        .table-container { background: white; padding: 1.5rem; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
-        .table-container h3 { color: #1f2937; margin-bottom: 1rem; }
-        table { width: 100%; border-collapse: collapse; }
-        th { background: #f9fafb; padding: 1rem; text-align: left; font-weight: 600; color: #374151; font-size: 0.875rem; border-bottom: 2px solid #e5e7eb; position: sticky; top: 0; }
-        td { padding: 1rem; border-bottom: 1px solid #e5e7eb; font-size: 0.875rem; color: #374151; }
-        tbody tr { cursor: pointer; transition: background 0.2s; }
-        tbody tr:hover { background: #f9fafb; }
-        
-        .badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
-        .badge-alta { background: #fee2e2; color: #991b1b; }
-        .badge-media { background: #fef3c7; color: #92400e; }
-        .badge-baixa { background: #dbeafe; color: #1e40af; }
-        .badge-inpi, .badge-br { background: #dbeafe; color: #1e40af; }
-        .badge-epo { background: #d1fae5; color: #065f46; }
-        
-        .error { background: white; padding: 3rem; border-radius: 1rem; text-align: center; }
-        .error.hidden { display: none; }
-        .error h2 { color: #dc2626; margin-bottom: 1rem; }
-        
-        /* MODAL */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center; }
-        .modal.show { display: flex; }
-        .modal-content { background: white; padding: 2rem; border-radius: 1rem; max-width: 800px; max-height: 90vh; overflow-y: auto; margin: 1rem; }
-        .modal-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 1.5rem; }
-        .modal-header h2 { color: #1f2937; font-size: 1.25rem; flex: 1; }
-        .modal-close { background: #e5e7eb; border: none; padding: 0.5rem 1rem; border-radius: 0.5rem; cursor: pointer; font-weight: 600; }
-        .modal-close:hover { background: #d1d5db; }
-        .modal-body { color: #4b5563; line-height: 1.6; }
-        .modal-body .detail { margin-bottom: 1rem; }
-        .modal-body .detail strong { color: #1f2937; display: block; margin-bottom: 0.25rem; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pharmyrus - Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body>
-    <div class="container">
-        <div id="loading" class="loading">
-            <div class="spinner"></div>
-            <h2>Carregando dados...</h2>
-            <p id="loadingMsg" style="color: #6b7280; margin-top: 1rem;"></p>
-        </div>
+<body class="bg-gray-50 min-h-screen">
 
-        <div id="error" class="error hidden">
-            <h2>❌ Erro</h2>
-            <p id="errorMsg"></p>
-            <button class="btn" onclick="window.location.href='index.html'">Voltar</button>
-        </div>
+  <header class="bg-indigo-700 text-white p-4 flex justify-between items-center">
+    <h1 class="text-lg font-semibold">📊 Pharmyrus - Análise Consolidada</h1>
+    <button onclick="exportarPDF()" class="bg-white text-indigo-700 px-4 py-1 rounded-lg hover:bg-indigo-100">Exportar PDF</button>
+  </header>
 
-        <div id="content" style="display: none;">
-            <div class="header">
-                <h1 id="title">Dashboard</h1>
-                <p class="subtitle" id="subtitle"></p>
-                <div class="info-pills">
-                    <span class="pill"><strong>Molécula:</strong> <span id="moleculaName">-</span></span>
-                    <span class="pill"><strong>Nome Comercial:</strong> <span id="comercialName">-</span></span>
-                    <span class="pill"><strong>Classe:</strong> <span id="classeName">-</span></span>
-                </div>
-                <div class="buttons">
-                    <button class="btn" onclick="window.print()">📥 Exportar PDF</button>
-                    <button class="btn btn-secondary" onclick="if(confirm('Nova busca?')){localStorage.clear();window.location.href='index.html';}">🔍 Nova Busca</button>
-                </div>
-            </div>
+  <main class="p-6 max-w-6xl mx-auto">
+    <section id="contexto" class="mb-6"></section>
 
-            <div class="cards">
-                <div class="card">
-                    <h2 id="totalPatentes">0</h2>
-                    <p>Total de Patentes</p>
-                    <small id="fontes">INPI: 0 | EPO: 0</small>
-                </div>
-                <div class="card">
-                    <h2 id="anosProtecao">0</h2>
-                    <p>Anos de Proteção</p>
-                    <small>Restantes estimados</small>
-                </div>
-                <div class="card">
-                    <h2 id="altaAmeaca">0</h2>
-                    <p>Alta Ameaça</p>
-                    <small>Patentes críticas</small>
-                </div>
-                <div class="card">
-                    <h2 id="titular">-</h2>
-                    <p>Titular Principal</p>
-                    <small id="titularPerc">-</small>
-                </div>
-            </div>
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8" id="estatisticas"></section>
 
-            <div class="report">
-                <h3>📊 Relatório Executivo</h3>
-                <div class="report-grid">
-                    <div class="report-item">
-                        <h4>📋 Panorama Geral</h4>
-                        <p id="panorama">-</p>
-                    </div>
-                    <div class="report-item">
-                        <h4>🏢 Titular Dominante</h4>
-                        <p id="titularDesc">-</p>
-                    </div>
-                    <div class="report-item">
-                        <h4>🚧 Barreiras Críticas</h4>
-                        <p id="barreiras">-</p>
-                    </div>
-                    <div class="report-item">
-                        <h4>💡 Oportunidades</h4>
-                        <p id="janelas">-</p>
-                    </div>
-                </div>
-            </div>
+    <section class="bg-white rounded-2xl p-4 shadow mb-8">
+      <h2 class="text-lg font-semibold mb-2 text-gray-800">📅 Linha do Tempo</h2>
+      <canvas id="timelineChart" height="80"></canvas>
+    </section>
 
-            <div class="filters">
-                <label for="filterFonte">Filtrar por fonte:</label>
-                <select id="filterFonte" onchange="filtrarPatentes()">
-                    <option value="todas">Todas</option>
-                    <option value="INPI">INPI (Brasil)</option>
-                    <option value="EPO">EPO (Europa)</option>
-                </select>
-                
-                <label for="filterTipo">Tipo:</label>
-                <select id="filterTipo" onchange="filtrarPatentes()">
-                    <option value="todos">Todos</option>
-                    <option value="molecula_principal">Molécula Principal</option>
-                    <option value="sal">Sal/Polimorfo</option>
-                    <option value="cristal">Cristal</option>
-                    <option value="formulacao">Formulação</option>
-                    <option value="forma_farmaceutica">Forma Farmacêutica</option>
-                </select>
-            </div>
+    <section class="bg-white rounded-2xl p-4 shadow mb-8">
+      <h2 class="text-lg font-semibold mb-3 text-gray-800">📑 Filtros</h2>
+      <div class="flex flex-wrap gap-4 mb-4">
+        <select id="filtroFonte" class="border rounded p-2">
+          <option value="todas">Todas as fontes</option>
+          <option value="INPI">INPI (BR)</option>
+          <option value="EPO">EPO (EU)</option>
+        </select>
 
-            <div class="table-container">
-                <h3>🔎 Patentes (<span id="count">0</span>)</h3>
-                <div style="overflow-x: auto; margin-top: 1rem;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Fonte</th>
-                                <th>Número</th>
-                                <th>Título</th>
-                                <th>Ano</th>
-                                <th>Tipo</th>
-                                <th>Ameaça</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tbody"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
+        <select id="filtroTipo" class="border rounded p-2">
+          <option value="todos">Todos os tipos</option>
+        </select>
+      </div>
 
-    <!-- MODAL -->
-    <div id="modal" class="modal" onclick="if(event.target.id==='modal') fecharModal()">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modalTitle">Detalhes da Patente</h2>
-                <button class="modal-close" onclick="fecharModal()">✕ Fechar</button>
-            </div>
-            <div class="modal-body" id="modalBody"></div>
-        </div>
-    </div>
+      <table class="min-w-full text-sm text-left border-collapse" id="tabelaPatentes">
+        <thead class="bg-gray-200">
+          <tr>
+            <th class="p-2 border">Fonte</th>
+            <th class="p-2 border">Número</th>
+            <th class="p-2 border">Título</th>
+            <th class="p-2 border">Ano</th>
+            <th class="p-2 border">Relevância</th>
+          </tr>
+        </thead>
+        <tbody id="corpoTabela"></tbody>
+      </table>
+    </section>
+  </main>
 
-    <script>
-        console.log('🚀 Dashboard v6 - FINAL');
-        
-        let todasPatentes = [];
-        let patentesFiltradas = [];
-        
-        function carregar() {
-            console.log('Carregando dados...');
-            
-            const stored = localStorage.getItem('patentAnalysis');
-            
-            if (!stored) {
-                document.getElementById('loading').classList.add('hidden');
-                document.getElementById('error').classList.remove('hidden');
-                document.getElementById('errorMsg').textContent = 'Nenhum dado encontrado. Faça uma nova busca.';
-                return;
-            }
-            
-            console.log('Dados encontrados:', stored.length, 'bytes');
-            
-            try {
-                const raw = JSON.parse(stored);
-                const dados = Array.isArray(raw) && raw[0] && raw[0].output ? JSON.parse(raw[0].output) : (Array.isArray(raw) && raw[0] ? raw[0] : raw);
-                
-                console.log('Meta:', dados.meta);
-                console.log('Estatisticas:', dados.estatisticas);
-                
-                // HEADER
-                document.getElementById('title').textContent = dados.meta.nome_comercial || 'Dashboard';
-                document.getElementById('subtitle').textContent = 'Análise de Portfólio de Patentes';
-                document.getElementById('moleculaName').textContent = dados.meta.molecula || '-';
-                document.getElementById('comercialName').textContent = dados.meta.nome_comercial || '-';
-                document.getElementById('classeName').textContent = dados.meta.classe_terapeutica || '-';
-                
-                // CARDS
-                const estat = dados.estatisticas || {};
-                const totalPatentes = estat.total_patentes || 0;
-                const porFonte = estat.por_fonte || {};
-                
-                document.getElementById('totalPatentes').textContent = totalPatentes;
-                document.getElementById('fontes').textContent = 'INPI: ' + (porFonte.INPI || 0) + ' | EPO: ' + (porFonte.EPO || 0);
-                
-                const metricas = dados.metricas_chave || {};
-                document.getElementById('anosProtecao').textContent = metricas.anos_protecao_restantes || 0;
-                document.getElementById('altaAmeaca').textContent = metricas.patentes_alta_ameaca || 0;
-                
-                const topTitulares = estat.top_titulares || [];
-                if (topTitulares.length > 0) {
-                    const top = topTitulares[0];
-                    document.getElementById('titular').textContent = top.titular.substring(0, 20);
-                    document.getElementById('titularPerc').textContent = top.percentual + '% do total';
-                } else {
-                    document.getElementById('titular').textContent = 'N/A';
-                }
-                
-                // RELATORIO
-                const rel = dados.relatorio_executivo || {};
-                document.getElementById('panorama').textContent = rel.panorama_geral || 'Não disponível';
-                document.getElementById('titularDesc').textContent = rel.titular_dominante || 'Não disponível';
-                document.getElementById('barreiras').textContent = rel.barreiras_criticas || 'Não disponível';
-                document.getElementById('janelas').textContent = rel.janelas_oportunidade || 'Não disponível';
-                
-                // PATENTES
-                todasPatentes = dados.patentes || [];
-                console.log('Total de patentes:', todasPatentes.length);
-                
-                // Verificar distribuição de fontes
-                let countINPI = 0;
-                let countEPO = 0;
-                for (let i = 0; i < todasPatentes.length; i++) {
-                    const fonte = todasPatentes[i].fonte;
-                    const pais = todasPatentes[i].country || todasPatentes[i].pais;
-                    
-                    if (fonte === 'INPI' || pais === 'BR') {
-                        countINPI++;
-                    } else {
-                        countEPO++;
-                    }
-                }
-                console.log('Distribuição:', countINPI, 'INPI,', countEPO, 'EPO');
-                
-                filtrarPatentes();
-                
-                document.getElementById('loading').classList.add('hidden');
-                document.getElementById('content').style.display = 'block';
-                console.log('✅ Dashboard pronto!');
-                
-            } catch (erro) {
-                console.error('Erro:', erro);
-                document.getElementById('loading').classList.add('hidden');
-                document.getElementById('error').classList.remove('hidden');
-                document.getElementById('errorMsg').textContent = erro.message;
-            }
-        }
-        
-        function filtrarPatentes() {
-            const filterFonte = document.getElementById('filterFonte').value;
-            const filterTipo = document.getElementById('filterTipo').value;
-            
-            patentesFiltradas = todasPatentes.filter(function(p) {
-                let passaFonte = true;
-                let passaTipo = true;
-                
-                if (filterFonte !== 'todas') {
-                    const fonte = p.fonte;
-                    const pais = p.country || p.pais;
-                    
-                    if (filterFonte === 'INPI') {
-                        passaFonte = (fonte === 'INPI' || pais === 'BR');
-                    } else if (filterFonte === 'EPO') {
-                        passaFonte = (fonte === 'EPO' && pais !== 'BR');
-                    }
-                }
-                
-                if (filterTipo !== 'todos') {
-                    const tipo = p.tipo_patente || p.categoria_busca || 'outros';
-                    passaTipo = (tipo === filterTipo);
-                }
-                
-                return passaFonte && passaTipo;
-            });
-            
-            renderizarTabela();
-        }
-        
-        function renderizarTabela() {
-            const tbody = document.getElementById('tbody');
-            tbody.innerHTML = '';
-            
-            document.getElementById('count').textContent = patentesFiltradas.length;
-            
-            for (let i = 0; i < Math.min(patentesFiltradas.length, 200); i++) {
-                const p = patentesFiltradas[i];
-                const tr = document.createElement('tr');
-                
-                const fonte = p.fonte;
-                const pais = p.country || p.pais;
-                let fonteDisplay = fonte;
-                let badgeClass = 'badge-epo';
-                
-                if (fonte === 'INPI' || pais === 'BR') {
-                    fonteDisplay = 'BR';
-                    badgeClass = 'badge-br';
-                }
-                
-                const tipo = p.tipo_patente || p.categoria_busca || 'outros';
-                let tipoDisplay = tipo;
-                if (tipo === 'molecula_principal') tipoDisplay = 'Molécula';
-                else if (tipo === 'sal') tipoDisplay = 'Sal';
-                else if (tipo === 'cristal') tipoDisplay = 'Cristal';
-                else if (tipo === 'formulacao') tipoDisplay = 'Formulação';
-                else if (tipo === 'forma_farmaceutica') tipoDisplay = 'Forma Farm.';
-                
-                const ameaca = p.nivel_ameaca || '';
-                let ameacaBadge = '';
-                if (ameaca) {
-                    const badgeAmeaca = ameaca === 'Alta' ? 'badge-alta' : (ameaca === 'Média' ? 'badge-media' : 'badge-baixa');
-                    ameacaBadge = '<span class="badge ' + badgeAmeaca + '">' + ameaca + '</span>';
-                }
-                
-                tr.innerHTML = '<td><span class="badge ' + badgeClass + '">' + fonteDisplay + '</span></td>' +
-                    '<td><code style="font-size:0.75rem">' + (p.numero_completo || p.numero || '-').substring(0, 20) + '</code></td>' +
-                    '<td>' + (p.titulo || 'Sem título').substring(0, 80) + '</td>' +
-                    '<td>' + (p.ano_deposito || p.ano || '-') + '</td>' +
-                    '<td>' + tipoDisplay + '</td>' +
-                    '<td>' + ameacaBadge + '</td>';
-                
-                tr.onclick = function() { abrirModal(p); };
-                
-                tbody.appendChild(tr);
-            }
-        }
-        
-        function abrirModal(patente) {
-            document.getElementById('modalTitle').textContent = patente.numero_completo || patente.numero || 'Patente';
-            
-            let html = '';
-            html += '<div class="detail"><strong>Título:</strong> ' + (patente.titulo || 'N/A') + '</div>';
-            html += '<div class="detail"><strong>Fonte:</strong> ' + (patente.fonte || 'N/A') + '</div>';
-            html += '<div class="detail"><strong>País:</strong> ' + (patente.country || patente.pais || 'N/A') + '</div>';
-            html += '<div class="detail"><strong>Ano de Depósito:</strong> ' + (patente.ano_deposito || patente.ano || 'N/A') + '</div>';
-            html += '<div class="detail"><strong>Titular:</strong> ' + (patente.applicant || 'N/A') + '</div>';
-            html += '<div class="detail"><strong>IPC:</strong> ' + (patente.ipc || 'N/A') + '</div>';
-            html += '<div class="detail"><strong>Tipo:</strong> ' + (patente.tipo_patente || patente.categoria_busca || 'N/A') + '</div>';
-            
-            if (patente.nivel_ameaca) {
-                html += '<div class="detail"><strong>Nível de Ameaça:</strong> ' + patente.nivel_ameaca + '</div>';
-            }
-            
-            if (patente.comentario_ia) {
-                html += '<div class="detail"><strong>Análise IA:</strong> ' + patente.comentario_ia + '</div>';
-            }
-            
-            if (patente.abstract && patente.abstract !== 'N/A') {
-                html += '<div class="detail"><strong>Resumo:</strong> ' + patente.abstract + '</div>';
-            }
-            
-            document.getElementById('modalBody').innerHTML = html;
-            document.getElementById('modal').classList.add('show');
-        }
-        
-        function fecharModal() {
-            document.getElementById('modal').classList.remove('show');
-        }
-        
-        setTimeout(carregar, 500);
-    </script>
+  <script>
+    const dados = JSON.parse(localStorage.getItem("patentAnalysis") || "{}");
+
+    if (!dados?.estatisticas) {
+      document.body.innerHTML = '<div class="p-8 text-center text-gray-600">Nenhuma análise encontrada. Volte à página inicial.</div>';
+    }
+
+    const patentes = (dados.todas_patentes || []).sort((a, b) => {
+      if (a.fonte === 'INPI' && b.fonte !== 'INPI') return -1;
+      if (b.fonte === 'INPI' && a.fonte !== 'INPI') return 1;
+      return (b.ano || 0) - (a.ano || 0);
+    });
+
+    document.getElementById("contexto").innerHTML = `
+      <div class="bg-white rounded-2xl p-4 shadow">
+        <h2 class="text-xl font-semibold mb-2 text-indigo-700">${dados.contexto.molecula_principal}</h2>
+        <p><strong>Nome comercial:</strong> ${dados.contexto.nome_comercial}</p>
+        <p><strong>Classe terapêutica:</strong> ${dados.contexto.classe_terapeutica}</p>
+      </div>
+    `;
+
+    document.getElementById("estatisticas").innerHTML = `
+      <div class="bg-white p-4 rounded-2xl shadow">
+        <h3 class="text-sm text-gray-500">Total de Patentes</h3>
+        <p class="text-2xl font-bold">${dados.estatisticas.total_patentes}</p>
+      </div>
+      <div class="bg-white p-4 rounded-2xl shadow">
+        <h3 class="text-sm text-gray-500">INPI (BR)</h3>
+        <p class="text-2xl font-bold text-indigo-700">${dados.estatisticas.por_fonte.INPI}</p>
+      </div>
+      <div class="bg-white p-4 rounded-2xl shadow">
+        <h3 class="text-sm text-gray-500">EPO (EU)</h3>
+        <p class="text-2xl font-bold text-pink-600">${dados.estatisticas.por_fonte.EPO}</p>
+      </div>
+    `;
+
+    const ctx = document.getElementById('timelineChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: dados.estatisticas.timeline.map(t => t.ano),
+        datasets: [{
+          label: 'Patentes por Ano',
+          data: dados.estatisticas.timeline.map(t => t.quantidade)
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+
+    const corpo = document.getElementById("corpoTabela");
+    const filtroFonte = document.getElementById("filtroFonte");
+    const filtroTipo = document.getElementById("filtroTipo");
+
+    const tiposUnicos = [...new Set(patentes.map(p => p.tipo_patente || "outros"))];
+    filtroTipo.innerHTML += tiposUnicos.map(t => `<option value="${t}">${t}</option>`).join("");
+
+    function renderTabela() {
+      const fonteSel = filtroFonte.value;
+      const tipoSel = filtroTipo.value;
+      corpo.innerHTML = "";
+
+      patentes.filter(p => {
+        const okFonte = (fonteSel === "todas" || p.fonte === fonteSel);
+        const okTipo = (tipoSel === "todos" || p.tipo_patente === tipoSel);
+        return okFonte && okTipo;
+      }).forEach(p => {
+        corpo.innerHTML += `
+          <tr class="border-b hover:bg-gray-50">
+            <td class="p-2 border">${p.fonte}</td>
+            <td class="p-2 border">${p.numero}</td>
+            <td class="p-2 border">${p.titulo}</td>
+            <td class="p-2 border">${p.ano || '-'}</td>
+            <td class="p-2 border">${p.relevancia}</td>
+          </tr>`;
+      });
+    }
+
+    filtroFonte.onchange = renderTabela;
+    filtroTipo.onchange = renderTabela;
+    renderTabela();
+
+    function exportarPDF() {
+      window.print();
+    }
+  </script>
 </body>
 </html>
