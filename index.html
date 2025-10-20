@@ -297,25 +297,15 @@
                         }, 500);
                     });
                 })
-                .then(function(moleculaSalva) {
-                    progressFill.style.width = '100%';
-                    
-                    processingStatus.classList.add('hidden');
-                    successStatus.classList.remove('hidden');
-                    
-                    document.getElementById('successMessage').textContent = 
-                        'Análise de ' + moleculaSalva + ' concluída!';
-                    
-                    console.log('🎉 CONCLUÍDO!');
-                })
-                .catch(function(erro) {
-                    console.error('❌ ERRO:', erro.message);
-                    clearInterval(timer);
-                    alert('ERRO: ' + erro.message);
-                    location.reload();
-                });
+progressFill.style.width = '100%';
+statusMessage.textContent = 'Redirecionando...';
+
+setTimeout(function() {
+    window.location.href = 'dashboard.html?t=' + Date.now();
+}, 1500);
             }
         };
     </script>
 </body>
 </html>
+
