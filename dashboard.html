@@ -39,21 +39,15 @@
         .report-item h4 { color: #1f2937; margin-bottom: 0.75rem; font-size: 1rem; font-weight: 600; }
         .report-item p { color: #4b5563; font-size: 0.9375rem; line-height: 1.6; }
         
-        .filters-section { background: white; padding: 1.5rem; border-radius: 1rem; margin-bottom: 1.5rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
-        .filters-section h3 { color: #1f2937; margin-bottom: 1rem; font-size: 1.125rem; }
-        .filters-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
-        .filter-group { display: flex; flex-direction: column; gap: 0.5rem; }
-        .filter-group label { font-weight: 600; color: #374151; font-size: 0.875rem; }
-        .filter-group select, .filter-group input { padding: 0.5rem; border: 2px solid #e5e7eb; border-radius: 0.5rem; font-size: 0.875rem; }
-        .filter-group select:focus, .filter-group input:focus { outline: none; border-color: #2563eb; }
+        .filters { background: white; padding: 1.5rem; border-radius: 1rem; margin-bottom: 1.5rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+        .filters label { font-weight: 600; color: #374151; }
+        .filters select { padding: 0.5rem 1rem; border: 2px solid #e5e7eb; border-radius: 0.5rem; font-size: 0.875rem; cursor: pointer; }
+        .filters select:focus { outline: none; border-color: #2563eb; }
         
-        .section-divider { background: white; padding: 1rem 1.5rem; border-radius: 1rem; margin-bottom: 1rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
-        .section-divider h3 { color: #1f2937; font-size: 1.25rem; display: flex; align-items: center; gap: 0.5rem; }
-        .section-divider .count { background: #2563eb; color: white; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.875rem; }
-        
-        .table-container { background: white; padding: 1.5rem; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); margin-bottom: 1.5rem; }
+        .table-container { background: white; padding: 1.5rem; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        .table-container h3 { color: #1f2937; margin-bottom: 1rem; }
         table { width: 100%; border-collapse: collapse; }
-        th { background: #f9fafb; padding: 1rem; text-align: left; font-weight: 600; color: #374151; font-size: 0.875rem; border-bottom: 2px solid #e5e7eb; }
+        th { background: #f9fafb; padding: 1rem; text-align: left; font-weight: 600; color: #374151; font-size: 0.875rem; border-bottom: 2px solid #e5e7eb; position: sticky; top: 0; }
         td { padding: 1rem; border-bottom: 1px solid #e5e7eb; font-size: 0.875rem; color: #374151; }
         tbody tr { cursor: pointer; transition: background 0.2s; }
         tbody tr:hover { background: #f9fafb; }
@@ -62,13 +56,14 @@
         .badge-alta { background: #fee2e2; color: #991b1b; }
         .badge-media { background: #fef3c7; color: #92400e; }
         .badge-baixa { background: #dbeafe; color: #1e40af; }
-        .badge-br { background: #dbeafe; color: #1e40af; }
+        .badge-inpi, .badge-br { background: #dbeafe; color: #1e40af; }
         .badge-epo { background: #d1fae5; color: #065f46; }
         
         .error { background: white; padding: 3rem; border-radius: 1rem; text-align: center; }
         .error.hidden { display: none; }
         .error h2 { color: #dc2626; margin-bottom: 1rem; }
         
+        /* MODAL */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center; }
         .modal.show { display: flex; }
         .modal-content { background: white; padding: 2rem; border-radius: 1rem; max-width: 800px; max-height: 90vh; overflow-y: auto; margin: 1rem; }
@@ -92,16 +87,13 @@
         <div id="error" class="error hidden">
             <h2>❌ Erro</h2>
             <p id="errorMsg"></p>
-            <div style="margin-top: 2rem;">
-                <button class="btn" onclick="window.location.href='index.html'">Voltar</button>
-                <button class="btn btn-secondary" onclick="debugStorage()" style="margin-left: 1rem;">🔍 Debug Storage</button>
-            </div>
+            <button class="btn" onclick="window.location.href='index.html'">Voltar</button>
         </div>
 
         <div id="content" style="display: none;">
             <div class="header">
                 <h1 id="title">Dashboard</h1>
-                <p class="subtitle">Análise de Portfólio de Patentes</p>
+                <p class="subtitle" id="subtitle"></p>
                 <div class="info-pills">
                     <span class="pill"><strong>Molécula:</strong> <span id="moleculaName">-</span></span>
                     <span class="pill"><strong>Nome Comercial:</strong> <span id="comercialName">-</span></span>
@@ -158,12 +150,28 @@
                 </div>
             </div>
 
-            <div class="section-divider">
-                <h3>🔎 Patentes <span class="count" id="countTotal">0</span></h3>
+            <div class="filters">
+                <label for="filterFonte">Filtrar por fonte:</label>
+                <select id="filterFonte" onchange="filtrarPatentes()">
+                    <option value="todas">Todas</option>
+                    <option value="INPI">INPI (Brasil)</option>
+                    <option value="EPO">EPO (Europa)</option>
+                </select>
+                
+                <label for="filterTipo">Tipo:</label>
+                <select id="filterTipo" onchange="filtrarPatentes()">
+                    <option value="todos">Todos</option>
+                    <option value="molecula_principal">Molécula Principal</option>
+                    <option value="sal">Sal/Polimorfo</option>
+                    <option value="cristal">Cristal</option>
+                    <option value="formulacao">Formulação</option>
+                    <option value="forma_farmaceutica">Forma Farmacêutica</option>
+                </select>
             </div>
 
             <div class="table-container">
-                <div style="overflow-x: auto;">
+                <h3>🔎 Patentes (<span id="count">0</span>)</h3>
+                <div style="overflow-x: auto; margin-top: 1rem;">
                     <table>
                         <thead>
                             <tr>
@@ -171,7 +179,7 @@
                                 <th>Número</th>
                                 <th>Título</th>
                                 <th>Ano</th>
-                                <th>País</th>
+                                <th>Tipo</th>
                                 <th>Ameaça</th>
                             </tr>
                         </thead>
@@ -182,232 +190,217 @@
         </div>
     </div>
 
+    <!-- MODAL -->
     <div id="modal" class="modal" onclick="if(event.target.id==='modal') fecharModal()">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="modalTitle">Detalhes</h2>
-                <button class="modal-close" onclick="fecharModal()">✕</button>
+                <h2 id="modalTitle">Detalhes da Patente</h2>
+                <button class="modal-close" onclick="fecharModal()">✕ Fechar</button>
             </div>
             <div class="modal-body" id="modalBody"></div>
         </div>
     </div>
 
     <script>
-        console.log('🚀 Dashboard v10 - DEBUG AVANÇADO');
+        console.log('🚀 Dashboard v6 - FINAL');
         
         let todasPatentes = [];
-        
-        function debugStorage() {
-            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            console.log('🔍 DEBUG STORAGE');
-            
-            var keys = Object.keys(localStorage);
-            console.log('Total de chaves:', keys.length);
-            console.log('Chaves:', keys);
-            
-            for (var i = 0; i < keys.length; i++) {
-                var key = keys[i];
-                var val = localStorage.getItem(key);
-                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━');
-                console.log('Chave:', key);
-                console.log('Tamanho:', val ? val.length : 0, 'bytes');
-                console.log('Primeiros 200 chars:', val ? val.substring(0, 200) : 'null');
-            }
-            
-            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            
-            alert('Debug enviado ao console (F12)');
-        }
-        
-        function extrairTexto(valor) {
-            if (!valor) return '';
-            if (typeof valor === 'string') return valor;
-            if (Array.isArray(valor)) return valor.join(', ');
-            if (typeof valor === 'object') return JSON.stringify(valor);
-            return String(valor);
-        }
+        let patentesFiltradas = [];
         
         function carregar() {
-            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            console.log('📥 CARREGANDO DASHBOARD');
-            console.log('URL:', window.location.href);
-            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log('Carregando dados...');
             
-            // ESPERAR UM POUCO PARA GARANTIR QUE SALVOU
-            setTimeout(function() {
-                var stored = localStorage.getItem('patentAnalysis');
+            const stored = localStorage.getItem('patentAnalysis');
+            
+            if (!stored) {
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('error').classList.remove('hidden');
+                document.getElementById('errorMsg').textContent = 'Nenhum dado encontrado. Faça uma nova busca.';
+                return;
+            }
+            
+            console.log('Dados encontrados:', stored.length, 'bytes');
+            
+            try {
+                const raw = JSON.parse(stored);
+                const dados = Array.isArray(raw) && raw[0] && raw[0].output ? JSON.parse(raw[0].output) : (Array.isArray(raw) && raw[0] ? raw[0] : raw);
                 
-                console.log('LocalStorage check:');
-                console.log('  Existe?', !!stored);
-                console.log('  Tamanho:', stored ? stored.length : 0, 'bytes');
+                console.log('Meta:', dados.meta);
+                console.log('Estatisticas:', dados.estatisticas);
                 
-                if (!stored) {
-                    console.error('❌ NENHUM DADO NO LOCALSTORAGE');
-                    debugStorage();
-                    
-                    document.getElementById('loading').classList.add('hidden');
-                    document.getElementById('error').classList.remove('hidden');
-                    document.getElementById('errorMsg').textContent = 'Nenhum dado encontrado. Faça uma nova busca.';
-                    return;
+                // HEADER
+                document.getElementById('title').textContent = dados.meta.nome_comercial || 'Dashboard';
+                document.getElementById('subtitle').textContent = 'Análise de Portfólio de Patentes';
+                document.getElementById('moleculaName').textContent = dados.meta.molecula || '-';
+                document.getElementById('comercialName').textContent = dados.meta.nome_comercial || '-';
+                document.getElementById('classeName').textContent = dados.meta.classe_terapeutica || '-';
+                
+                // CARDS
+                const estat = dados.estatisticas || {};
+                const totalPatentes = estat.total_patentes || 0;
+                const porFonte = estat.por_fonte || {};
+                
+                document.getElementById('totalPatentes').textContent = totalPatentes;
+                document.getElementById('fontes').textContent = 'INPI: ' + (porFonte.INPI || 0) + ' | EPO: ' + (porFonte.EPO || 0);
+                
+                const metricas = dados.metricas_chave || {};
+                document.getElementById('anosProtecao').textContent = metricas.anos_protecao_restantes || 0;
+                document.getElementById('altaAmeaca').textContent = metricas.patentes_alta_ameaca || 0;
+                
+                const topTitulares = estat.top_titulares || [];
+                if (topTitulares.length > 0) {
+                    const top = topTitulares[0];
+                    document.getElementById('titular').textContent = top.titular.substring(0, 20);
+                    document.getElementById('titularPerc').textContent = top.percentual + '% do total';
+                } else {
+                    document.getElementById('titular').textContent = 'N/A';
                 }
                 
-                console.log('✅ Dados encontrados');
-                console.log('Primeiros 500 chars:', stored.substring(0, 500));
+                // RELATORIO
+                const rel = dados.relatorio_executivo || {};
+                document.getElementById('panorama').textContent = rel.panorama_geral || 'Não disponível';
+                document.getElementById('titularDesc').textContent = rel.titular_dominante || 'Não disponível';
+                document.getElementById('barreiras').textContent = rel.barreiras_criticas || 'Não disponível';
+                document.getElementById('janelas').textContent = rel.janelas_oportunidade || 'Não disponível';
                 
-                try {
-                    var raw = JSON.parse(stored);
-                    console.log('Parse OK. Tipo:', typeof raw, 'Array:', Array.isArray(raw));
+                // PATENTES
+                todasPatentes = dados.patentes || [];
+                console.log('Total de patentes:', todasPatentes.length);
+                
+                // Verificar distribuição de fontes
+                let countINPI = 0;
+                let countEPO = 0;
+                for (let i = 0; i < todasPatentes.length; i++) {
+                    const fonte = todasPatentes[i].fonte;
+                    const pais = todasPatentes[i].country || todasPatentes[i].pais;
                     
-                    var dados;
-                    
-                    if (Array.isArray(raw) && raw.length > 0) {
-                        if (raw[0].output) {
-                            console.log('Formato: Array com output');
-                            dados = JSON.parse(raw[0].output);
-                        } else {
-                            console.log('Formato: Array direto');
-                            dados = raw[0];
-                        }
+                    if (fonte === 'INPI' || pais === 'BR') {
+                        countINPI++;
                     } else {
-                        console.log('Formato: Objeto direto');
-                        dados = raw;
+                        countEPO++;
                     }
-                    
-                    console.log('Dados finais:', dados);
-                    console.log('  Meta:', !!dados.meta);
-                    console.log('  Estatisticas:', !!dados.estatisticas);
-                    console.log('  Patentes:', dados.patentes ? dados.patentes.length : 0);
-                    
-                    if (!dados.meta || !dados.patentes) {
-                        throw new Error('Estrutura de dados inválida');
-                    }
-                    
-                    renderizar(dados);
-                    
-                } catch (erro) {
-                    console.error('❌ ERRO AO PROCESSAR:', erro);
-                    console.error('Stack:', erro.stack);
-                    
-                    document.getElementById('loading').classList.add('hidden');
-                    document.getElementById('error').classList.remove('hidden');
-                    document.getElementById('errorMsg').textContent = 'Erro: ' + erro.message;
                 }
-            }, 500);
+                console.log('Distribuição:', countINPI, 'INPI,', countEPO, 'EPO');
+                
+                filtrarPatentes();
+                
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('content').style.display = 'block';
+                console.log('✅ Dashboard pronto!');
+                
+            } catch (erro) {
+                console.error('Erro:', erro);
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('error').classList.remove('hidden');
+                document.getElementById('errorMsg').textContent = erro.message;
+            }
         }
         
-        function renderizar(dados) {
-            console.log('🎨 Renderizando...');
+        function filtrarPatentes() {
+            const filterFonte = document.getElementById('filterFonte').value;
+            const filterTipo = document.getElementById('filterTipo').value;
             
-            // HEADER
-            document.getElementById('moleculaName').textContent = dados.meta.molecula || '-';
-            document.getElementById('comercialName').textContent = dados.meta.nome_comercial || '-';
-            document.getElementById('classeName').textContent = dados.meta.classe_terapeutica || '-';
-            
-            // CARDS
-            var estat = dados.estatisticas || {};
-            var porFonte = estat.por_fonte || {};
-            
-            document.getElementById('totalPatentes').textContent = estat.total_patentes || 0;
-            document.getElementById('fontes').textContent = 'INPI: ' + (porFonte.INPI || 0) + ' | EPO: ' + (porFonte.EPO || 0);
-            
-            var metricas = dados.metricas_chave || {};
-            document.getElementById('anosProtecao').textContent = metricas.anos_protecao_restantes || 0;
-            document.getElementById('altaAmeaca').textContent = metricas.patentes_alta_ameaca || 0;
-            
-            var topTitulares = estat.top_titulares || [];
-            if (topTitulares.length > 0) {
-                var top = topTitulares[0];
-                document.getElementById('titular').textContent = top.titular.substring(0, 20);
-                document.getElementById('titularPerc').textContent = top.percentual + '%';
-            }
-            
-            // RELATORIO
-            var rel = dados.relatorio_executivo || {};
-            document.getElementById('panorama').textContent = rel.panorama_geral || 'Não disponível';
-            document.getElementById('titularDesc').textContent = rel.titular_dominante || 'Não disponível';
-            document.getElementById('barreiras').textContent = rel.barreiras_criticas || 'Não disponível';
-            document.getElementById('janelas').textContent = rel.janelas_oportunidade || 'Não disponível';
-            
-            // PATENTES
-            todasPatentes = dados.patentes || [];
-            console.log('Total patentes:', todasPatentes.length);
-            
-            // Normalizar títulos
-            for (var i = 0; i < todasPatentes.length; i++) {
-                todasPatentes[i].titulo = extrairTexto(todasPatentes[i].titulo);
-            }
+            patentesFiltradas = todasPatentes.filter(function(p) {
+                let passaFonte = true;
+                let passaTipo = true;
+                
+                if (filterFonte !== 'todas') {
+                    const fonte = p.fonte;
+                    const pais = p.country || p.pais;
+                    
+                    if (filterFonte === 'INPI') {
+                        passaFonte = (fonte === 'INPI' || pais === 'BR');
+                    } else if (filterFonte === 'EPO') {
+                        passaFonte = (fonte === 'EPO' && pais !== 'BR');
+                    }
+                }
+                
+                if (filterTipo !== 'todos') {
+                    const tipo = p.tipo_patente || p.categoria_busca || 'outros';
+                    passaTipo = (tipo === filterTipo);
+                }
+                
+                return passaFonte && passaTipo;
+            });
             
             renderizarTabela();
-            
-            document.getElementById('loading').classList.add('hidden');
-            document.getElementById('content').style.display = 'block';
-            console.log('✅ Dashboard renderizado!');
         }
         
         function renderizarTabela() {
-            var tbody = document.getElementById('tbody');
+            const tbody = document.getElementById('tbody');
             tbody.innerHTML = '';
             
-            document.getElementById('countTotal').textContent = todasPatentes.length;
+            document.getElementById('count').textContent = patentesFiltradas.length;
             
-            for (var i = 0; i < Math.min(todasPatentes.length, 100); i++) {
-                var p = todasPatentes[i];
-                var tr = document.createElement('tr');
+            for (let i = 0; i < Math.min(patentesFiltradas.length, 200); i++) {
+                const p = patentesFiltradas[i];
+                const tr = document.createElement('tr');
                 
-                var fonte = p.fonte;
-                var pais = p.country || p.pais;
-                var fonteDisplay = fonte;
-                var badgeClass = 'badge-epo';
+                const fonte = p.fonte;
+                const pais = p.country || p.pais;
+                let fonteDisplay = fonte;
+                let badgeClass = 'badge-epo';
                 
                 if (fonte === 'INPI' || pais === 'BR') {
                     fonteDisplay = 'BR';
                     badgeClass = 'badge-br';
                 }
                 
-                var ameaca = p.nivel_ameaca || '';
-                var ameacaBadge = '-';
+                const tipo = p.tipo_patente || p.categoria_busca || 'outros';
+                let tipoDisplay = tipo;
+                if (tipo === 'molecula_principal') tipoDisplay = 'Molécula';
+                else if (tipo === 'sal') tipoDisplay = 'Sal';
+                else if (tipo === 'cristal') tipoDisplay = 'Cristal';
+                else if (tipo === 'formulacao') tipoDisplay = 'Formulação';
+                else if (tipo === 'forma_farmaceutica') tipoDisplay = 'Forma Farm.';
+                
+                const ameaca = p.nivel_ameaca || '';
+                let ameacaBadge = '';
                 if (ameaca) {
-                    var badgeAmeaca = ameaca === 'Alta' ? 'badge-alta' : (ameaca === 'Média' ? 'badge-media' : 'badge-baixa');
+                    const badgeAmeaca = ameaca === 'Alta' ? 'badge-alta' : (ameaca === 'Média' ? 'badge-media' : 'badge-baixa');
                     ameacaBadge = '<span class="badge ' + badgeAmeaca + '">' + ameaca + '</span>';
                 }
                 
-                tr.innerHTML = 
-                    '<td><span class="badge ' + badgeClass + '">' + fonteDisplay + '</span></td>' +
+                tr.innerHTML = '<td><span class="badge ' + badgeClass + '">' + fonteDisplay + '</span></td>' +
                     '<td><code style="font-size:0.75rem">' + (p.numero_completo || p.numero || '-').substring(0, 20) + '</code></td>' +
-                    '<td>' + (p.titulo || 'Sem título').substring(0, 80) + '</td>' +
+               '<td>' + (typeof p.titulo === "object" 
+                       ? Array.isArray(p.titulo) 
+                           ? p.titulo.join(", ").substring(0, 80) 
+                           : JSON.stringify(p.titulo).substring(0, 80)
+                           : (p.titulo || "Sem título").substring(0, 80)
+                ) + '</td>' +
                     '<td>' + (p.ano_deposito || p.ano || '-') + '</td>' +
-                    '<td>' + (pais || '-') + '</td>' +
+                    '<td>' + tipoDisplay + '</td>' +
                     '<td>' + ameacaBadge + '</td>';
                 
-                tr.onclick = function() {
-                    abrirModal(todasPatentes[i]);
-                };
+                tr.onclick = function() { abrirModal(p); };
                 
                 tbody.appendChild(tr);
             }
         }
         
-        function abrirModal(p) {
-            document.getElementById('modalTitle').textContent = p.numero_completo || p.numero || 'Patente';
+        function abrirModal(patente) {
+            document.getElementById('modalTitle').textContent = patente.numero_completo || patente.numero || 'Patente';
             
-            var html = '';
-            html += '<div class="detail"><strong>Título:</strong> ' + (p.titulo || 'N/A') + '</div>';
-            html += '<div class="detail"><strong>Fonte:</strong> ' + (p.fonte || 'N/A') + '</div>';
-            html += '<div class="detail"><strong>País:</strong> ' + (p.country || p.pais || 'N/A') + '</div>';
-            html += '<div class="detail"><strong>Ano:</strong> ' + (p.ano_deposito || p.ano || 'N/A') + '</div>';
-            html += '<div class="detail"><strong>Titular:</strong> ' + (p.applicant || 'N/A') + '</div>';
-            html += '<div class="detail"><strong>IPC:</strong> ' + (p.ipc || 'N/A') + '</div>';
+            let html = '';
+            html += '<div class="detail"><strong>Título:</strong> ' + (patente.titulo || 'N/A') + '</div>';
+            html += '<div class="detail"><strong>Fonte:</strong> ' + (patente.fonte || 'N/A') + '</div>';
+            html += '<div class="detail"><strong>País:</strong> ' + (patente.country || patente.pais || 'N/A') + '</div>';
+            html += '<div class="detail"><strong>Ano de Depósito:</strong> ' + (patente.ano_deposito || patente.ano || 'N/A') + '</div>';
+            html += '<div class="detail"><strong>Titular:</strong> ' + (patente.applicant || 'N/A') + '</div>';
+            html += '<div class="detail"><strong>IPC:</strong> ' + (patente.ipc || 'N/A') + '</div>';
+            html += '<div class="detail"><strong>Tipo:</strong> ' + (patente.tipo_patente || patente.categoria_busca || 'N/A') + '</div>';
             
-            if (p.nivel_ameaca) {
-                html += '<div class="detail"><strong>Ameaça:</strong> ' + p.nivel_ameaca + '</div>';
+            if (patente.nivel_ameaca) {
+                html += '<div class="detail"><strong>Nível de Ameaça:</strong> ' + patente.nivel_ameaca + '</div>';
             }
             
-            if (p.comentario_ia) {
-                html += '<div class="detail"><strong>Análise IA:</strong> ' + p.comentario_ia + '</div>';
+            if (patente.comentario_ia) {
+                html += '<div class="detail"><strong>Análise IA:</strong> ' + patente.comentario_ia + '</div>';
             }
             
-            if (p.abstract && p.abstract !== 'N/A') {
-                html += '<div class="detail"><strong>Resumo:</strong> ' + p.abstract + '</div>';
+            if (patente.abstract && patente.abstract !== 'N/A') {
+                html += '<div class="detail"><strong>Resumo:</strong> ' + patente.abstract + '</div>';
             }
             
             document.getElementById('modalBody').innerHTML = html;
@@ -418,8 +411,7 @@
             document.getElementById('modal').classList.remove('show');
         }
         
-        // INICIAR
-        setTimeout(carregar, 300);
+        setTimeout(carregar, 500);
     </script>
 </body>
 </html>
