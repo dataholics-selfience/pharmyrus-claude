@@ -122,7 +122,7 @@
     </div>
 
     <script>
-        console.log('🚀 Pharmyrus v8 FINAL');
+        console.log('🚀 Pharmyrus v9 FINAL - INDEX CORRIGIDO');
         
         var WEBHOOK_PROD = 'https://primary-production-2e3b.up.railway.app/webhook/analise-patentes';
         var WEBHOOK_TEST = 'https://primary-production-2e3b.up.railway.app/webhook-test/analise-patentes';
@@ -146,7 +146,7 @@
             var progressFill = document.getElementById('progressFill');
             var btnViewDashboard = document.getElementById('btnViewDashboard');
             
-            // LIMPAR CAMPOS AO CARREGAR
+            // LIMPAR CAMPOS
             nomeMolecula.value = '';
             nomeComercial.value = '';
             
@@ -157,15 +157,11 @@
             };
             
             btnSearch.onclick = function() {
-                // LER VALORES NO MOMENTO DO CLICK
                 var mol = nomeMolecula.value.trim();
                 var com = nomeComercial.value.trim();
                 
                 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━');
                 console.log('🔍 VALORES LIDOS:');
-                console.log('Campo Molécula:', nomeMolecula.value);
-                console.log('Campo Comercial:', nomeComercial.value);
-                console.log('Após trim:');
                 console.log('Molécula:', mol);
                 console.log('Comercial:', com);
                 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -186,10 +182,7 @@
                     nomeMolecula.value = 'Abemaciclib';
                     nomeComercial.value = 'Verzenios';
                     
-                    console.log('🧪 TESTE - valores setados:');
-                    console.log('Molécula:', nomeMolecula.value);
-                    console.log('Comercial:', nomeComercial.value);
-                    
+                    console.log('🧪 TESTE - valores setados');
                     buscar('Abemaciclib', 'Verzenios');
                 }, 100);
             };
@@ -202,8 +195,8 @@
             function buscar(mol, com) {
                 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━');
                 console.log('🚀 BUSCA INICIADA');
-                console.log('Molécula ENVIADA:', mol);
-                console.log('Comercial ENVIADO:', com);
+                console.log('Molécula:', mol);
+                console.log('Comercial:', com);
                 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━');
                 
                 localStorage.clear();
@@ -250,25 +243,37 @@
                 .then(function(res) {
                     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━');
                     console.log('📡 RESPOSTA:', res.status);
-                    console.log('Tempo:', new Date().toLocaleTimeString());
+                    console.log('OK:', res.ok);
                     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━');
                     
-                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    if (!res.ok) {
+                        throw new Error('HTTP ' + res.status);
+                    }
                     return res.json();
                 })
                 .then(function(resultado) {
                     clearInterval(timer);
                     
                     console.log('✅ JSON recebido');
+                    console.log('Tipo:', typeof resultado);
+                    console.log('Array:', Array.isArray(resultado));
                     
                     var moleculaRecebida = 'erro';
-                    if (Array.isArray(resultado) && resultado[0]) {
-                        if (resultado[0].meta) {
-                            moleculaRecebida = resultado[0].meta.molecula;
-                        } else if (resultado[0].output) {
-                            var inner = JSON.parse(resultado[0].output);
-                            moleculaRecebida = inner.meta.molecula;
+                    
+                    try {
+                        if (Array.isArray(resultado) && resultado[0]) {
+                            if (resultado[0].meta) {
+                                moleculaRecebida = resultado[0].meta.molecula;
+                            } else if (resultado[0].output) {
+                                var inner = JSON.parse(resultado[0].output);
+                                moleculaRecebida = inner.meta ? inner.meta.molecula : mol;
+                            }
+                        } else if (resultado.meta) {
+                            moleculaRecebida = resultado.meta.molecula;
                         }
+                    } catch (e) {
+                        console.warn('Erro ao extrair molécula:', e);
+                        moleculaRecebida = mol;
                     }
                     
                     console.log('🧬 ESPERADO:', mol);
@@ -282,30 +287,59 @@
                     
                     return new Promise(function(resolve) {
                         setTimeout(function() {
-                            var json = JSON.stringify(Array.isArray(resultado) ? resultado : [{ output: JSON.stringify(resultado) }]);
+                            var json = JSON.stringify(
+                                Array.isArray(resultado) 
+                                    ? resultado 
+                                    : [{ output: JSON.stringify(resultado) }]
+                            );
                             
                             console.log('💾 Salvando:', json.length, 'bytes');
-                            localStorage.setItem('patentAnalysis', json);
                             
-                            var verif = localStorage.getItem('patentAnalysis');
-                            if (!verif || verif.length !== json.length) {
-                                throw new Error('Falha ao salvar');
+                            try {
+                                localStorage.setItem('patentAnalysis', json);
+                                
+                                var verif = localStorage.getItem('patentAnalysis');
+                                if (!verif || verif.length !== json.length) {
+                                    throw new Error('Falha ao salvar');
+                                }
+                                
+                                console.log('✅ SALVO COM SUCESSO');
+                                resolve(moleculaRecebida);
+                            } catch (e) {
+                                console.error('❌ Erro ao salvar:', e);
+                                throw e;
                             }
-                            
-                            console.log('✅ SALVO');
-                            resolve(moleculaRecebida);
                         }, 500);
                     });
                 })
-progressFill.style.width = '100%';
-statusMessage.textContent = 'Redirecionando...';
-
-setTimeout(function() {
-    window.location.href = 'dashboard.html?t=' + Date.now();
-}, 1500);
+                .then(function(molecula) {
+                    console.log('🎉 SUCESSO TOTAL');
+                    
+                    progressFill.style.width = '100%';
+                    statusMessage.textContent = 'Redirecionando...';
+                    
+                    setTimeout(function() {
+                        console.log('🚀 Redirecionando para dashboard');
+                        window.location.href = 'dashboard.html?t=' + Date.now();
+                    }, 1500);
+                })
+                .catch(function(erro) {
+                    console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                    console.error('❌ ERRO CRÍTICO');
+                    console.error('Mensagem:', erro.message);
+                    console.error('Stack:', erro.stack);
+                    console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                    
+                    clearInterval(timer);
+                    
+                    processingStatus.classList.add('hidden');
+                    form.style.opacity = '1';
+                    form.style.pointerEvents = 'auto';
+                    
+                    alert('❌ Erro: ' + erro.message + '\n\nTente novamente ou use o ambiente de teste.');
+                });
             }
         };
     </script>
 </body>
 </html>
-
