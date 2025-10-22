@@ -1,86 +1,283 @@
-<script>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Pharmyrus</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 2rem; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        
+        .header { background: white; padding: 2rem; border-radius: 1rem; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        .header h1 { color: #1f2937; margin-bottom: 0.5rem; font-size: 2rem; }
+        .header .subtitle { color: #6b7280; font-size: 1.125rem; margin-bottom: 1rem; }
+        .header .info-pills { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .pill { display: inline-block; padding: 0.5rem 1rem; background: #f3f4f6; border-radius: 999px; font-size: 0.875rem; color: #374151; font-weight: 500; }
+        .pill strong { color: #1f2937; }
+        
+        .buttons { display: flex; gap: 1rem; margin-top: 1rem; }
+        .btn { padding: 0.75rem 1.5rem; background: #2563eb; color: white; border: none; border-radius: 0.5rem; cursor: pointer; font-weight: 600; }
+        .btn:hover { background: #1e40af; }
+        .btn-secondary { background: #6b7280; }
+        .btn-secondary:hover { background: #4b5563; }
+        
+        .loading { background: white; padding: 3rem; border-radius: 1rem; text-align: center; }
+        .loading.hidden { display: none; }
+        .spinner { width: 60px; height: 60px; border: 4px solid #e5e7eb; border-top-color: #2563eb; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .card { background: white; padding: 1.5rem; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        .card h2 { font-size: 2.5rem; color: #2563eb; margin-bottom: 0.5rem; }
+        .card p { color: #6b7280; font-weight: 600; margin-bottom: 0.25rem; }
+        .card small { color: #9ca3af; font-size: 0.75rem; display: block; }
+        
+        .report { background: white; padding: 2rem; border-radius: 1rem; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        .report h3 { color: #1f2937; margin-bottom: 1.5rem; font-size: 1.5rem; }
+        .report-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+        .report-item h4 { color: #1f2937; margin-bottom: 0.75rem; font-size: 1rem; font-weight: 600; }
+        .report-item p { color: #4b5563; font-size: 0.9375rem; line-height: 1.6; }
+        
+        .filters-section { background: white; padding: 1.5rem; border-radius: 1rem; margin-bottom: 1.5rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        .filters-section h3 { color: #1f2937; margin-bottom: 1rem; }
+        .filters-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+        .filter-group { display: flex; flex-direction: column; gap: 0.5rem; }
+        .filter-group label { font-weight: 600; color: #374151; font-size: 0.875rem; }
+        .filter-group select, .filter-group input { padding: 0.5rem; border: 2px solid #e5e7eb; border-radius: 0.5rem; font-size: 0.875rem; }
+        .filter-actions { display: flex; gap: 0.5rem; }
+        .filter-actions button { padding: 0.5rem 1rem; background: #2563eb; color: white; border: none; border-radius: 0.5rem; cursor: pointer; font-weight: 600; }
+        .filter-actions button:hover { background: #1e40af; }
+        .btn-clear { background: #6b7280 !important; }
+        .btn-clear:hover { background: #4b5563 !important; }
+        
+        .section-divider { background: white; padding: 1rem 1.5rem; border-radius: 1rem; margin-bottom: 1rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        .section-divider h3 { color: #1f2937; display: flex; align-items: center; gap: 0.5rem; }
+        .count { background: #2563eb; color: white; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.875rem; }
+        
+        .table-container { background: white; padding: 1.5rem; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); margin-bottom: 1.5rem; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f9fafb; padding: 1rem; text-align: left; font-weight: 600; color: #374151; font-size: 0.875rem; border-bottom: 2px solid #e5e7eb; }
+        td { padding: 1rem; border-bottom: 1px solid #e5e7eb; font-size: 0.875rem; color: #374151; }
+        tbody tr { cursor: pointer; transition: background 0.2s; }
+        tbody tr:hover { background: #f9fafb; }
+        
+        .badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+        .badge-alta { background: #fee2e2; color: #991b1b; }
+        .badge-media { background: #fef3c7; color: #92400e; }
+        .badge-baixa { background: #dbeafe; color: #1e40af; }
+        .badge-br { background: #dbeafe; color: #1e40af; }
+        .badge-epo { background: #d1fae5; color: #065f46; }
+        
+        .error { background: white; padding: 3rem; border-radius: 1rem; text-align: center; }
+        .error.hidden { display: none; }
+        
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.show { display: flex; }
+        .modal-content { background: white; padding: 2rem; border-radius: 1rem; max-width: 800px; max-height: 90vh; overflow-y: auto; margin: 1rem; }
+        .modal-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 1.5rem; }
+        .modal-header h2 { color: #1f2937; font-size: 1.25rem; flex: 1; }
+        .modal-close { background: #e5e7eb; border: none; padding: 0.5rem 1rem; border-radius: 0.5rem; cursor: pointer; font-weight: 600; }
+        .modal-body { color: #4b5563; line-height: 1.6; }
+        .modal-body .detail { margin-bottom: 1rem; }
+        .modal-body .detail strong { display: block; margin-bottom: 0.25rem; color: #1f2937; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <h2>Carregando...</h2>
+        </div>
+
+        <div id="error" class="error hidden">
+            <h2>❌ Erro</h2>
+            <p id="errorMsg"></p>
+            <button class="btn" onclick="window.location.href='index.html'" style="margin-top: 1rem;">Voltar</button>
+        </div>
+
+        <div id="content" style="display: none;">
+            <div class="header">
+                <h1 id="title">Dashboard</h1>
+                <p class="subtitle">Análise de Portfólio de Patentes</p>
+                <div class="info-pills">
+                    <span class="pill"><strong>Molécula:</strong> <span id="moleculaName">-</span></span>
+                    <span class="pill"><strong>Comercial:</strong> <span id="comercialName">-</span></span>
+                    <span class="pill"><strong>Classe:</strong> <span id="classeName">-</span></span>
+                </div>
+                <div class="buttons">
+                    <button class="btn" onclick="window.print()">📥 PDF</button>
+                    <button class="btn btn-secondary" onclick="if(confirm('Nova busca?')){localStorage.clear();location.href='index.html';}">🔍 Nova Busca</button>
+                </div>
+            </div>
+
+            <div class="cards">
+                <div class="card">
+                    <h2 id="totalPatentes">0</h2>
+                    <p>Total</p>
+                    <small id="fontes">INPI: 0 | EPO: 0</small>
+                </div>
+                <div class="card">
+                    <h2 id="anosProtecao">0</h2>
+                    <p>Anos Proteção</p>
+                    <small>Estimados</small>
+                </div>
+                <div class="card">
+                    <h2 id="altaAmeaca">0</h2>
+                    <p>Alta Ameaça</p>
+                    <small>Críticas</small>
+                </div>
+                <div class="card">
+                    <h2 id="titular">-</h2>
+                    <p>Titular Principal</p>
+                    <small id="titularPerc">-</small>
+                </div>
+            </div>
+
+            <div class="report">
+                <h3>📊 Relatório</h3>
+                <div class="report-grid">
+                    <div class="report-item">
+                        <h4>📋 Panorama</h4>
+                        <p id="panorama">-</p>
+                    </div>
+                    <div class="report-item">
+                        <h4>🏢 Titular</h4>
+                        <p id="titularDesc">-</p>
+                    </div>
+                    <div class="report-item">
+                        <h4>🚧 Barreiras</h4>
+                        <p id="barreiras">-</p>
+                    </div>
+                    <div class="report-item">
+                        <h4>💡 Oportunidades</h4>
+                        <p id="janelas">-</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filters-section">
+                <h3>🔍 Filtros</h3>
+                <div class="filters-grid">
+                    <div class="filter-group">
+                        <label>Fonte</label>
+                        <select id="filterFonte">
+                            <option value="">Todas</option>
+                            <option value="INPI">INPI/Brasil</option>
+                            <option value="EPO">EPO</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>País</label>
+                        <select id="filterPais"><option value="">Todos</option></select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Ameaça</label>
+                        <select id="filterAmeaca">
+                            <option value="">Todas</option>
+                            <option value="Alta">Alta</option>
+                            <option value="Média">Média</option>
+                            <option value="Baixa">Baixa</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Titular</label>
+                        <select id="filterTitular"><option value="">Todos</option></select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Ano</label>
+                        <select id="filterAno"><option value="">Todos</option></select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Busca</label>
+                        <input type="text" id="filterBusca" placeholder="Digite...">
+                    </div>
+                </div>
+                <div class="filter-actions">
+                    <button onclick="aplicarFiltros()">Aplicar</button>
+                    <button class="btn-clear" onclick="limparFiltros()">Limpar</button>
+                </div>
+            </div>
+
+            <div class="section-divider">
+                <h3>🔎 Patentes <span class="count" id="countTotal">0</span></h3>
+            </div>
+
+            <div class="table-container">
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fonte</th>
+                                <th>Número</th>
+                                <th>Título</th>
+                                <th>Ano</th>
+                                <th>País</th>
+                                <th>Titular</th>
+                                <th>Ameaça</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal" class="modal" onclick="if(event.target.id==='modal')fecharModal()">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Detalhes</h2>
+                <button class="modal-close" onclick="fecharModal()">✕</button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <script>
 console.log('🚀 Dashboard v12 - TÍTULOS CORRIGIDOS');
 
 let todasPatentes = [];
 let patentesFiltradas = [];
 
-// ═══════════════════════════════════════════════════════
-// FUNÇÃO EXTRAIR TEXTO - SUPER ROBUSTA
-// ═══════════════════════════════════════════════════════
 function extrairTexto(v) {
-    console.log('extrairTexto chamada:', typeof v, Array.isArray(v));
-    
     if (!v) return 'Sem título';
-    
-    // String simples
     if (typeof v === 'string') return v;
     
-    // Array
     if (Array.isArray(v)) {
         var textos = [];
-        
         for (var i = 0; i < v.length; i++) {
             var item = v[i];
-            
-            console.log('  Item', i, ':', typeof item, item);
-            
-            // Null ou undefined
             if (!item) continue;
             
-            // String
             if (typeof item === 'string') {
                 textos.push(item);
-                continue;
-            }
-            
-            // Número
-            if (typeof item === 'number') {
+            } else if (typeof item === 'number') {
                 textos.push(String(item));
-                continue;
-            }
-            
-            // Objeto
-            if (typeof item === 'object') {
-                // Tenta propriedades conhecidas
-                if (item.$) {
-                    textos.push(String(item.$));
-                } else if (item.text) {
-                    textos.push(String(item.text));
-                } else if (item.value) {
-                    textos.push(String(item.value));
-                } else if (item.content) {
-                    textos.push(String(item.content));
-                } else if (item._) {
-                    textos.push(String(item._));
-                } else {
-                    // Pega TODOS os valores do objeto
+            } else if (typeof item === 'object') {
+                if (item.$) textos.push(String(item.$));
+                else if (item.text) textos.push(String(item.text));
+                else if (item.value) textos.push(String(item.value));
+                else {
                     var keys = Object.keys(item);
                     for (var k = 0; k < keys.length; k++) {
                         var val = item[keys[k]];
                         if (typeof val === 'string' && val.length > 0) {
                             textos.push(val);
-                        } else if (typeof val === 'number') {
-                            textos.push(String(val));
+                            break;
                         }
                     }
                 }
             }
         }
-        
-        var resultado = textos.length > 0 ? textos.join(' ') : 'Título não disponível';
-        console.log('  Resultado array:', resultado);
-        return resultado;
+        return textos.length > 0 ? textos.join(' ') : 'Título não disponível';
     }
     
-    // Objeto simples
     if (typeof v === 'object') {
         if (v.$) return String(v.$);
         if (v.text) return String(v.text);
         if (v.value) return String(v.value);
-        if (v.content) return String(v.content);
-        if (v._) return String(v._);
         
-        // Tenta pegar qualquer valor string
         var keys = Object.keys(v);
         for (var i = 0; i < keys.length; i++) {
             var val = v[keys[i]];
@@ -88,8 +285,6 @@ function extrairTexto(v) {
                 return val;
             }
         }
-        
-        return 'Título complexo';
     }
     
     return String(v);
@@ -129,12 +324,10 @@ function carregar() {
 }
 
 function renderizar(dados) {
-    // HEADER
     document.getElementById('moleculaName').textContent = dados.meta.molecula || '-';
     document.getElementById('comercialName').textContent = dados.meta.nome_comercial || '-';
     document.getElementById('classeName').textContent = dados.meta.classe_terapeutica || '-';
     
-    // CARDS
     var estat = dados.estatisticas || {};
     var porFonte = estat.por_fonte || {};
     
@@ -145,14 +338,12 @@ function renderizar(dados) {
     document.getElementById('anosProtecao').textContent = metricas.anos_protecao_restantes || 0;
     document.getElementById('altaAmeaca').textContent = metricas.patentes_alta_ameaca || 0;
     
-    // TITULAR PRINCIPAL - PEGA O PRIMEIRO QUE NÃO SEJA "NÃO INFORMADO"
     var topTitulares = estat.top_titulares || [];
     var titularPrincipal = null;
     
     for (var i = 0; i < topTitulares.length; i++) {
-        var t = topTitulares[i];
-        if (t.titular && t.titular !== 'Nao informado' && t.titular !== 'N/A') {
-            titularPrincipal = t;
+        if (topTitulares[i].titular !== 'Nao informado' && topTitulares[i].titular !== 'N/A') {
+            titularPrincipal = topTitulares[i];
             break;
         }
     }
@@ -165,41 +356,18 @@ function renderizar(dados) {
         document.getElementById('titularPerc').textContent = topTitulares[0].percentual + '%';
     }
     
-    // RELATORIO
     var rel = dados.relatorio_executivo || {};
     document.getElementById('panorama').textContent = rel.panorama_geral || '-';
     document.getElementById('titularDesc').textContent = rel.titular_dominante || '-';
     document.getElementById('barreiras').textContent = rel.barreiras_criticas || '-';
     document.getElementById('janelas').textContent = rel.janelas_oportunidade || '-';
     
-    // PATENTES
     todasPatentes = dados.patentes || [];
     
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('NORMALIZANDO TÍTULOS');
-    console.log('Total patentes:', todasPatentes.length);
-    
-    // NORMALIZAR TITULOS COM LOG DETALHADO
+    console.log('NORMALIZANDO', todasPatentes.length, 'patentes');
     for (var i = 0; i < todasPatentes.length; i++) {
-        var tituloOriginal = todasPatentes[i].titulo;
-        
-        if (i < 3) {
-            console.log('─────────────────────────────');
-            console.log('Patente', i);
-            console.log('Título original:', tituloOriginal);
-            console.log('Tipo:', typeof tituloOriginal);
-            console.log('É array?', Array.isArray(tituloOriginal));
-        }
-        
-        todasPatentes[i].titulo = extrairTexto(tituloOriginal);
-        
-        if (i < 3) {
-            console.log('Título final:', todasPatentes[i].titulo);
-        }
+        todasPatentes[i].titulo = extrairTexto(todasPatentes[i].titulo);
     }
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    
-    console.log('Total:', todasPatentes.length);
     
     popularFiltros();
     patentesFiltradas = todasPatentes.slice();
@@ -352,4 +520,6 @@ function fecharModal() {
 }
 
 setTimeout(carregar, 300);
-</script>
+    </script>
+</body>
+</html>
