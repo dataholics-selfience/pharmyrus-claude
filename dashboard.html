@@ -235,59 +235,97 @@
     </div>
 
     <script>
-console.log('🚀 Dashboard v12 - TÍTULOS CORRIGIDOS');
+console.log('🚀 Dashboard v13 - TÍTULOS CORRIGIDOS (melhorado)');
 
 let todasPatentes = [];
 let patentesFiltradas = [];
 
 function extrairTexto(v) {
     if (!v) return 'Sem título';
-    if (typeof v === 'string') return v;
-    
+    if (typeof v === 'string') return v.trim() || 'Sem título';
+    if (typeof v === 'number') return String(v);
+
+    // Trata arrays
     if (Array.isArray(v)) {
         var textos = [];
         for (var i = 0; i < v.length; i++) {
             var item = v[i];
             if (!item) continue;
-            
+
+            // Se for string ou número, adiciona diretamente
             if (typeof item === 'string') {
-                textos.push(item);
+                if (item.trim().length > 0) textos.push(item.trim());
             } else if (typeof item === 'number') {
                 textos.push(String(item));
             } else if (typeof item === 'object') {
-                if (item.$) textos.push(String(item.$));
-                else if (item.text) textos.push(String(item.text));
-                else if (item.value) textos.push(String(item.value));
-                else {
+                // Tenta extrair string do objeto
+                var textoExtraido = null;
+
+                // Tenta propriedades comuns primeiro
+                if (item.$ && typeof item.$ === 'string') {
+                    textoExtraido = item.$;
+                } else if (item.text && typeof item.text === 'string') {
+                    textoExtraido = item.text;
+                } else if (item.value && typeof item.value === 'string') {
+                    textoExtraido = item.value;
+                } else if (item._text && typeof item._text === 'string') {
+                    textoExtraido = item._text;
+                } else {
+                    // Procura qualquer propriedade string válida
                     var keys = Object.keys(item);
                     for (var k = 0; k < keys.length; k++) {
                         var val = item[keys[k]];
-                        if (typeof val === 'string' && val.length > 0) {
-                            textos.push(val);
+                        if (typeof val === 'string' && val.trim().length > 0) {
+                            textoExtraido = val;
                             break;
                         }
                     }
                 }
+
+                // Adiciona texto extraído se encontrou
+                if (textoExtraido && textoExtraido.trim().length > 0) {
+                    textos.push(textoExtraido.trim());
+                }
             }
         }
-        return textos.length > 0 ? textos.join(' ') : 'Título não disponível';
+
+        if (textos.length > 0) {
+            return textos.join(' ').trim();
+        }
+        return 'Título não disponível';
     }
-    
+
+    // Trata objetos simples
     if (typeof v === 'object') {
-        if (v.$) return String(v.$);
-        if (v.text) return String(v.text);
-        if (v.value) return String(v.value);
-        
+        if (v.$ && typeof v.$ === 'string') return v.$.trim();
+        if (v.text && typeof v.text === 'string') return v.text.trim();
+        if (v.value && typeof v.value === 'string') return v.value.trim();
+        if (v._text && typeof v._text === 'string') return v._text.trim();
+
+        // Procura qualquer string válida nas propriedades
         var keys = Object.keys(v);
         for (var i = 0; i < keys.length; i++) {
             var val = v[keys[i]];
-            if (typeof val === 'string' && val.length > 5) {
-                return val;
+            if (typeof val === 'string' && val.trim().length > 3) {
+                return val.trim();
             }
         }
+
+        // Se não encontrou nada, tenta converter o objeto para JSON e pega as strings
+        try {
+            var jsonStr = JSON.stringify(v);
+            if (jsonStr.length < 200) {
+                return 'Título não disponível';
+            }
+        } catch(e) {}
     }
-    
-    return String(v);
+
+    // Fallback seguro
+    var resultado = String(v);
+    if (resultado === '[object Object]' || resultado === '[object Array]') {
+        return 'Título não disponível';
+    }
+    return resultado;
 }
 
 function carregar() {
@@ -363,11 +401,27 @@ function renderizar(dados) {
     document.getElementById('janelas').textContent = rel.janelas_oportunidade || '-';
     
     todasPatentes = dados.patentes || [];
-    
+
     console.log('NORMALIZANDO', todasPatentes.length, 'patentes');
+    var titulosOk = 0;
+    var titulosProblema = 0;
+
     for (var i = 0; i < todasPatentes.length; i++) {
-        todasPatentes[i].titulo = extrairTexto(todasPatentes[i].titulo);
+        var tituloOriginal = todasPatentes[i].titulo;
+        var tituloNormalizado = extrairTexto(tituloOriginal);
+        todasPatentes[i].titulo = tituloNormalizado;
+
+        if (tituloNormalizado && tituloNormalizado !== 'Título não disponível' && tituloNormalizado !== 'Sem título') {
+            titulosOk++;
+        } else {
+            titulosProblema++;
+            if (titulosProblema <= 3) {
+                console.log('⚠️ Título com problema:', i, 'Original:', tituloOriginal);
+            }
+        }
     }
+
+    console.log('✅ Títulos OK:', titulosOk, '| ⚠️ Sem título:', titulosProblema);
     
     popularFiltros();
     patentesFiltradas = todasPatentes.slice();
