@@ -4,9 +4,119 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pharmyrus - Busca Avançada de Patentes</title>
-    <link rel="stylesheet" href="css/style.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 2rem; }
+        
+        /* USER BAR */
+        .user-bar {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 1rem 2rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .user-bar.show { display: flex; }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #667eea;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+        }
+        .user-details h3 {
+            color: #1f2937;
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
+        .quota-info {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+        .quota-info.unlimited {
+            color: #059669;
+            font-weight: 600;
+        }
+        .quota-info.warning {
+            color: #dc2626;
+            font-weight: 600;
+        }
+        .btn-logout {
+            padding: 0.5rem 1rem;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+        .btn-logout:hover { background: #dc2626; }
+        
+        /* ORIGINAL CSS */
+        .container { max-width: 800px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 2rem; }
+        .logo-container { margin-bottom: 1.5rem; }
+        .logo { max-width: 200px; height: auto; }
+        .title { color: white; font-size: 2.5rem; font-weight: 800; margin-bottom: 0.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .subtitle { color: rgba(255,255,255,0.9); font-size: 1.125rem; }
+        .search-card { background: white; padding: 3rem; border-radius: 1rem; box-shadow: 0 20px 60px rgba(0,0,0,0.3); margin-bottom: 2rem; }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151; font-size: 0.875rem; }
+        .label-icon { margin-right: 0.5rem; }
+        .form-input { width: 100%; padding: 0.875rem 1rem; border: 2px solid #e5e7eb; border-radius: 0.5rem; font-size: 1rem; }
+        .form-input:focus { outline: none; border-color: #667eea; }
+        .form-actions { display: flex; gap: 1rem; margin-bottom: 1rem; }
+        .btn-primary { flex: 1; padding: 1rem; background: #667eea; color: white; border: none; border-radius: 0.5rem; font-weight: 600; font-size: 1rem; cursor: pointer; transition: all 0.2s; }
+        .btn-primary:hover { background: #5568d3; transform: translateY(-1px); }
+        .btn-primary:disabled { background: #9ca3af; cursor: not-allowed; transform: none; }
+        .btn-secondary { flex: 1; padding: 1rem; background: #6b7280; color: white; border: none; border-radius: 0.5rem; font-weight: 600; font-size: 1rem; cursor: pointer; }
+        .btn-secondary:hover { background: #4b5563; }
+        .test-mode { text-align: center; }
+        .checkbox-label { display: inline-flex; align-items: center; gap: 0.5rem; color: #6b7280; font-size: 0.875rem; cursor: pointer; }
+        .processing-status { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 3rem; border-radius: 1rem; text-align: center; color: white; margin-top: 2rem; }
+        .processing-status.hidden { display: none; }
+        .status-card { background: rgba(255,255,255,0.1); padding: 2rem; border-radius: 1rem; backdrop-filter: blur(10px); }
+        .status-spinner { width: 60px; height: 60px; border: 4px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1.5rem; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .status-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; }
+        .status-message { font-size: 1rem; margin-bottom: 1rem; }
+        .progress-bar { width: 100%; height: 8px; background: rgba(255,255,255,0.2); border-radius: 999px; overflow: hidden; margin: 1.5rem 0; }
+        .progress-fill { height: 100%; background: white; border-radius: 999px; transition: width 0.3s; }
+        .status-time { font-size: 0.875rem; opacity: 0.8; }
+        .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .feature-card { background: white; padding: 1.5rem; border-radius: 1rem; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .feature-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        .feature-card h3 { color: #1f2937; font-size: 1.125rem; margin-bottom: 0.5rem; }
+        .feature-card p { color: #6b7280; font-size: 0.875rem; }
+        .footer { text-align: center; color: white; padding: 2rem; font-size: 0.875rem; }
+    </style>
 </head>
 <body>
+    <!-- USER BAR -->
+    <div class="user-bar" id="userBar">
+        <div class="user-info">
+            <div class="user-avatar" id="userAvatar">U</div>
+            <div class="user-details">
+                <h3 id="userName">Carregando...</h3>
+                <p class="quota-info" id="quotaInfo">Carregando quota...</p>
+            </div>
+        </div>
+        <button class="btn-logout" onclick="logout()">Sair</button>
+    </div>
+
     <div class="container">
         <header class="header">
             <div class="logo-container">
@@ -121,18 +231,116 @@
         </footer>
     </div>
 
-    <script>
-        console.log('🚀 Pharmyrus v9 FINAL - INDEX CORRIGIDO');
-        
-        var WEBHOOK_PROD = 'https://primary-production-2e3b.up.railway.app/webhook/analise-patentes';
-        var WEBHOOK_TEST = 'https://primary-production-2e3b.up.railway.app/webhook-test/analise-patentes';
-        
-        window.onload = function() {
-            console.log('✅ Iniciado');
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, doc, getDoc, updateDoc, increment } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyAHq5Tvn3qZvbj1D2GJdUW-BhPWiAURBJI",
+            authDomain: "patentes-51d85.firebaseapp.com",
+            projectId: "patentes-51d85",
+            storageBucket: "patentes-51d85.firebasestorage.app",
+            messagingSenderId: "278792677855",
+            appId: "1:278792677855:web:a801a4894efe7aa1bbbc6a"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+        let userData = null;
+
+        // Check Auth State
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                await loadUserData();
+                document.getElementById('userBar').classList.add('show');
+                initOriginalScript();
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+
+        // Load User Data
+        async function loadUserData() {
+            const userRef = doc(db, 'users', currentUser.uid);
+            const userSnap = await getDoc(userRef);
+
+            if (userSnap.exists()) {
+                userData = userSnap.data();
+                updateUserUI();
+            }
+        }
+
+        // Update User UI
+        function updateUserUI() {
+            const avatar = document.getElementById('userAvatar');
+            const name = document.getElementById('userName');
+            const quota = document.getElementById('quotaInfo');
+
+            avatar.textContent = (userData.displayName || userData.email).charAt(0).toUpperCase();
+            name.textContent = userData.displayName || userData.email;
+
+            if (userData.quotaLimit === -1) {
+                quota.textContent = '∞ Consultas Ilimitadas';
+                quota.classList.add('unlimited');
+            } else {
+                const remaining = userData.quotaLimit - userData.quotaUsed;
+                quota.textContent = `${remaining}/${userData.quotaLimit} consultas restantes este mês`;
+                
+                if (remaining === 0) {
+                    quota.classList.add('warning');
+                    quota.textContent = '⚠️ Limite de consultas atingido';
+                } else if (remaining <= 2) {
+                    quota.classList.add('warning');
+                }
+            }
+        }
+
+        // Check Quota
+        async function checkQuota() {
+            if (userData.quotaLimit === -1) return true;
+
+            const remaining = userData.quotaLimit - userData.quotaUsed;
+            if (remaining <= 0) {
+                alert('⚠️ Você atingiu o limite de consultas mensais.\n\nAguarde até o próximo mês ou entre em contato para aumentar sua quota.');
+                return false;
+            }
+
+            return true;
+        }
+
+        // Decrement Quota
+        async function decrementQuota() {
+            if (userData.quotaLimit === -1) return;
+
+            const userRef = doc(db, 'users', currentUser.uid);
+            await updateDoc(userRef, {
+                quotaUsed: increment(1)
+            });
+
+            userData.quotaUsed++;
+            updateUserUI();
+        }
+
+        // Logout
+        window.logout = async function() {
+            await signOut(auth);
+            window.location.href = 'login.html';
+        };
+
+        // ORIGINAL SCRIPT (mantido 100%)
+        function initOriginalScript() {
+            console.log('🚀 Pharmyrus v10 - INDEX COM AUTH');
             
-            localStorage.clear();
-            sessionStorage.clear();
-            console.log('🧹 Storage limpo');
+            var WEBHOOK_PROD = 'https://primary-production-2e3b.up.railway.app/webhook/analise-patentes';
+            var WEBHOOK_TEST = 'https://primary-production-2e3b.up.railway.app/webhook-test/analise-patentes';
+            
+            console.log('✅ Iniciado');
             
             var form = document.getElementById('searchForm');
             var btnSearch = document.getElementById('btnSearch');
@@ -146,7 +354,6 @@
             var progressFill = document.getElementById('progressFill');
             var btnViewDashboard = document.getElementById('btnViewDashboard');
             
-            // LIMPAR CAMPOS
             nomeMolecula.value = '';
             nomeComercial.value = '';
             
@@ -156,7 +363,7 @@
                 return false; 
             };
             
-            btnSearch.onclick = function() {
+            btnSearch.onclick = async function() {
                 var mol = nomeMolecula.value.trim();
                 var com = nomeComercial.value.trim();
                 
@@ -171,10 +378,20 @@
                     return; 
                 }
                 
+                // CHECK QUOTA ANTES DE BUSCAR
+                if (!await checkQuota()) {
+                    return;
+                }
+                
                 buscar(mol, com);
             };
             
-            btnTest.onclick = function() {
+            btnTest.onclick = async function() {
+                // CHECK QUOTA ANTES DO TESTE
+                if (!await checkQuota()) {
+                    return;
+                }
+                
                 nomeMolecula.value = '';
                 nomeComercial.value = '';
                 
@@ -304,6 +521,12 @@
                                 }
                                 
                                 console.log('✅ SALVO COM SUCESSO');
+                                
+                                // DECREMENT QUOTA AFTER SUCCESS
+                                decrementQuota().then(() => {
+                                    console.log('📊 Quota decrementada');
+                                });
+                                
                                 resolve(moleculaRecebida);
                             } catch (e) {
                                 console.error('❌ Erro ao salvar:', e);
@@ -339,7 +562,7 @@
                     alert('❌ Erro: ' + erro.message + '\n\nTente novamente ou use o ambiente de teste.');
                 });
             }
-        };
+        }
     </script>
 </body>
 </html>
