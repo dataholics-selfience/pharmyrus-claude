@@ -200,19 +200,20 @@
     </div>
 
     <script>
-        console.log('Dashboard v7 - CORRIGIDO');
+        console.log('Dashboard v6 - FINAL');
         
         let todasPatentes = [];
         let patentesFiltradas = [];
         
+        // ⭐ FUNÇÃO PARA CORRIGIR [object Object] - ÚNICA ADIÇÃO
         function safeString(value) {
-            if (value == null) return 'N/A';
+            if (value == null) return '';
             if (typeof value === 'object') {
                 if (Array.isArray(value)) return value.join(', ');
-                return 'Sem título';
+                return '';
             }
             const str = String(value);
-            if (str.includes('[object Object]')) return 'Sem título';
+            if (str.includes('[object Object]')) return '';
             return str;
         }
         
@@ -225,34 +226,30 @@
                     throw new Error('Nenhum dado encontrado no localStorage');
                 }
                 
-                console.log('Dados encontrados:', dados.length, 'bytes');
-                
-                const parsed = JSON.parse(dados);
-                console.log('🔍 Tipo parsed:', Array.isArray(parsed) ? `Array[${parsed.length}]` : typeof parsed);
-                
-                let data;
-                
-                if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].output) {
-                    console.log('📦 Array detectado com output, parseando...');
-                    data = JSON.parse(parsed[0].output);
-                    console.log('✅ Output parseado com sucesso');
-                } else {
-                    console.log('📦 Objeto direto detectado');
-                    data = parsed;
+                console.log('Dados brutos encontrados:', dados.substring(0, 200) + '...');
+
+                const rawData = JSON.parse(dados);
+                console.log('✅ JSON parseado');
+
+                let data = rawData;
+                if (Array.isArray(rawData) && rawData.length > 0 && rawData[0].output) {
+                    console.log('📝 Detectado formato com output, parseando...');
+                    try {
+                        data = JSON.parse(rawData[0].output);
+                    } catch (e) {
+                        console.error('❌ Erro ao parsear output:', e);
+                        data = rawData[0];
+                    }
                 }
-                
-                console.log('📊 Data final:', data);
+
                 console.log('Meta:', data.meta);
                 console.log('Estatisticas:', data.estatisticas);
-                console.log('Patentes:', data.patentes ? data.patentes.length : 0);
                 
                 const meta = data.meta || {};
                 const stats = data.estatisticas || {};
                 const metricas = data.metricas_chave || {};
                 const relatorio = data.relatorio_executivo || {};
                 todasPatentes = data.patentes || [];
-                
-                console.log('todasPatentes length:', todasPatentes.length);
                 
                 document.getElementById('title').textContent = 'Dashboard - ' + (meta.nome_comercial || 'Análise de Patentes');
                 document.getElementById('subtitle').textContent = (meta.molecula || '') + ' | ' + (meta.classe_terapeutica || '');
@@ -295,8 +292,6 @@
                 }
                 console.log('Distribuição:', countINPI, 'INPI,', countEPO, 'EPO');
                 
-                document.getElementById('fontes').textContent = 'INPI: ' + countINPI + ' | EPO: ' + countEPO;
-                
                 filtrarPatentes();
                 
                 document.getElementById('loading').classList.add('hidden');
@@ -304,8 +299,7 @@
                 console.log('✅ Dashboard pronto!');
                 
             } catch (erro) {
-                console.error('❌ Erro:', erro);
-                console.error('Stack:', erro.stack);
+                console.error('Erro:', erro);
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('error').classList.remove('hidden');
                 document.getElementById('errorMsg').textContent = erro.message;
@@ -377,11 +371,14 @@
                     ameacaBadge = '<span class="badge ' + badgeAmeaca + '">' + ameaca + '</span>';
                 }
                 
-                const tituloSeguro = safeString(p.titulo).substring(0, 80);
+                // ⭐ CORREÇÃO: Usar safeString para título
+                let titulo = safeString(p.titulo);
+                if (!titulo || titulo === '') titulo = 'Sem título';
+                if (titulo.length > 80) titulo = titulo.substring(0, 80) + '...';
                 
                 tr.innerHTML = '<td><span class="badge ' + badgeClass + '">' + fonteDisplay + '</span></td>' +
                     '<td><code style="font-size:0.75rem">' + (p.numero_completo || p.numero || '-').substring(0, 20) + '</code></td>' +
-                    '<td>' + tituloSeguro + '</td>' +
+                    '<td>' + titulo + '</td>' +
                     '<td>' + (p.ano_deposito || p.ano || '-') + '</td>' +
                     '<td>' + tipoDisplay + '</td>' +
                     '<td>' + ameacaBadge + '</td>';
@@ -395,12 +392,16 @@
         function abrirModal(patente) {
             document.getElementById('modalTitle').textContent = patente.numero_completo || patente.numero || 'Patente';
             
+            // ⭐ CORREÇÃO: Usar safeString para título no modal
+            let titulo = safeString(patente.titulo);
+            if (!titulo || titulo === '') titulo = 'Sem título';
+            
             let html = '';
-            html += '<div class="detail"><strong>Título:</strong> ' + safeString(patente.titulo) + '</div>';
+            html += '<div class="detail"><strong>Título:</strong> ' + titulo + '</div>';
             html += '<div class="detail"><strong>Fonte:</strong> ' + (patente.fonte || 'N/A') + '</div>';
             html += '<div class="detail"><strong>País:</strong> ' + (patente.country || patente.pais || 'N/A') + '</div>';
             html += '<div class="detail"><strong>Ano de Depósito:</strong> ' + (patente.ano_deposito || patente.ano || 'N/A') + '</div>';
-            html += '<div class="detail"><strong>Titular:</strong> ' + safeString(patente.applicant) + '</div>';
+            html += '<div class="detail"><strong>Titular:</strong> ' + (patente.applicant || 'N/A') + '</div>';
             html += '<div class="detail"><strong>IPC:</strong> ' + (patente.ipc || 'N/A') + '</div>';
             html += '<div class="detail"><strong>Tipo:</strong> ' + (patente.tipo_patente || patente.categoria_busca || 'N/A') + '</div>';
             
@@ -409,11 +410,11 @@
             }
             
             if (patente.comentario_ia) {
-                html += '<div class="detail"><strong>Análise IA:</strong> ' + safeString(patente.comentario_ia) + '</div>';
+                html += '<div class="detail"><strong>Análise IA:</strong> ' + patente.comentario_ia + '</div>';
             }
             
             if (patente.abstract && patente.abstract !== 'N/A') {
-                html += '<div class="detail"><strong>Resumo:</strong> ' + safeString(patente.abstract) + '</div>';
+                html += '<div class="detail"><strong>Resumo:</strong> ' + patente.abstract + '</div>';
             }
             
             document.getElementById('modalBody').innerHTML = html;
