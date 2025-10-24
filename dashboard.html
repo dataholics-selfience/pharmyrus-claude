@@ -222,7 +222,7 @@
         }
 
         /* ========================================
-           EXECUTIVE REPORT
+           EXECUTIVE REPORT - LAYOUT 2x2
            ======================================== */
         .report-section {
             background: white;
@@ -244,7 +244,7 @@
 
         .report-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: 1fr 1fr;
             gap: 1.5rem;
         }
 
@@ -265,7 +265,79 @@
         }
 
         /* ========================================
-           FILTERS
+           SEARCH BAR
+           ======================================== */
+        .search-section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-wrapper {
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            font-size: 1.25rem;
+        }
+
+        .autocomplete-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-top: none;
+            border-radius: 0 0 0.5rem 0.5rem;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+        }
+
+        .autocomplete-results.show {
+            display: block;
+        }
+
+        .autocomplete-item {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .autocomplete-item:hover {
+            background: #f9fafb;
+        }
+
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+
+        /* ========================================
+           FILTERS - COMPLETOS
            ======================================== */
         .filters-bar {
             background: white;
@@ -273,15 +345,18 @@
             border-radius: 1rem;
             margin-bottom: 1.5rem;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            display: flex;
-            gap: 1.5rem;
-            align-items: center;
-            flex-wrap: wrap;
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
         }
 
         .filter-group {
             display: flex;
-            align-items: center;
+            flex-direction: column;
             gap: 0.5rem;
         }
 
@@ -305,6 +380,12 @@
         .filter-group select:focus {
             outline: none;
             border-color: #667eea;
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
         }
 
         /* ========================================
@@ -388,16 +469,6 @@
             font-weight: 600;
         }
 
-        .badge-br {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-
-        .badge-epo {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
         .badge-alta {
             background: #fee2e2;
             color: #991b1b;
@@ -411,6 +482,11 @@
         .badge-baixa {
             background: #dbeafe;
             color: #1e40af;
+        }
+
+        .badge-tipo {
+            background: #f3f4f6;
+            color: #374151;
         }
 
         /* ========================================
@@ -533,18 +609,8 @@
                 grid-template-columns: 1fr;
             }
 
-            .filters-bar {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .filter-group {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .filter-group select {
-                width: 100%;
+            .filters-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -588,7 +654,7 @@
                 </div>
 
                 <div class="header-actions">
-                    <button class="btn" id="btnExport" onclick="window.print()">
+                    <button class="btn" onclick="window.print()">
                         📥 Exportar PDF
                     </button>
                     <button class="btn btn-secondary" id="btnNewSearch">
@@ -624,7 +690,7 @@
                 </div>
             </div>
 
-            <!-- EXECUTIVE REPORT -->
+            <!-- EXECUTIVE REPORT - LAYOUT 2x2 -->
             <div class="report-section">
                 <h3>📊 Relatório Executivo</h3>
                 <div class="report-grid">
@@ -647,30 +713,76 @@
                 </div>
             </div>
 
-            <!-- FILTERS -->
+            <!-- SEARCH BAR -->
+            <div class="search-section">
+                <div class="search-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        class="search-input" 
+                        placeholder="Buscar por número, título, titular..."
+                    >
+                    <div id="autocompleteResults" class="autocomplete-results"></div>
+                </div>
+            </div>
+
+            <!-- FILTERS - COMPLETOS -->
             <div class="filters-bar">
-                <div class="filter-group">
-                    <label for="filtroFonte">Fonte:</label>
-                    <select id="filtroFonte">
-                        <option value="">Todas as Fontes</option>
-                        <option value="INPI">INPI (Brasil)</option>
-                        <option value="EPO">EPO (Europa)</option>
-                    </select>
+                <div class="filters-grid">
+                    <div class="filter-group">
+                        <label for="filtroFonte">Fonte:</label>
+                        <select id="filtroFonte">
+                            <option value="">Todas</option>
+                            <option value="INPI">INPI</option>
+                            <option value="EPO">EPO</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filtroPais">País:</label>
+                        <select id="filtroPais">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filtroAno">Ano:</label>
+                        <select id="filtroAno">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filtroTitular">Titular:</label>
+                        <select id="filtroTitular">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filtroTipo">Tipo:</label>
+                        <select id="filtroTipo">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filtroAmeaca">Ameaça:</label>
+                        <select id="filtroAmeaca">
+                            <option value="">Todos</option>
+                            <option value="Alta">Alta</option>
+                            <option value="Média">Média</option>
+                            <option value="Baixa">Baixa</option>
+                        </select>
+                    </div>
                 </div>
 
-                <div class="filter-group">
-                    <label for="filtroAmeaca">Nível de Ameaça:</label>
-                    <select id="filtroAmeaca">
-                        <option value="">Todos os Níveis</option>
-                        <option value="Alta">Alta</option>
-                        <option value="Média">Média</option>
-                        <option value="Baixa">Baixa</option>
-                    </select>
+                <div class="filter-actions">
+                    <button class="btn btn-secondary" id="btnClearFilters">
+                        🔄 Limpar Filtros
+                    </button>
                 </div>
-
-                <button class="btn btn-secondary" id="btnClearFilters">
-                    🔄 Limpar Filtros
-                </button>
             </div>
 
             <!-- PATENTS TABLE -->
@@ -684,13 +796,13 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Fonte</th>
                                 <th>Número</th>
                                 <th>Título</th>
                                 <th>Titular</th>
+                                <th>País</th>
                                 <th>Ano</th>
-                                <th>Ameaça</th>
                                 <th>Tipo</th>
+                                <th>Ameaça</th>
                             </tr>
                         </thead>
                         <tbody id="patentsTableBody">
@@ -715,6 +827,703 @@
         </div>
     </div>
 
-    <script src="js/dashboard.js"></script>
+    <script>
+// ========================================
+// PHARMYRUS DASHBOARD - v9.0 FINAL
+// ========================================
+
+console.log('🚀 Pharmyrus Dashboard v9.0 - FINAL');
+
+// ========================================
+// STATE MANAGEMENT
+// ========================================
+const DashboardState = {
+    rawData: null,
+    parsedData: null,
+    allPatents: [],
+    filteredPatents: [],
+    currentFilters: {
+        search: '',
+        fonte: '',
+        pais: '',
+        ano: '',
+        titular: '',
+        tipo: '',
+        ameaca: ''
+    },
+    uniqueValues: {
+        paises: [],
+        anos: [],
+        titulares: [],
+        tipos: []
+    }
+};
+
+// ========================================
+// UTILITY FUNCTIONS
+// ========================================
+const Utils = {
+    safeString(value) {
+        if (value == null) return '';
+        if (typeof value === 'object') {
+            if (Array.isArray(value)) {
+                // Se for array, juntar e limpar
+                return value.map(v => this.safeString(v)).join(', ');
+            }
+            // Se for objeto, retornar vazio
+            return '';
+        }
+        const str = String(value);
+        if (str.includes('[object Object]')) return '';
+        return str.trim();
+    },
+
+    truncate(text, maxLength = 80) {
+        const safe = this.safeString(text);
+        if (!safe) return '';
+        if (safe.length <= maxLength) return safe;
+        return safe.substring(0, maxLength) + '...';
+    },
+
+    formatNumber(num) {
+        if (!num) return '0';
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    },
+
+    normalize(text) {
+        return this.safeString(text).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+};
+
+// ========================================
+// DATA LOADING & PARSING
+// ========================================
+const DataLoader = {
+    async loadData() {
+        try {
+            console.log('📦 Carregando dados do localStorage...');
+            
+            const stored = localStorage.getItem('patentAnalysis');
+            
+            if (!stored) {
+                throw new Error('Nenhum dado encontrado. Por favor, faça uma nova busca.');
+            }
+
+            console.log(`✅ Dados encontrados: ${stored.length} bytes`);
+            
+            const parsed = JSON.parse(stored);
+            const data = this.extractData(parsed);
+            this.validateData(data);
+            
+            DashboardState.rawData = stored;
+            DashboardState.parsedData = data;
+            DashboardState.allPatents = data.patentes || [];
+            
+            // Extrair valores únicos para os filtros
+            this.extractUniqueValues();
+            
+            console.log(`✅ ${DashboardState.allPatents.length} patentes carregadas`);
+            
+            return data;
+            
+        } catch (error) {
+            console.error('❌ Erro ao carregar dados:', error);
+            throw error;
+        }
+    },
+
+    extractData(parsed) {
+        console.log('🔍 Analisando estrutura dos dados...');
+        
+        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].output) {
+            console.log('📝 Detectado: Array com campo output');
+            try {
+                return JSON.parse(parsed[0].output);
+            } catch (e) {
+                console.warn('⚠️ Erro ao parsear output, usando objeto direto');
+                return parsed[0];
+            }
+        }
+        
+        if (Array.isArray(parsed) && parsed.length > 0) {
+            console.log('📝 Detectado: Array simples');
+            return parsed[0];
+        }
+        
+        if (typeof parsed === 'object') {
+            console.log('📝 Detectado: Objeto direto');
+            return parsed;
+        }
+        
+        throw new Error('Estrutura de dados não reconhecida');
+    },
+
+    validateData(data) {
+        if (!data) {
+            throw new Error('Dados vazios ou inválidos');
+        }
+        
+        if (!data.patentes || !Array.isArray(data.patentes)) {
+            throw new Error('Campo "patentes" não encontrado ou inválido');
+        }
+        
+        console.log('✅ Validação de dados concluída');
+    },
+
+    extractUniqueValues() {
+        const paises = new Set();
+        const anos = new Set();
+        const titulares = new Set();
+        const tipos = new Set();
+
+        DashboardState.allPatents.forEach(patent => {
+            // País
+            const pais = patent.pais || patent.country;
+            if (pais) paises.add(pais);
+
+            // Ano
+            const ano = patent.ano_deposito || patent.ano;
+            if (ano) anos.add(ano);
+
+            // Titular
+            const titular = Utils.safeString(patent.applicant);
+            if (titular) titulares.add(titular);
+
+            // Tipo
+            const tipo = patent.tipo_barreira || patent.tipo_patente;
+            if (tipo) tipos.add(tipo);
+        });
+
+        DashboardState.uniqueValues = {
+            paises: Array.from(paises).sort(),
+            anos: Array.from(anos).sort((a, b) => b - a),
+            titulares: Array.from(titulares).sort(),
+            tipos: Array.from(tipos).sort()
+        };
+
+        console.log('✅ Valores únicos extraídos:', DashboardState.uniqueValues);
+    }
+};
+
+// ========================================
+// RENDERING FUNCTIONS
+// ========================================
+const Renderer = {
+    renderDashboard(data) {
+        console.log('🎨 Renderizando dashboard...');
+        
+        this.renderHeader(data.meta || {});
+        this.renderStats(data.estatisticas || {}, data.metricas_chave || {});
+        this.renderReport(data.relatorio_executivo || {});
+        this.populateFilterOptions();
+        this.renderPatentsTable();
+        
+        console.log('✅ Dashboard renderizado com sucesso');
+    },
+
+    renderHeader(meta) {
+        const titulo = meta.nome_comercial || 'Análise de Patentes';
+        const subtitulo = `${meta.molecula || ''} | ${meta.classe_terapeutica || ''}`.trim();
+        
+        document.getElementById('dashboardTitle').textContent = `Dashboard - ${titulo}`;
+        document.getElementById('dashboardSubtitle').textContent = subtitulo || 'Análise Completa do Portfólio';
+        document.getElementById('moleculeName').textContent = meta.molecula || '-';
+        document.getElementById('brandName').textContent = meta.nome_comercial || '-';
+        document.getElementById('therapeuticClass').textContent = meta.classe_terapeutica || '-';
+    },
+
+    renderStats(estatisticas, metricas) {
+        const totalPatentes = estatisticas.total_patentes || 0;
+        document.getElementById('totalPatentes').textContent = Utils.formatNumber(totalPatentes);
+        
+        const porFonte = estatisticas.por_fonte || {};
+        const inpi = porFonte.INPI || 0;
+        const epo = porFonte.EPO || 0;
+        document.getElementById('fontesInfo').textContent = `INPI: ${inpi} | EPO: ${epo}`;
+        
+        const anosProtecao = metricas.anos_protecao_restantes || 0;
+        document.getElementById('anosProtecao').textContent = anosProtecao;
+        
+        const altaAmeaca = metricas.patentes_alta_ameaca || 0;
+        document.getElementById('altaAmeaca').textContent = altaAmeaca;
+        
+        const topTitulares = estatisticas.top_titulares || [];
+        if (topTitulares.length > 0) {
+            const top = topTitulares[0];
+            const nome = Utils.truncate(top.titular || 'N/A', 20);
+            const percentual = metricas.concentracao_titular || 0;
+            
+            document.getElementById('titularDominante').textContent = nome;
+            document.getElementById('concentracaoInfo').textContent = `${percentual}% do portfólio`;
+        } else {
+            document.getElementById('titularDominante').textContent = 'N/A';
+            document.getElementById('concentracaoInfo').textContent = '-';
+        }
+    },
+
+    renderReport(relatorio) {
+        document.getElementById('panoramaGeral').textContent = 
+            relatorio.panorama_geral || 'Não disponível';
+        
+        document.getElementById('titularDominanteDesc').textContent = 
+            relatorio.titular_dominante || 'Não disponível';
+        
+        document.getElementById('barreirasCriticas').textContent = 
+            relatorio.barreiras_criticas || 'Não disponível';
+        
+        document.getElementById('janelasOportunidade').textContent = 
+            relatorio.janelas_oportunidade || 'Não disponível';
+    },
+
+    populateFilterOptions() {
+        // Países
+        const filtroPais = document.getElementById('filtroPais');
+        DashboardState.uniqueValues.paises.forEach(pais => {
+            const option = document.createElement('option');
+            option.value = pais;
+            option.textContent = pais;
+            filtroPais.appendChild(option);
+        });
+
+        // Anos
+        const filtroAno = document.getElementById('filtroAno');
+        DashboardState.uniqueValues.anos.forEach(ano => {
+            const option = document.createElement('option');
+            option.value = ano;
+            option.textContent = ano;
+            filtroAno.appendChild(option);
+        });
+
+        // Titulares (limitado aos top 20 para não sobrecarregar)
+        const filtroTitular = document.getElementById('filtroTitular');
+        DashboardState.uniqueValues.titulares.slice(0, 20).forEach(titular => {
+            const option = document.createElement('option');
+            option.value = titular;
+            option.textContent = Utils.truncate(titular, 40);
+            filtroTitular.appendChild(option);
+        });
+
+        // Tipos
+        const filtroTipo = document.getElementById('filtroTipo');
+        DashboardState.uniqueValues.tipos.forEach(tipo => {
+            const option = document.createElement('option');
+            option.value = tipo;
+            option.textContent = tipo;
+            filtroTipo.appendChild(option);
+        });
+
+        console.log('✅ Filtros populados');
+    },
+
+    renderPatentsTable() {
+        const tbody = document.getElementById('patentsTableBody');
+        tbody.innerHTML = '';
+        
+        const patents = DashboardState.filteredPatents;
+        
+        if (patents.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 2rem; color: #9ca3af;">
+                        Nenhuma patente encontrada com os filtros aplicados
+                    </td>
+                </tr>
+            `;
+            document.getElementById('resultsCount').textContent = '0 patentes';
+            return;
+        }
+
+        patents.forEach(patent => {
+            const row = this.createPatentRow(patent);
+            tbody.appendChild(row);
+        });
+
+        document.getElementById('resultsCount').textContent = `${patents.length} patentes`;
+    },
+
+    createPatentRow(patent) {
+        const tr = document.createElement('tr');
+        tr.onclick = () => Modal.open(patent);
+
+        // Obter título real do JSON
+        const tituloRaw = patent.titulo || patent.titulo_original || patent.title;
+        const titulo = Utils.truncate(Utils.safeString(tituloRaw), 60) || 'Sem título';
+
+        const titular = Utils.truncate(Utils.safeString(patent.applicant), 40) || 'Não informado';
+        const pais = patent.pais || patent.country || '-';
+        const ano = patent.ano_deposito || patent.ano || '-';
+        const tipo = patent.tipo_barreira || patent.tipo_patente || '-';
+
+        const ameaca = patent.nivel_ameaca || '';
+        let ameacaBadge = '<span style="color: #9ca3af; font-size: 0.75rem;">N/A</span>';
+        if (ameaca) {
+            const badgeClass = ameaca === 'Alta' ? 'badge-alta' : 
+                              ameaca === 'Média' ? 'badge-media' : 'badge-baixa';
+            ameacaBadge = `<span class="badge ${badgeClass}">${ameaca}</span>`;
+        }
+
+        tr.innerHTML = `
+            <td><code>${Utils.truncate(patent.numero_completo || patent.numero || '-', 20)}</code></td>
+            <td>${titulo}</td>
+            <td>${titular}</td>
+            <td style="text-align: center;">${pais}</td>
+            <td style="text-align: center;">${ano}</td>
+            <td style="text-align: center;"><span class="badge badge-tipo">${tipo}</span></td>
+            <td style="text-align: center;">${ameacaBadge}</td>
+        `;
+
+        return tr;
+    }
+};
+
+// ========================================
+// SEARCH & AUTOCOMPLETE
+// ========================================
+const Search = {
+    setupListeners() {
+        const searchInput = document.getElementById('searchInput');
+        const autocompleteResults = document.getElementById('autocompleteResults');
+
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.trim();
+            DashboardState.currentFilters.search = query;
+
+            if (query.length >= 2) {
+                this.showAutocomplete(query);
+            } else {
+                autocompleteResults.classList.remove('show');
+            }
+
+            Filters.apply();
+        });
+
+        // Fechar autocomplete ao clicar fora
+        document.addEventListener('click', (e) => {
+            if (!searchInput.contains(e.target) && !autocompleteResults.contains(e.target)) {
+                autocompleteResults.classList.remove('show');
+            }
+        });
+    },
+
+    showAutocomplete(query) {
+        const normalized = Utils.normalize(query);
+        const results = DashboardState.allPatents
+            .filter(p => {
+                const numero = Utils.normalize(p.numero_completo || p.numero || '');
+                const titulo = Utils.normalize(Utils.safeString(p.titulo));
+                const titular = Utils.normalize(Utils.safeString(p.applicant));
+                
+                return numero.includes(normalized) || 
+                       titulo.includes(normalized) || 
+                       titular.includes(normalized);
+            })
+            .slice(0, 5);
+
+        const autocompleteResults = document.getElementById('autocompleteResults');
+        
+        if (results.length === 0) {
+            autocompleteResults.classList.remove('show');
+            return;
+        }
+
+        autocompleteResults.innerHTML = results.map(p => {
+            const titulo = Utils.truncate(Utils.safeString(p.titulo), 50) || 'Sem título';
+            return `
+                <div class="autocomplete-item" onclick="Search.selectPatent('${p.numero_completo || p.numero}')">
+                    <strong>${p.numero_completo || p.numero}</strong><br>
+                    <small>${titulo}</small>
+                </div>
+            `;
+        }).join('');
+
+        autocompleteResults.classList.add('show');
+    },
+
+    selectPatent(numero) {
+        document.getElementById('searchInput').value = numero;
+        DashboardState.currentFilters.search = numero;
+        document.getElementById('autocompleteResults').classList.remove('show');
+        Filters.apply();
+    }
+};
+
+// ========================================
+// FILTERING
+// ========================================
+const Filters = {
+    apply() {
+        let filtered = DashboardState.allPatents;
+
+        // Search
+        if (DashboardState.currentFilters.search) {
+            const normalized = Utils.normalize(DashboardState.currentFilters.search);
+            filtered = filtered.filter(p => {
+                const numero = Utils.normalize(p.numero_completo || p.numero || '');
+                const titulo = Utils.normalize(Utils.safeString(p.titulo));
+                const titular = Utils.normalize(Utils.safeString(p.applicant));
+                
+                return numero.includes(normalized) || 
+                       titulo.includes(normalized) || 
+                       titular.includes(normalized);
+            });
+        }
+
+        // Fonte
+        if (DashboardState.currentFilters.fonte) {
+            filtered = filtered.filter(p => {
+                const fonte = p.fonte || (p.pais === 'BR' ? 'INPI' : 'EPO');
+                return fonte === DashboardState.currentFilters.fonte;
+            });
+        }
+
+        // País
+        if (DashboardState.currentFilters.pais) {
+            filtered = filtered.filter(p => {
+                const pais = p.pais || p.country;
+                return pais === DashboardState.currentFilters.pais;
+            });
+        }
+
+        // Ano
+        if (DashboardState.currentFilters.ano) {
+            filtered = filtered.filter(p => {
+                const ano = String(p.ano_deposito || p.ano || '');
+                return ano === DashboardState.currentFilters.ano;
+            });
+        }
+
+        // Titular
+        if (DashboardState.currentFilters.titular) {
+            filtered = filtered.filter(p => {
+                const titular = Utils.safeString(p.applicant);
+                return titular === DashboardState.currentFilters.titular;
+            });
+        }
+
+        // Tipo
+        if (DashboardState.currentFilters.tipo) {
+            filtered = filtered.filter(p => {
+                const tipo = p.tipo_barreira || p.tipo_patente;
+                return tipo === DashboardState.currentFilters.tipo;
+            });
+        }
+
+        // Ameaça
+        if (DashboardState.currentFilters.ameaca) {
+            filtered = filtered.filter(p => {
+                return p.nivel_ameaca === DashboardState.currentFilters.ameaca;
+            });
+        }
+
+        DashboardState.filteredPatents = filtered;
+        Renderer.renderPatentsTable();
+    },
+
+    clear() {
+        DashboardState.currentFilters = {
+            search: '',
+            fonte: '',
+            pais: '',
+            ano: '',
+            titular: '',
+            tipo: '',
+            ameaca: ''
+        };
+        
+        document.getElementById('searchInput').value = '';
+        document.getElementById('filtroFonte').value = '';
+        document.getElementById('filtroPais').value = '';
+        document.getElementById('filtroAno').value = '';
+        document.getElementById('filtroTitular').value = '';
+        document.getElementById('filtroTipo').value = '';
+        document.getElementById('filtroAmeaca').value = '';
+        
+        this.apply();
+    },
+
+    setupListeners() {
+        const filters = ['fonte', 'pais', 'ano', 'titular', 'tipo', 'ameaca'];
+        
+        filters.forEach(filter => {
+            document.getElementById(`filtro${filter.charAt(0).toUpperCase() + filter.slice(1)}`).addEventListener('change', (e) => {
+                DashboardState.currentFilters[filter] = e.target.value;
+                this.apply();
+            });
+        });
+
+        document.getElementById('btnClearFilters').addEventListener('click', () => {
+            this.clear();
+        });
+    }
+};
+
+// ========================================
+// MODAL
+// ========================================
+const Modal = {
+    open(patent) {
+        const modal = document.getElementById('patentModal');
+        const modalBody = document.getElementById('modalBody');
+
+        document.getElementById('modalTitle').textContent = 
+            patent.numero_completo || patent.numero || 'Detalhes da Patente';
+
+        const tituloRaw = patent.titulo || patent.titulo_original || patent.title;
+        const titulo = Utils.safeString(tituloRaw) || 'Sem título';
+        const titular = Utils.safeString(patent.applicant) || 'Não informado';
+        const abstract = Utils.safeString(patent.abstract) || '';
+        const comentarioIA = Utils.safeString(patent.comentario_ia) || '';
+
+        modalBody.innerHTML = `
+            <div class="detail-item">
+                <strong>Número da Patente</strong>
+                <p><code style="font-size: 1rem; padding: 0.5rem;">${patent.numero_completo || patent.numero || '-'}</code></p>
+            </div>
+
+            <div class="detail-item">
+                <strong>Título</strong>
+                <p>${titulo}</p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="detail-item">
+                    <strong>País</strong>
+                    <p>${patent.pais || patent.country || '-'}</p>
+                </div>
+                <div class="detail-item">
+                    <strong>Ano de Depósito</strong>
+                    <p>${patent.ano_deposito || patent.ano || '-'}</p>
+                </div>
+            </div>
+
+            <div class="detail-item">
+                <strong>Titular</strong>
+                <p>${titular}</p>
+            </div>
+
+            <div class="detail-item">
+                <strong>Classificação IPC</strong>
+                <p><code>${patent.ipc || '-'}</code></p>
+            </div>
+
+            ${abstract && abstract !== 'N/A' ? `
+                <div class="detail-item">
+                    <strong>Resumo</strong>
+                    <p>${abstract}</p>
+                </div>
+            ` : ''}
+
+            ${comentarioIA ? `
+                <div class="detail-item" style="background: #f0f9ff; padding: 1rem; border-radius: 0.5rem; border-left: 4px solid #667eea;">
+                    <strong>📊 Análise IA</strong>
+                    <p>${comentarioIA}</p>
+                </div>
+            ` : ''}
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+                <div class="detail-item">
+                    <strong>Nível de Ameaça</strong>
+                    <p>${patent.nivel_ameaca ? 
+                        `<span class="badge badge-${patent.nivel_ameaca.toLowerCase()}" style="padding: 0.5rem 1rem; font-size: 0.875rem;">${patent.nivel_ameaca}</span>` 
+                        : '<span style="color: #9ca3af;">N/A</span>'
+                    }</p>
+                </div>
+                <div class="detail-item">
+                    <strong>Tipo de Barreira</strong>
+                    <p><span class="badge badge-tipo" style="padding: 0.5rem 1rem; font-size: 0.875rem;">${patent.tipo_barreira || patent.tipo_patente || '-'}</span></p>
+                </div>
+            </div>
+        `;
+
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    },
+
+    close() {
+        const modal = document.getElementById('patentModal');
+        modal.classList.remove('show');
+        document.body.style.overflow = 'auto';
+    },
+
+    setupListeners() {
+        document.getElementById('patentModal').addEventListener('click', (e) => {
+            if (e.target.id === 'patentModal') {
+                this.close();
+            }
+        });
+    }
+};
+
+// ========================================
+// UI FUNCTIONS
+// ========================================
+const UI = {
+    showLoading() {
+        document.getElementById('loadingState').classList.remove('hidden');
+        document.getElementById('errorState').classList.add('hidden');
+        document.getElementById('dashboardContent').classList.add('hidden');
+    },
+
+    showError(message) {
+        document.getElementById('loadingState').classList.add('hidden');
+        document.getElementById('errorState').classList.remove('hidden');
+        document.getElementById('errorMessage').textContent = message;
+        document.getElementById('dashboardContent').classList.add('hidden');
+    },
+
+    showDashboard() {
+        document.getElementById('loadingState').classList.add('hidden');
+        document.getElementById('errorState').classList.add('hidden');
+        document.getElementById('dashboardContent').classList.remove('hidden');
+    },
+
+    setupListeners() {
+        document.getElementById('btnNewSearch').addEventListener('click', () => {
+            if (confirm('Deseja iniciar uma nova busca? Os dados atuais serão perdidos.')) {
+                localStorage.removeItem('patentAnalysis');
+                window.location.href = 'index.html';
+            }
+        });
+    }
+};
+
+// ========================================
+// INITIALIZATION
+// ========================================
+async function init() {
+    try {
+        console.log('🚀 Inicializando dashboard...');
+        
+        UI.showLoading();
+        
+        const data = await DataLoader.loadData();
+        
+        DashboardState.filteredPatents = DashboardState.allPatents;
+        
+        Renderer.renderDashboard(data);
+        
+        Search.setupListeners();
+        Filters.setupListeners();
+        Modal.setupListeners();
+        UI.setupListeners();
+        
+        UI.showDashboard();
+        
+        console.log('✅ Dashboard inicializado com sucesso!');
+        
+    } catch (error) {
+        console.error('❌ Erro na inicialização:', error);
+        UI.showError(error.message);
+    }
+}
+
+function closeModal() {
+    Modal.close();
+}
+
+window.addEventListener('load', init);
+
+console.log('✅ Dashboard.js v9.0 carregado');
+    </script>
 </body>
 </html>
