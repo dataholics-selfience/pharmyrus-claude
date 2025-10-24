@@ -5,185 +5,697 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Pharmyrus</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 2rem; }
-        .container { max-width: 1400px; margin: 0 auto; }
-        
-        .header { background: white; padding: 2rem; border-radius: 1rem; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
-        .header h1 { color: #1f2937; margin-bottom: 0.5rem; font-size: 2rem; }
-        .header .subtitle { color: #6b7280; font-size: 1.125rem; margin-bottom: 1rem; }
-        .header .info-pills { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-        .pill { display: inline-block; padding: 0.5rem 1rem; background: #f3f4f6; border-radius: 999px; font-size: 0.875rem; color: #374151; font-weight: 500; }
-        .pill strong { color: #1f2937; }
-        
-        .buttons { display: flex; gap: 1rem; margin-top: 1rem; }
-        .btn { padding: 0.75rem 1.5rem; background: #2563eb; color: white; border: none; border-radius: 0.5rem; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-block; }
-        .btn:hover { background: #1e40af; }
-        .btn-secondary { background: #6b7280; }
-        .btn-secondary:hover { background: #4b5563; }
-        
-        .loading { background: white; padding: 3rem; border-radius: 1rem; text-align: center; }
-        .loading.hidden { display: none; }
-        .spinner { width: 60px; height: 60px; border: 4px solid #e5e7eb; border-top-color: #2563eb; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        
-        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-        .card { background: white; padding: 1.5rem; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
-        .card h2 { font-size: 2.5rem; color: #2563eb; margin-bottom: 0.5rem; }
-        .card p { color: #6b7280; font-weight: 600; margin-bottom: 0.25rem; }
-        .card small { color: #9ca3af; font-size: 0.75rem; display: block; }
-        
-        .report { background: white; padding: 2rem; border-radius: 1rem; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
-        .report h3 { color: #1f2937; margin-bottom: 1.5rem; font-size: 1.5rem; }
-        .report-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
-        .report-item h4 { color: #1f2937; margin-bottom: 0.75rem; font-size: 1rem; font-weight: 600; }
-        .report-item p { color: #4b5563; font-size: 0.9375rem; line-height: 1.6; }
-        
-        .filters { background: white; padding: 1.5rem; border-radius: 1rem; margin-bottom: 1.5rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
-        .filters label { font-weight: 600; color: #374151; }
-        .filters select { padding: 0.5rem 1rem; border: 2px solid #e5e7eb; border-radius: 0.5rem; font-size: 0.875rem; cursor: pointer; }
-        .filters select:focus { outline: none; border-color: #2563eb; }
-        
-        .table-container { background: white; padding: 1.5rem; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
-        .table-container h3 { color: #1f2937; margin-bottom: 1rem; }
-        table { width: 100%; border-collapse: collapse; }
-        th { background: #f9fafb; padding: 1rem; text-align: left; font-weight: 600; color: #374151; font-size: 0.875rem; border-bottom: 2px solid #e5e7eb; position: sticky; top: 0; }
-        td { padding: 1rem; border-bottom: 1px solid #e5e7eb; font-size: 0.875rem; color: #374151; }
-        tbody tr { cursor: pointer; transition: background 0.2s; }
-        tbody tr:hover { background: #f9fafb; }
-        
-        .badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
-        .badge-alta { background: #fee2e2; color: #991b1b; }
-        .badge-media { background: #fef3c7; color: #92400e; }
-        .badge-baixa { background: #dbeafe; color: #1e40af; }
-        .badge-inpi, .badge-br { background: #dbeafe; color: #1e40af; }
-        .badge-epo { background: #d1fae5; color: #065f46; }
-        
-        .error { background: white; padding: 3rem; border-radius: 1rem; text-align: center; }
-        .error.hidden { display: none; }
-        .error h2 { color: #dc2626; margin-bottom: 1rem; }
-        
-        /* MODAL */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center; }
-        .modal.show { display: flex; }
-        .modal-content { background: white; padding: 2rem; border-radius: 1rem; max-width: 800px; max-height: 90vh; overflow-y: auto; margin: 1rem; }
-        .modal-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 1.5rem; }
-        .modal-header h2 { color: #1f2937; font-size: 1.25rem; flex: 1; }
-        .modal-close { background: #e5e7eb; border: none; padding: 0.5rem 1rem; border-radius: 0.5rem; cursor: pointer; font-weight: 600; }
-        .modal-close:hover { background: #d1d5db; }
-        .modal-body { color: #4b5563; line-height: 1.6; }
-        .modal-body .detail { margin-bottom: 1rem; }
-        .modal-body .detail strong { color: #1f2937; display: block; margin-bottom: 0.25rem; }
+        /* ========================================
+           RESET & BASE STYLES
+           ======================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            color: #1f2937;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* ========================================
+           LOADING STATE
+           ======================================== */
+        .loading-state {
+            background: white;
+            padding: 3rem;
+            border-radius: 1rem;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .loading-state.hidden {
+            display: none;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #e5e7eb;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1.5rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-state h2 {
+            color: #1f2937;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .loading-state p {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        /* ========================================
+           ERROR STATE
+           ======================================== */
+        .error-state {
+            background: white;
+            padding: 3rem;
+            border-radius: 1rem;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .error-state.hidden {
+            display: none;
+        }
+
+        .error-state h2 {
+            color: #dc2626;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .error-state p {
+            color: #6b7280;
+            margin-bottom: 1.5rem;
+        }
+
+        /* ========================================
+           HEADER
+           ======================================== */
+        .header {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: #1f2937;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .header .subtitle {
+            color: #6b7280;
+            font-size: 1.125rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-pills {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background: #f3f4f6;
+            border-radius: 999px;
+            font-size: 0.875rem;
+            color: #374151;
+        }
+
+        .pill strong {
+            color: #1f2937;
+            margin-right: 0.25rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        /* ========================================
+           BUTTONS
+           ======================================== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background: #5568d3;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+            box-shadow: 0 4px 12px rgba(107, 114, 128, 0.4);
+        }
+
+        /* ========================================
+           STATS CARDS
+           ======================================== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card .value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card .label {
+            color: #6b7280;
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-card .info {
+            color: #9ca3af;
+            font-size: 0.75rem;
+        }
+
+        /* ========================================
+           EXECUTIVE REPORT
+           ======================================== */
+        .report-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .report-section h3 {
+            color: #1f2937;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .report-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .report-item h4 {
+            color: #1f2937;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .report-item p {
+            color: #4b5563;
+            font-size: 0.9375rem;
+            line-height: 1.6;
+        }
+
+        /* ========================================
+           FILTERS
+           ======================================== */
+        .filters-bar {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.875rem;
+        }
+
+        .filter-group select {
+            padding: 0.5rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            color: #374151;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .filter-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        /* ========================================
+           TABLE
+           ======================================== */
+        .table-container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .table-header h3 {
+            color: #1f2937;
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f9fafb;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.875rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.875rem;
+            color: #374151;
+        }
+
+        tbody tr {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        tbody tr:hover {
+            background-color: #f9fafb;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* ========================================
+           BADGES
+           ======================================== */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-br {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge-epo {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-alta {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-media {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-baixa {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        /* ========================================
+           MODAL
+           ======================================== */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            width: 100%;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .modal-header h2 {
+            color: #1f2937;
+            font-size: 1.25rem;
+            font-weight: 700;
+            flex: 1;
+        }
+
+        .modal-close {
+            background: #e5e7eb;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .modal-close:hover {
+            background: #d1d5db;
+        }
+
+        .modal-body {
+            color: #4b5563;
+            line-height: 1.6;
+        }
+
+        .detail-item {
+            margin-bottom: 1.5rem;
+        }
+
+        .detail-item strong {
+            color: #1f2937;
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .detail-item p {
+            color: #4b5563;
+            font-size: 0.9375rem;
+        }
+
+        /* ========================================
+           UTILITIES
+           ======================================== */
+        .hidden {
+            display: none !important;
+        }
+
+        code {
+            background: #f3f4f6;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+        }
+
+        /* ========================================
+           RESPONSIVE
+           ======================================== */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .report-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filters-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-group select {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div id="loading" class="loading">
+        <!-- LOADING STATE -->
+        <div id="loadingState" class="loading-state">
             <div class="spinner"></div>
-            <h2>Carregando dados...</h2>
-            <p id="loadingMsg" style="color: #6b7280; margin-top: 1rem;"></p>
+            <h2>Carregando Dashboard...</h2>
+            <p>Processando dados das patentes</p>
         </div>
 
-        <div id="error" class="error hidden">
-            <h2>❌ Erro</h2>
-            <p id="errorMsg"></p>
-            <button class="btn" onclick="window.location.href='index.html'">Voltar</button>
+        <!-- ERROR STATE -->
+        <div id="errorState" class="error-state hidden">
+            <h2>❌ Erro ao Carregar Dados</h2>
+            <p id="errorMessage">Ocorreu um erro ao processar os dados.</p>
+            <button class="btn" onclick="window.location.href='index.html'">🔍 Nova Busca</button>
         </div>
 
-        <div id="content" style="display: none;">
+        <!-- DASHBOARD CONTENT -->
+        <div id="dashboardContent" class="hidden">
+            <!-- HEADER -->
             <div class="header">
-                <h1 id="title">Dashboard</h1>
-                <p class="subtitle" id="subtitle"></p>
+                <h1 id="dashboardTitle">Dashboard de Patentes</h1>
+                <p class="subtitle" id="dashboardSubtitle">Análise Completa do Portfólio</p>
+                
                 <div class="info-pills">
-                    <span class="pill"><strong>Molécula:</strong> <span id="moleculaName">-</span></span>
-                    <span class="pill"><strong>Nome Comercial:</strong> <span id="comercialName">-</span></span>
-                    <span class="pill"><strong>Classe:</strong> <span id="classeName">-</span></span>
+                    <span class="pill">
+                        <strong>Molécula:</strong>
+                        <span id="moleculeName">-</span>
+                    </span>
+                    <span class="pill">
+                        <strong>Nome Comercial:</strong>
+                        <span id="brandName">-</span>
+                    </span>
+                    <span class="pill">
+                        <strong>Classe Terapêutica:</strong>
+                        <span id="therapeuticClass">-</span>
+                    </span>
                 </div>
-                <div class="buttons">
-                    <button class="btn" onclick="window.print()">📥 Exportar PDF</button>
-                    <button class="btn btn-secondary" onclick="if(confirm('Nova busca?')){localStorage.clear();window.location.href='index.html';}">🔍 Nova Busca</button>
+
+                <div class="header-actions">
+                    <button class="btn" id="btnExport" onclick="window.print()">
+                        📥 Exportar PDF
+                    </button>
+                    <button class="btn btn-secondary" id="btnNewSearch">
+                        🔍 Nova Busca
+                    </button>
                 </div>
             </div>
 
-            <div class="cards">
-                <div class="card">
-                    <h2 id="totalPatentes">0</h2>
-                    <p>Total de Patentes</p>
-                    <small id="fontes">INPI: 0 | EPO: 0</small>
+            <!-- STATS CARDS -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="value" id="totalPatentes">0</div>
+                    <div class="label">Total de Patentes</div>
+                    <div class="info" id="fontesInfo">INPI: 0 | EPO: 0</div>
                 </div>
-                <div class="card">
-                    <h2 id="anosProtecao">0</h2>
-                    <p>Anos de Proteção</p>
-                    <small>Restantes estimados</small>
+
+                <div class="stat-card">
+                    <div class="value" id="anosProtecao">0</div>
+                    <div class="label">Anos de Proteção</div>
+                    <div class="info">Restantes estimados</div>
                 </div>
-                <div class="card">
-                    <h2 id="altaAmeaca">0</h2>
-                    <p>Alta Ameaça</p>
-                    <small>Patentes críticas</small>
+
+                <div class="stat-card">
+                    <div class="value" id="altaAmeaca">0</div>
+                    <div class="label">Patentes Alta Ameaça</div>
+                    <div class="info">Requerem atenção imediata</div>
                 </div>
-                <div class="card">
-                    <h2 id="titular">-</h2>
-                    <p>Titular Principal</p>
-                    <small id="titularPerc">-</small>
+
+                <div class="stat-card">
+                    <div class="value" id="titularDominante">-</div>
+                    <div class="label">Titular Principal</div>
+                    <div class="info" id="concentracaoInfo">0% do portfólio</div>
                 </div>
             </div>
 
-            <div class="report">
+            <!-- EXECUTIVE REPORT -->
+            <div class="report-section">
                 <h3>📊 Relatório Executivo</h3>
                 <div class="report-grid">
                     <div class="report-item">
                         <h4>📋 Panorama Geral</h4>
-                        <p id="panorama">-</p>
+                        <p id="panoramaGeral">Carregando...</p>
                     </div>
                     <div class="report-item">
                         <h4>🏢 Titular Dominante</h4>
-                        <p id="titularDesc">-</p>
+                        <p id="titularDominanteDesc">Carregando...</p>
                     </div>
                     <div class="report-item">
                         <h4>🚧 Barreiras Críticas</h4>
-                        <p id="barreiras">-</p>
+                        <p id="barreirasCriticas">Carregando...</p>
                     </div>
                     <div class="report-item">
-                        <h4>💡 Oportunidades</h4>
-                        <p id="janelas">-</p>
+                        <h4>💡 Janelas de Oportunidade</h4>
+                        <p id="janelasOportunidade">Carregando...</p>
                     </div>
                 </div>
             </div>
 
-            <div class="filters">
-                <label for="filterFonte">Filtrar por fonte:</label>
-                <select id="filterFonte" onchange="filtrarPatentes()">
-                    <option value="todas">Todas</option>
-                    <option value="INPI">INPI (Brasil)</option>
-                    <option value="EPO">EPO (Europa)</option>
-                </select>
-                
-                <label for="filterTipo">Tipo:</label>
-                <select id="filterTipo" onchange="filtrarPatentes()">
-                    <option value="todos">Todos</option>
-                    <option value="molecula_principal">Molécula Principal</option>
-                    <option value="sal">Sal/Polimorfo</option>
-                    <option value="cristal">Cristal</option>
-                    <option value="formulacao">Formulação</option>
-                    <option value="forma_farmaceutica">Forma Farmacêutica</option>
-                </select>
+            <!-- FILTERS -->
+            <div class="filters-bar">
+                <div class="filter-group">
+                    <label for="filtroFonte">Fonte:</label>
+                    <select id="filtroFonte">
+                        <option value="">Todas as Fontes</option>
+                        <option value="INPI">INPI (Brasil)</option>
+                        <option value="EPO">EPO (Europa)</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="filtroAmeaca">Nível de Ameaça:</label>
+                    <select id="filtroAmeaca">
+                        <option value="">Todos os Níveis</option>
+                        <option value="Alta">Alta</option>
+                        <option value="Média">Média</option>
+                        <option value="Baixa">Baixa</option>
+                    </select>
+                </div>
+
+                <button class="btn btn-secondary" id="btnClearFilters">
+                    🔄 Limpar Filtros
+                </button>
             </div>
 
+            <!-- PATENTS TABLE -->
             <div class="table-container">
-                <h3>🔎 Patentes (<span id="count">0</span>)</h3>
-                <div style="overflow-x: auto; margin-top: 1rem;">
+                <div class="table-header">
+                    <h3>🔬 Patentes Encontradas</h3>
+                    <span id="resultsCount" style="color: #6b7280; font-size: 0.875rem;">0 patentes</span>
+                </div>
+
+                <div class="table-wrapper">
                     <table>
                         <thead>
                             <tr>
                                 <th>Fonte</th>
                                 <th>Número</th>
                                 <th>Título</th>
+                                <th>Titular</th>
                                 <th>Ano</th>
-                                <th>Tipo</th>
                                 <th>Ameaça</th>
+                                <th>Tipo</th>
                             </tr>
                         </thead>
-                        <tbody id="tbody"></tbody>
+                        <tbody id="patentsTableBody">
+                            <!-- Populated by JavaScript -->
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -191,227 +703,18 @@
     </div>
 
     <!-- MODAL -->
-    <div id="modal" class="modal" onclick="if(event.target.id==='modal') fecharModal()">
+    <div id="patentModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2 id="modalTitle">Detalhes da Patente</h2>
-                <button class="modal-close" onclick="fecharModal()">✕ Fechar</button>
+                <button class="modal-close" onclick="closeModal()">✕ Fechar</button>
             </div>
-            <div class="modal-body" id="modalBody"></div>
+            <div class="modal-body" id="modalBody">
+                <!-- Populated by JavaScript -->
+            </div>
         </div>
     </div>
 
-    <script>
-        console.log('🚀 Dashboard v6 - FINAL');
-        
-        let todasPatentes = [];
-        let patentesFiltradas = [];
-        
-        function carregar() {
-            console.log('Carregando dados...');
-            
-            const stored = localStorage.getItem('patentAnalysis');
-            
-            if (!stored) {
-                document.getElementById('loading').classList.add('hidden');
-                document.getElementById('error').classList.remove('hidden');
-                document.getElementById('errorMsg').textContent = 'Nenhum dado encontrado. Faça uma nova busca.';
-                return;
-            }
-            
-            console.log('Dados encontrados:', stored.length, 'bytes');
-            
-            try {
-                const raw = JSON.parse(stored);
-                const dados = Array.isArray(raw) && raw[0] && raw[0].output ? JSON.parse(raw[0].output) : (Array.isArray(raw) && raw[0] ? raw[0] : raw);
-                
-                console.log('Meta:', dados.meta);
-                console.log('Estatisticas:', dados.estatisticas);
-                
-                // HEADER
-                document.getElementById('title').textContent = dados.meta.nome_comercial || 'Dashboard';
-                document.getElementById('subtitle').textContent = 'Análise de Portfólio de Patentes';
-                document.getElementById('moleculaName').textContent = dados.meta.molecula || '-';
-                document.getElementById('comercialName').textContent = dados.meta.nome_comercial || '-';
-                document.getElementById('classeName').textContent = dados.meta.classe_terapeutica || '-';
-                
-                // CARDS
-                const estat = dados.estatisticas || {};
-                const totalPatentes = estat.total_patentes || 0;
-                const porFonte = estat.por_fonte || {};
-                
-                document.getElementById('totalPatentes').textContent = totalPatentes;
-                document.getElementById('fontes').textContent = 'INPI: ' + (porFonte.INPI || 0) + ' | EPO: ' + (porFonte.EPO || 0);
-                
-                const metricas = dados.metricas_chave || {};
-                document.getElementById('anosProtecao').textContent = metricas.anos_protecao_restantes || 0;
-                document.getElementById('altaAmeaca').textContent = metricas.patentes_alta_ameaca || 0;
-                
-                const topTitulares = estat.top_titulares || [];
-                if (topTitulares.length > 0) {
-                    const top = topTitulares[0];
-                    document.getElementById('titular').textContent = top.titular.substring(0, 20);
-                    document.getElementById('titularPerc').textContent = top.percentual + '% do total';
-                } else {
-                    document.getElementById('titular').textContent = 'N/A';
-                }
-                
-                // RELATORIO
-                const rel = dados.relatorio_executivo || {};
-                document.getElementById('panorama').textContent = rel.panorama_geral || 'Não disponível';
-                document.getElementById('titularDesc').textContent = rel.titular_dominante || 'Não disponível';
-                document.getElementById('barreiras').textContent = rel.barreiras_criticas || 'Não disponível';
-                document.getElementById('janelas').textContent = rel.janelas_oportunidade || 'Não disponível';
-                
-                // PATENTES
-                todasPatentes = dados.patentes || [];
-                console.log('Total de patentes:', todasPatentes.length);
-                
-                // Verificar distribuição de fontes
-                let countINPI = 0;
-                let countEPO = 0;
-                for (let i = 0; i < todasPatentes.length; i++) {
-                    const fonte = todasPatentes[i].fonte;
-                    const pais = todasPatentes[i].country || todasPatentes[i].pais;
-                    
-                    if (fonte === 'INPI' || pais === 'BR') {
-                        countINPI++;
-                    } else {
-                        countEPO++;
-                    }
-                }
-                console.log('Distribuição:', countINPI, 'INPI,', countEPO, 'EPO');
-                
-                filtrarPatentes();
-                
-                document.getElementById('loading').classList.add('hidden');
-                document.getElementById('content').style.display = 'block';
-                console.log('✅ Dashboard pronto!');
-                
-            } catch (erro) {
-                console.error('Erro:', erro);
-                document.getElementById('loading').classList.add('hidden');
-                document.getElementById('error').classList.remove('hidden');
-                document.getElementById('errorMsg').textContent = erro.message;
-            }
-        }
-        
-        function filtrarPatentes() {
-            const filterFonte = document.getElementById('filterFonte').value;
-            const filterTipo = document.getElementById('filterTipo').value;
-            
-            patentesFiltradas = todasPatentes.filter(function(p) {
-                let passaFonte = true;
-                let passaTipo = true;
-                
-                if (filterFonte !== 'todas') {
-                    const fonte = p.fonte;
-                    const pais = p.country || p.pais;
-                    
-                    if (filterFonte === 'INPI') {
-                        passaFonte = (fonte === 'INPI' || pais === 'BR');
-                    } else if (filterFonte === 'EPO') {
-                        passaFonte = (fonte === 'EPO' && pais !== 'BR');
-                    }
-                }
-                
-                if (filterTipo !== 'todos') {
-                    const tipo = p.tipo_patente || p.categoria_busca || 'outros';
-                    passaTipo = (tipo === filterTipo);
-                }
-                
-                return passaFonte && passaTipo;
-            });
-            
-            renderizarTabela();
-        }
-        
-        function renderizarTabela() {
-            const tbody = document.getElementById('tbody');
-            tbody.innerHTML = '';
-            
-            document.getElementById('count').textContent = patentesFiltradas.length;
-            
-            for (let i = 0; i < Math.min(patentesFiltradas.length, 200); i++) {
-                const p = patentesFiltradas[i];
-                const tr = document.createElement('tr');
-                
-                const fonte = p.fonte;
-                const pais = p.country || p.pais;
-                let fonteDisplay = fonte;
-                let badgeClass = 'badge-epo';
-                
-                if (fonte === 'INPI' || pais === 'BR') {
-                    fonteDisplay = 'BR';
-                    badgeClass = 'badge-br';
-                }
-                
-                const tipo = p.tipo_patente || p.categoria_busca || 'outros';
-                let tipoDisplay = tipo;
-                if (tipo === 'molecula_principal') tipoDisplay = 'Molécula';
-                else if (tipo === 'sal') tipoDisplay = 'Sal';
-                else if (tipo === 'cristal') tipoDisplay = 'Cristal';
-                else if (tipo === 'formulacao') tipoDisplay = 'Formulação';
-                else if (tipo === 'forma_farmaceutica') tipoDisplay = 'Forma Farm.';
-                
-                const ameaca = p.nivel_ameaca || '';
-                let ameacaBadge = '';
-                if (ameaca) {
-                    const badgeAmeaca = ameaca === 'Alta' ? 'badge-alta' : (ameaca === 'Média' ? 'badge-media' : 'badge-baixa');
-                    ameacaBadge = '<span class="badge ' + badgeAmeaca + '">' + ameaca + '</span>';
-                }
-                
-                tr.innerHTML = '<td><span class="badge ' + badgeClass + '">' + fonteDisplay + '</span></td>' +
-                    '<td><code style="font-size:0.75rem">' + (p.numero_completo || p.numero || '-').substring(0, 20) + '</code></td>' +
-               '<td>' + (typeof p.titulo === "object" 
-                       ? Array.isArray(p.titulo) 
-                           ? p.titulo.join(", ").substring(0, 80) 
-                           : JSON.stringify(p.titulo).substring(0, 80)
-                           : (p.titulo || "Sem título").substring(0, 80)
-                ) + '</td>' +
-                    '<td>' + (p.ano_deposito || p.ano || '-') + '</td>' +
-                    '<td>' + tipoDisplay + '</td>' +
-                    '<td>' + ameacaBadge + '</td>';
-                
-                tr.onclick = function() { abrirModal(p); };
-                
-                tbody.appendChild(tr);
-            }
-        }
-        
-        function abrirModal(patente) {
-            document.getElementById('modalTitle').textContent = patente.numero_completo || patente.numero || 'Patente';
-            
-            let html = '';
-            html += '<div class="detail"><strong>Título:</strong> ' + (patente.titulo || 'N/A') + '</div>';
-            html += '<div class="detail"><strong>Fonte:</strong> ' + (patente.fonte || 'N/A') + '</div>';
-            html += '<div class="detail"><strong>País:</strong> ' + (patente.country || patente.pais || 'N/A') + '</div>';
-            html += '<div class="detail"><strong>Ano de Depósito:</strong> ' + (patente.ano_deposito || patente.ano || 'N/A') + '</div>';
-            html += '<div class="detail"><strong>Titular:</strong> ' + (patente.applicant || 'N/A') + '</div>';
-            html += '<div class="detail"><strong>IPC:</strong> ' + (patente.ipc || 'N/A') + '</div>';
-            html += '<div class="detail"><strong>Tipo:</strong> ' + (patente.tipo_patente || patente.categoria_busca || 'N/A') + '</div>';
-            
-            if (patente.nivel_ameaca) {
-                html += '<div class="detail"><strong>Nível de Ameaça:</strong> ' + patente.nivel_ameaca + '</div>';
-            }
-            
-            if (patente.comentario_ia) {
-                html += '<div class="detail"><strong>Análise IA:</strong> ' + patente.comentario_ia + '</div>';
-            }
-            
-            if (patente.abstract && patente.abstract !== 'N/A') {
-                html += '<div class="detail"><strong>Resumo:</strong> ' + patente.abstract + '</div>';
-            }
-            
-            document.getElementById('modalBody').innerHTML = html;
-            document.getElementById('modal').classList.add('show');
-        }
-        
-        function fecharModal() {
-            document.getElementById('modal').classList.remove('show');
-        }
-        
-        setTimeout(carregar, 500);
-    </script>
+    <script src="js/dashboard.js"></script>
 </body>
 </html>
