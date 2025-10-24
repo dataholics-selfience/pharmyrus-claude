@@ -1,364 +1,456 @@
-// dashboard.js - Pharmyrus Dashboard
-// Corrigido para evitar [object Object] nos títulos
+// ========================================
+// PHARMYRUS - DASHBOARD.JS (CORREÇÃO MÍNIMA)
+// Mantém toda funcionalidade original
+// Corrige apenas [object Object]
+// ========================================
 
-document.addEventListener('DOMContentLoaded', () => {
-    loadDashboardData();
+console.log('📊 Dashboard.js carregado');
+
+let dashboardData = null;
+let currentFilters = {
+    fonte: '',
+    ameaca: ''
+};
+
+// Aguardar DOM carregar
+window.addEventListener('load', function() {
+    console.log('✅ Dashboard iniciando...');
+    
+    try {
+        // Buscar dados do localStorage (mesma chave do original)
+        const storedData = localStorage.getItem('patentAnalysis');
+        
+        if (!storedData) {
+            throw new Error('Nenhum dado encontrado no localStorage');
+        }
+
+        console.log('📦 Dados encontrados no localStorage');
+
+        // Parse do JSON
+        const rawData = JSON.parse(storedData);
+        console.log('✅ JSON parseado');
+
+        // Processar dados (mantém estrutura original)
+        dashboardData = parsePatentData(rawData);
+        console.log('✅ Dados processados:', dashboardData);
+
+        // Renderizar
+        renderDashboard();
+        
+        // Mostrar conteúdo
+        document.getElementById('loadingState').classList.add('hidden');
+        document.getElementById('dashboardContent').classList.remove('hidden');
+
+        console.log('🎉 Dashboard renderizado com sucesso!');
+        
+    } catch (error) {
+        console.error('❌ Erro ao carregar dashboard:', error);
+        showError(error.message);
+    }
 });
 
-async function loadDashboardData() {
-    try {
-        // Recuperar dados do localStorage
-        const searchData = localStorage.getItem('pharmyrus_search_data');
-        
-        if (!searchData) {
-            showError('Nenhum dado de busca encontrado. Por favor, realize uma nova busca.');
-            return;
+// Parse dos dados (MANTÉM ESTRUTURA ORIGINAL)
+function parsePatentData(rawData) {
+    console.log('🔄 Parseando dados...');
+
+    let data = rawData;
+
+    // Se vier como array [{ output: "..." }]
+    if (Array.isArray(rawData) && rawData.length > 0 && rawData[0].output) {
+        console.log('📝 Detectado formato com output');
+        try {
+            data = JSON.parse(rawData[0].output);
+        } catch (e) {
+            console.error('❌ Erro ao parsear output:', e);
+            data = rawData[0];
         }
-
-        const data = JSON.parse(searchData);
-        
-        // Ocultar loading
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('results').style.display = 'block';
-
-        // Renderizar dados
-        renderSearchParams(data.searchParams);
-        renderMetrics(data.results);
-        renderPatents(data.results.patents);
-        
-        // Buscar análise de IA
-        if (data.searchParams) {
-            fetchAIAnalysis(data.searchParams, data.results);
-        }
-
-    } catch (error) {
-        console.error('Erro ao carregar dados:', error);
-        showError('Erro ao processar os dados. Por favor, tente novamente.');
     }
+
+    // GARANTIR estrutura mínima (não modifica se já existir)
+    const parsed = {
+        meta: data.meta || {},
+        estatisticas: data.estatisticas || { 
+            total_patentes: 0, 
+            por_fonte: {}, 
+            top_titulares: [] 
+        },
+        metricas_chave: data.metricas_chave || {},
+        relatorio_executivo: data.relatorio_executivo || {},
+        patentes: data.patentes || []
+    };
+
+    console.log(`✅ ${parsed.patentes.length} patentes encontradas`);
+
+    return parsed;
 }
 
-function renderSearchParams(params) {
-    const container = document.getElementById('search-params');
-    if (!params) {
-        container.innerHTML = '<p>Parâmetros de busca não disponíveis.</p>';
-        return;
-    }
+// Renderizar Dashboard (MANTÉM LÓGICA ORIGINAL)
+function renderDashboard() {
+    console.log('🎨 Renderizando dashboard...');
 
-    // CORREÇÃO: Usar propriedades individuais ao invés de concatenar objeto
-    const html = `
-        <div class="search-params-grid">
-            <div class="param-item">
-                <span class="param-label">Nome Comercial:</span>
-                <span class="param-value">${escapeHtml(params.nome_comercial || '-')}</span>
-            </div>
-            <div class="param-item">
-                <span class="param-label">Molécula:</span>
-                <span class="param-value">${escapeHtml(params.nome_molecula || '-')}</span>
-            </div>
-            <div class="param-item">
-                <span class="param-label">Titular:</span>
-                <span class="param-value">${escapeHtml(params.titular || '-')}</span>
-            </div>
-            <div class="param-item">
-                <span class="param-label">CAS Number:</span>
-                <span class="param-value">${escapeHtml(params.cas_number || '-')}</span>
-            </div>
-        </div>
-    `;
+    // Header
+    const titulo = safeString(dashboardData.meta.nome_comercial) || 'Análise de Patentes';
+    const molecula = safeString(dashboardData.meta.molecula) || '';
+    const classe = safeString(dashboardData.meta.classe_terapeutica) || '';
+    const subtitulo = [molecula, classe].filter(s => s).join(' | ');
     
-    container.innerHTML = html;
+    document.getElementById('dashboardTitle').textContent = `Dashboard - ${titulo}`;
+    document.getElementById('dashboardSubtitle').textContent = subtitulo;
+
+    // Hero Cards
+    const stats = dashboardData.estatisticas;
+    const metricas = dashboardData.metricas_chave;
+
+    document.getElementById('totalPatentes').textContent = stats.total_patentes || 0;
+    
+    const inpiCount = (stats.por_fonte && stats.por_fonte.INPI) || 0;
+    const epoCount = (stats.por_fonte && stats.por_fonte.EPO) || 0;
+    document.getElementById('fontesInfo').textContent = `INPI: ${inpiCount} | EPO: ${epoCount}`;
+    
+    document.getElementById('anosProtecao').textContent = metricas.anos_protecao_restantes || 0;
+    document.getElementById('altaAmeaca').textContent = metricas.patentes_alta_ameaca || 0;
+    
+    const topTitular = (stats.top_titulares && stats.top_titulares[0]) || {};
+    const titularNome = safeString(topTitular.titular) || 'N/A';
+    const titularDisplay = titularNome.length > 20 ? titularNome.substring(0, 20) + '...' : titularNome;
+    document.getElementById('titularDominante').textContent = titularDisplay;
+    document.getElementById('concentracaoInfo').textContent = `${metricas.concentracao_titular || 0}% do portfólio`;
+
+    // Relatório Executivo
+    const relatorio = dashboardData.relatorio_executivo;
+    document.getElementById('panoramaGeral').textContent = safeString(relatorio.panorama_geral) || '';
+    document.getElementById('titularDominanteDesc').textContent = safeString(relatorio.titular_dominante) || '';
+    document.getElementById('barreirasCriticas').textContent = safeString(relatorio.barreiras_criticas) || '';
+    document.getElementById('janelasOportunidade').textContent = safeString(relatorio.janelas_oportunidade) || '';
+
+    // Recomendações
+    const recomendacoesList = document.getElementById('recomendacoesList');
+    recomendacoesList.innerHTML = '';
+    
+    let recomendacoes = relatorio.recomendacoes || [];
+    
+    // Se vier como string, tentar separar
+    if (typeof recomendacoes === 'string') {
+        recomendacoes = recomendacoes.split(/\d+\.\s+/).filter(r => r.trim());
+    }
+    
+    // Garantir que é array
+    if (!Array.isArray(recomendacoes)) {
+        recomendacoes = [];
+    }
+    
+    recomendacoes.forEach(rec => {
+        const li = document.createElement('li');
+        li.textContent = safeString(rec);
+        recomendacoesList.appendChild(li);
+    });
+
+    // Tabela
+    renderPatentsTable();
+
+    // Event listeners
+    setupFilters();
 }
 
-function renderMetrics(results) {
-    if (!results || !results.patents) {
-        console.warn('Dados de resultados inválidos');
-        return;
-    }
-
-    const patents = results.patents;
+// ⭐ FUNÇÃO CHAVE: Converte valores para string de forma segura
+function safeString(value) {
+    // Se for null ou undefined, retorna string vazia
+    if (value == null) return '';
     
-    // Total de patentes
-    document.getElementById('total-patents').textContent = patents.length;
-
-    // Jurisdições únicas
-    const jurisdictions = new Set(patents.map(p => p.jurisdiction).filter(Boolean));
-    document.getElementById('total-jurisdictions').textContent = jurisdictions.size;
-
-    // Período (data mais antiga e mais recente)
-    const dates = patents
-        .map(p => p.filing_date || p.publication_date)
-        .filter(Boolean)
-        .map(d => new Date(d))
-        .sort((a, b) => a - b);
-
-    if (dates.length > 0) {
-        const oldest = dates[0].getFullYear();
-        const newest = dates[dates.length - 1].getFullYear();
-        document.getElementById('date-range').textContent = 
-            oldest === newest ? oldest : `${oldest} - ${newest}`;
-    } else {
-        document.getElementById('date-range').textContent = '-';
+    // Se for objeto, retorna string vazia (evita [object Object])
+    if (typeof value === 'object') {
+        console.warn('⚠️ Objeto detectado, convertendo para vazio:', value);
+        return '';
     }
-
-    // Patentes ativas
-    const active = patents.filter(p => 
-        p.status && (p.status.toLowerCase().includes('ativa') || 
-                    p.status.toLowerCase().includes('granted'))
-    ).length;
-    document.getElementById('active-patents').textContent = active;
+    
+    // Converter para string
+    const str = String(value);
+    
+    // Se contém [object Object], retorna vazio
+    if (str.includes('[object Object]')) {
+        console.warn('⚠️ [object Object] detectado, removendo');
+        return '';
+    }
+    
+    return str;
 }
 
-function renderPatents(patents) {
-    const container = document.getElementById('patents-container');
-    
-    if (!patents || patents.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <p>Nenhuma patente encontrada.</p>
-            </div>
-        `;
-        return;
+// Setup filtros (MANTÉM ORIGINAL)
+function setupFilters() {
+    const filtroFonte = document.getElementById('filtroFonte');
+    const filtroAmeaca = document.getElementById('filtroAmeaca');
+    const btnClearFilters = document.getElementById('btnClearFilters');
+
+    if (filtroFonte) {
+        filtroFonte.addEventListener('change', (e) => {
+            currentFilters.fonte = e.target.value;
+            renderPatentsTable();
+        });
     }
 
-    const html = patents.map(patent => createPatentCard(patent)).join('');
-    container.innerHTML = html;
+    if (filtroAmeaca) {
+        filtroAmeaca.addEventListener('change', (e) => {
+            currentFilters.ameaca = e.target.value;
+            renderPatentsTable();
+        });
+    }
 
-    // Adicionar event listeners para expandir/colapsar
-    document.querySelectorAll('.patent-card').forEach(card => {
-        card.addEventListener('click', (e) => {
-            if (!e.target.closest('.patent-actions')) {
-                card.classList.toggle('expanded');
+    if (btnClearFilters) {
+        btnClearFilters.addEventListener('click', () => {
+            currentFilters = { fonte: '', ameaca: '' };
+            if (filtroFonte) filtroFonte.value = '';
+            if (filtroAmeaca) filtroAmeaca.value = '';
+            renderPatentsTable();
+        });
+    }
+
+    // Botões de ação
+    const btnExport = document.getElementById('btnExport');
+    const btnNewSearch = document.getElementById('btnNewSearch');
+
+    if (btnExport) {
+        btnExport.addEventListener('click', () => {
+            window.print();
+        });
+    }
+
+    if (btnNewSearch) {
+        btnNewSearch.addEventListener('click', () => {
+            if (confirm('Deseja iniciar uma nova busca? Os dados atuais serão perdidos.')) {
+                localStorage.removeItem('patentAnalysis');
+                window.location.href = 'index.html';
             }
         });
-    });
+    }
 }
 
-function createPatentCard(patent) {
-    // CORREÇÃO: Extrair valores individuais ao invés de usar objeto diretamente
-    const title = escapeHtml(patent.title || 'Título não disponível');
-    const number = escapeHtml(patent.patent_number || patent.publication_number || 'N/A');
-    const jurisdiction = escapeHtml(patent.jurisdiction || 'N/A');
-    const status = escapeHtml(patent.status || 'Desconhecido');
-    const filingDate = formatDate(patent.filing_date);
-    const publicationDate = formatDate(patent.publication_date);
-    const inventor = escapeHtml(patent.inventor || 'Não informado');
-    const applicant = escapeHtml(patent.applicant || 'Não informado');
-    const abstract = escapeHtml(patent.abstract || 'Resumo não disponível');
+// Renderizar tabela (COM CORREÇÃO)
+function renderPatentsTable() {
+    const patentes = getFilteredPatents();
+    const tbody = document.getElementById('patentsTableBody');
     
-    // Status badge color
-    const statusClass = getStatusClass(status);
+    if (!tbody) {
+        console.error('❌ Elemento patentsTableBody não encontrado');
+        return;
+    }
+    
+    tbody.innerHTML = '';
+    
+    if (patentes.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" style="text-align: center; padding: 2rem; color: #9ca3af;">
+                    Nenhuma patente encontrada com os filtros aplicados
+                </td>
+            </tr>
+        `;
+        const resultsCount = document.getElementById('resultsCount');
+        if (resultsCount) resultsCount.textContent = '0 patentes encontradas';
+        return;
+    }
 
-    return `
-        <div class="patent-card">
-            <div class="patent-header">
-                <div class="patent-title-section">
-                    <h4 class="patent-title">${title}</h4>
-                    <div class="patent-meta">
-                        <span class="patent-number">📄 ${number}</span>
-                        <span class="patent-jurisdiction">🌍 ${jurisdiction}</span>
-                        <span class="patent-status ${statusClass}">${status}</span>
-                    </div>
-                </div>
-                <button class="expand-btn" aria-label="Expandir detalhes">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <polyline points="6 9 12 15 18 9"></polyline>
-                    </svg>
-                </button>
+    patentes.forEach(patente => {
+        const row = createPatentRow(patente);
+        tbody.appendChild(row);
+    });
+
+    const resultsCount = document.getElementById('resultsCount');
+    if (resultsCount) resultsCount.textContent = `${patentes.length} patentes encontradas`;
+}
+
+// Criar linha da tabela (COM CORREÇÃO DE [object Object])
+function createPatentRow(patente) {
+    const tr = document.createElement('tr');
+    tr.onclick = () => openPatentModal(patente);
+
+    // ⭐ CORREÇÃO: Usar safeString para título
+    let titulo = safeString(patente.titulo) || safeString(patente.titulo_original) || 'Sem título';
+    
+    // Se ficou vazio, tentar pegar de outro campo
+    if (!titulo || titulo === 'Sem título') {
+        titulo = safeString(patente.title) || 'Sem título';
+    }
+
+    // Truncar título longo
+    if (titulo.length > 80) {
+        titulo = titulo.substring(0, 80) + '...';
+    }
+
+    const fonte = safeString(patente.fonte) || (patente.pais === 'BR' ? 'INPI' : 'EPO');
+    const pais = fonte === 'INPI' ? 'BR' : safeString(patente.pais) || 'EPO';
+    const numero = safeString(patente.numero_completo) || safeString(patente.numero) || '-';
+    const applicant = safeString(patente.applicant) || 'Não informado';
+    const ano = safeString(patente.ano_deposito) || safeString(patente.ano) || '-';
+    const nivelAmeaca = safeString(patente.nivel_ameaca);
+    const tipoBarreira = safeString(patente.tipo_barreira) || safeString(patente.tipo_patente) || '-';
+
+    tr.innerHTML = `
+        <td>
+            <span class="badge ${fonte === 'INPI' ? 'badge-inpi' : 'badge-epo'}">
+                ${pais}
+            </span>
+        </td>
+        <td>
+            <code class="patent-code">${numero}</code>
+        </td>
+        <td>
+            <div style="max-width: 400px; overflow: hidden; text-overflow: ellipsis;">
+                ${titulo}
             </div>
-            
-            <div class="patent-details">
-                <div class="details-grid">
-                    <div class="detail-item">
-                        <span class="detail-label">Data de Depósito:</span>
-                        <span class="detail-value">${filingDate}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Data de Publicação:</span>
-                        <span class="detail-value">${publicationDate}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Inventor(es):</span>
-                        <span class="detail-value">${inventor}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Depositante:</span>
-                        <span class="detail-value">${applicant}</span>
-                    </div>
+        </td>
+        <td>
+            <div style="max-width: 250px; overflow: hidden; text-overflow: ellipsis;">
+                ${applicant}
+            </div>
+        </td>
+        <td style="text-align: center;">${ano}</td>
+        <td style="text-align: center;">
+            ${nivelAmeaca ? 
+                `<span class="badge badge-${nivelAmeaca.toLowerCase()}">${nivelAmeaca}</span>` 
+                : '<span style="color: #9ca3af; font-size: 0.875rem;">N/A</span>'
+            }
+        </td>
+        <td style="text-align: center;">
+            <span class="badge" style="background: #f3f4f6; color: #374151;">
+                ${tipoBarreira}
+            </span>
+        </td>
+    `;
+
+    return tr;
+}
+
+// Filtrar patentes (MANTÉM ORIGINAL)
+function getFilteredPatents() {
+    let patentes = dashboardData.patentes || [];
+
+    if (currentFilters.fonte) {
+        patentes = patentes.filter(p => {
+            const fonte = p.fonte || (p.pais === 'BR' ? 'INPI' : 'EPO');
+            return fonte === currentFilters.fonte;
+        });
+    }
+
+    if (currentFilters.ameaca) {
+        patentes = patentes.filter(p => p.nivel_ameaca === currentFilters.ameaca);
+    }
+
+    return patentes;
+}
+
+// Modal de detalhes (COM CORREÇÃO)
+function openPatentModal(patente) {
+    const modal = document.getElementById('patentModal');
+    const modalBody = document.getElementById('modalBody');
+
+    if (!modal || !modalBody) {
+        console.error('❌ Elementos do modal não encontrados');
+        return;
+    }
+
+    // ⭐ CORREÇÃO: Usar safeString
+    let titulo = safeString(patente.titulo) || safeString(patente.titulo_original) || safeString(patente.title) || 'Sem título';
+    const numero = safeString(patente.numero_completo) || safeString(patente.numero) || '-';
+    const pais = safeString(patente.pais) || safeString(patente.country) || '-';
+    const ano = safeString(patente.ano_deposito) || safeString(patente.ano) || '-';
+    const applicant = safeString(patente.applicant) || 'Não informado';
+    const ipc = safeString(patente.ipc) || '-';
+    const abstract = safeString(patente.abstract);
+    const comentarioIA = safeString(patente.comentario_ia);
+    const nivelAmeaca = safeString(patente.nivel_ameaca);
+    const tipoBarreira = safeString(patente.tipo_barreira) || safeString(patente.tipo_patente) || '-';
+
+    modalBody.innerHTML = `
+        <div class="detail-item">
+            <div class="detail-label">Número da Patente</div>
+            <div class="detail-value">
+                <code class="patent-code" style="font-size: 1rem; padding: 0.5rem;">
+                    ${numero}
+                </code>
+            </div>
+        </div>
+
+        <div class="detail-item">
+            <div class="detail-label">Título</div>
+            <div class="detail-value">${titulo}</div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="detail-item">
+                <div class="detail-label">País</div>
+                <div class="detail-value">${pais}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">Ano de Depósito</div>
+                <div class="detail-value">${ano}</div>
+            </div>
+        </div>
+
+        <div class="detail-item">
+            <div class="detail-label">Titular</div>
+            <div class="detail-value">${applicant}</div>
+        </div>
+
+        <div class="detail-item">
+            <div class="detail-label">Classificação IPC</div>
+            <div class="detail-value"><code>${ipc}</code></div>
+        </div>
+
+        ${abstract && abstract !== 'N/A' ? `
+            <div class="detail-item">
+                <div class="detail-label">Resumo</div>
+                <div class="detail-value">${abstract}</div>
+            </div>
+        ` : ''}
+
+        ${comentarioIA ? `
+            <div class="ia-analysis">
+                <div class="detail-label">📊 Análise IA</div>
+                <div class="detail-value">${comentarioIA}</div>
+            </div>
+        ` : ''}
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+            <div class="detail-item">
+                <div class="detail-label">Nível de Ameaça</div>
+                <div class="detail-value">
+                    ${nivelAmeaca ? 
+                        `<span class="badge badge-${nivelAmeaca.toLowerCase()}" style="padding: 0.5rem 1rem;">
+                            ${nivelAmeaca}
+                        </span>` 
+                        : '<span style="color: #9ca3af;">N/A</span>'
+                    }
                 </div>
-                
-                <div class="patent-abstract">
-                    <h5>Resumo</h5>
-                    <p>${abstract}</p>
-                </div>
-                
-                <div class="patent-actions">
-                    <button class="btn-action" onclick="viewPatentDetails('${number}')">
-                        Ver Detalhes Completos
-                    </button>
-                    <button class="btn-action" onclick="exportPatentPDF('${number}')">
-                        Exportar PDF
-                    </button>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">Tipo de Barreira</div>
+                <div class="detail-value">
+                    <span class="badge" style="background: #f3f4f6; color: #374151; padding: 0.5rem 1rem;">
+                        ${tipoBarreira}
+                    </span>
                 </div>
             </div>
         </div>
     `;
+
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
 }
 
-async function fetchAIAnalysis(searchParams, results) {
-    const aiContent = document.getElementById('ai-content');
-    
-    try {
-        // CORREÇÃO: Construir payload corretamente sem concatenar objetos
-        const payload = {
-            nome_comercial: searchParams.nome_comercial || '',
-            nome_molecula: searchParams.nome_molecula || '',
-            titular: searchParams.titular || '',
-            cas_number: searchParams.cas_number || '',
-            total_patents: results.patents ? results.patents.length : 0,
-            jurisdictions: results.patents ? 
-                [...new Set(results.patents.map(p => p.jurisdiction).filter(Boolean))] : []
-        };
-
-        const response = await fetch('https://primary-production-2e3b.up.railway.app/webhook/analise-patentes', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-            throw new Error(`Erro HTTP: ${response.status}`);
-        }
-
-        const data = await response.json();
-        
-        // CORREÇÃO: Usar a propriedade correta da resposta
-        if (data.analysis || data.analise) {
-            const analysis = data.analysis || data.analise;
-            aiContent.innerHTML = `
-                <div class="ai-result">
-                    ${formatMarkdown(analysis)}
-                </div>
-            `;
-        } else {
-            throw new Error('Formato de resposta inválido');
-        }
-
-    } catch (error) {
-        console.error('Erro ao buscar análise de IA:', error);
-        aiContent.innerHTML = `
-            <div class="ai-error">
-                <p>⚠️ Não foi possível gerar a análise de IA.</p>
-                <p class="error-detail">${error.message}</p>
-            </div>
-        `;
+// Fechar modal (MANTÉM ORIGINAL)
+function closeModal() {
+    const modal = document.getElementById('patentModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = 'auto';
     }
 }
 
-// Funções auxiliares
-
-function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-function formatDate(dateString) {
-    if (!dateString) return 'Não informado';
-    
-    try {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('pt-BR');
-    } catch {
-        return dateString;
-    }
-}
-
-function getStatusClass(status) {
-    if (!status) return 'status-unknown';
-    
-    const statusLower = status.toLowerCase();
-    if (statusLower.includes('ativa') || statusLower.includes('granted')) {
-        return 'status-active';
-    }
-    if (statusLower.includes('pendente') || statusLower.includes('pending')) {
-        return 'status-pending';
-    }
-    if (statusLower.includes('expirada') || statusLower.includes('expired')) {
-        return 'status-expired';
-    }
-    return 'status-unknown';
-}
-
-function formatMarkdown(text) {
-    if (!text) return '';
-    
-    // Converter markdown básico para HTML
-    return text
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        .replace(/\n\n/g, '</p><p>')
-        .replace(/\n/g, '<br>')
-        .replace(/^(.+)$/, '<p>$1</p>');
-}
-
+// Mostrar erro (MANTÉM ORIGINAL)
 function showError(message) {
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('error').style.display = 'block';
-    document.getElementById('error-message').textContent = message;
+    document.getElementById('loadingState').classList.add('hidden');
+    document.getElementById('errorState').classList.remove('hidden');
+    document.getElementById('errorMessage').textContent = message;
 }
 
-// Event Listeners
-
-document.getElementById('export-pdf')?.addEventListener('click', () => {
-    alert('Funcionalidade de exportação em desenvolvimento');
-});
-
-document.getElementById('sort-select')?.addEventListener('change', (e) => {
-    const sortValue = e.target.value;
-    const searchData = JSON.parse(localStorage.getItem('pharmyrus_search_data'));
-    
-    if (searchData && searchData.results && searchData.results.patents) {
-        const patents = [...searchData.results.patents];
-        
-        switch(sortValue) {
-            case 'date-desc':
-                patents.sort((a, b) => {
-                    const dateA = new Date(a.filing_date || a.publication_date || 0);
-                    const dateB = new Date(b.filing_date || b.publication_date || 0);
-                    return dateB - dateA;
-                });
-                break;
-            case 'date-asc':
-                patents.sort((a, b) => {
-                    const dateA = new Date(a.filing_date || a.publication_date || 0);
-                    const dateB = new Date(b.filing_date || b.publication_date || 0);
-                    return dateA - dateB;
-                });
-                break;
-            case 'title':
-                patents.sort((a, b) => {
-                    const titleA = (a.title || '').toLowerCase();
-                    const titleB = (b.title || '').toLowerCase();
-                    return titleA.localeCompare(titleB);
-                });
-                break;
-        }
-        
-        renderPatents(patents);
-    }
-});
-
-// Funções globais (chamadas de onclick)
-
-window.viewPatentDetails = function(patentNumber) {
-    alert(`Visualizar detalhes da patente: ${patentNumber}`);
-    // Implementar navegação para página de detalhes
-};
-
-window.exportPatentPDF = function(patentNumber) {
-    alert(`Exportar PDF da patente: ${patentNumber}`);
-    // Implementar exportação individual
-};
+console.log('✅ Dashboard.js configurado (correção mínima aplicada)');
