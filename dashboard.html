@@ -1,11 +1,182 @@
-https://github.com/dataholics-selfience/pharmyrus-claude/edit/main/dashboard.html
-```
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharmyrus - Dashboard de Análise</title>
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+    <!-- Loading State -->
+    <div id="loadingState" class="loading-state">
+        <div class="spinner"></div>
+        <p>Carregando resultados...</p>
+    </div>
 
-### 2️⃣ JavaScript
-**[dashboard-MINIMO.js](computer:///mnt/user-data/outputs/dashboard-MINIMO.js)**
+    <!-- Error State -->
+    <div id="errorState" class="error-state hidden">
+        <div class="error-card">
+            <h2>⚠️ Erro</h2>
+            <p id="errorMessage"></p>
+            <a href="index.html" class="btn-primary">Voltar à Busca</a>
+        </div>
+    </div>
 
-**Onde:** `/js/dashboard.js`
+    <!-- Dashboard Content -->
+    <div id="dashboardContent" class="hidden">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="container">
+                <div class="header-content">
+                    <h1 id="dashboardTitle">Dashboard - Análise de Patentes</h1>
+                    <p id="dashboardSubtitle" class="subtitle"></p>
+                </div>
+                <div class="header-actions">
+                    <button id="btnExport" class="btn-secondary">📄 Exportar</button>
+                    <button id="btnNewSearch" class="btn-primary">🔍 Nova Busca</button>
+                </div>
+            </div>
+        </header>
 
-**Link para editar:**
-```
-https://github.com/dataholics-selfience/pharmyrus-claude/edit/main/js/dashboard.js
+        <main class="container">
+            <!-- Hero Cards -->
+            <section class="hero-cards">
+                <div class="hero-card">
+                    <div class="hero-icon">📊</div>
+                    <div class="hero-content">
+                        <div class="hero-label">Total de Patentes</div>
+                        <div class="hero-value" id="totalPatentes">0</div>
+                        <div class="hero-info" id="fontesInfo">INPI: 0 | EPO: 0</div>
+                    </div>
+                </div>
+
+                <div class="hero-card">
+                    <div class="hero-icon">🛡️</div>
+                    <div class="hero-content">
+                        <div class="hero-label">Proteção Restante</div>
+                        <div class="hero-value" id="anosProtecao">0</div>
+                        <div class="hero-info">anos médios</div>
+                    </div>
+                </div>
+
+                <div class="hero-card">
+                    <div class="hero-icon">⚠️</div>
+                    <div class="hero-content">
+                        <div class="hero-label">Alta Ameaça</div>
+                        <div class="hero-value" id="altaAmeaca">0</div>
+                        <div class="hero-info">patentes críticas</div>
+                    </div>
+                </div>
+
+                <div class="hero-card">
+                    <div class="hero-icon">🏢</div>
+                    <div class="hero-content">
+                        <div class="hero-label">Titular Dominante</div>
+                        <div class="hero-value" id="titularDominante" style="font-size: 1.2rem;">-</div>
+                        <div class="hero-info" id="concentracaoInfo">0% do portfólio</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Relatório Executivo -->
+            <section class="executive-report">
+                <h2>📋 Relatório Executivo</h2>
+                
+                <div class="report-grid">
+                    <div class="report-card">
+                        <h3>🌐 Panorama Geral</h3>
+                        <p id="panoramaGeral"></p>
+                    </div>
+
+                    <div class="report-card">
+                        <h3>🏢 Titular Dominante</h3>
+                        <p id="titularDominanteDesc"></p>
+                    </div>
+
+                    <div class="report-card">
+                        <h3>🚧 Barreiras Críticas</h3>
+                        <p id="barreirasCriticas"></p>
+                    </div>
+
+                    <div class="report-card">
+                        <h3>🎯 Janelas de Oportunidade</h3>
+                        <p id="janelasOportunidade"></p>
+                    </div>
+                </div>
+
+                <div class="report-card recommendations">
+                    <h3>💡 Recomendações Estratégicas</h3>
+                    <ul id="recomendacoesList"></ul>
+                </div>
+            </section>
+
+            <!-- Tabela de Patentes -->
+            <section class="patents-section">
+                <div class="section-header">
+                    <h2>📑 Patentes Detalhadas</h2>
+                    <div class="filters">
+                        <select id="filtroFonte" class="filter-select">
+                            <option value="">Todas as Fontes</option>
+                            <option value="INPI">INPI</option>
+                            <option value="EPO">EPO</option>
+                        </select>
+                        <select id="filtroAmeaca" class="filter-select">
+                            <option value="">Todos os Níveis</option>
+                            <option value="Alta">Alta Ameaça</option>
+                            <option value="Média">Média Ameaça</option>
+                            <option value="Baixa">Baixa Ameaça</option>
+                        </select>
+                        <button id="btnClearFilters" class="btn-secondary">Limpar Filtros</button>
+                    </div>
+                </div>
+
+                <div class="results-info">
+                    <span id="resultsCount">0 patentes encontradas</span>
+                </div>
+
+                <div class="table-container">
+                    <table class="patents-table">
+                        <thead>
+                            <tr>
+                                <th>Fonte</th>
+                                <th>Número</th>
+                                <th>Título</th>
+                                <th>Titular</th>
+                                <th>Ano</th>
+                                <th>Ameaça</th>
+                                <th>Tipo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="patentsTableBody">
+                            <!-- Preenchido dinamicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="dashboard-footer">
+            <div class="container">
+                <p>© 2025 Pharmyrus. Análise de Patentes Farmacêuticas.</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modal de Detalhes -->
+    <div id="patentModal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Detalhes da Patente</h2>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Preenchido dinamicamente -->
+            </div>
+        </div>
+    </div>
+
+    <script src="js/dashboard.js"></script>
+</body>
+</html>
