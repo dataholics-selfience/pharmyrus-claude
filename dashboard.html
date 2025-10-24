@@ -145,33 +145,32 @@
                     </div>
                     <div class="report-item">
                         <h4>💡 Oportunidades</h4>
-                        <p id="janelas">-</p>
+                        <p id="oportunidades">-</p>
                     </div>
                 </div>
             </div>
 
             <div class="filters">
-                <label for="filterFonte">Filtrar por fonte:</label>
+                <label>Filtrar por:</label>
                 <select id="filterFonte" onchange="filtrarPatentes()">
-                    <option value="todas">Todas</option>
-                    <option value="INPI">INPI (Brasil)</option>
-                    <option value="EPO">EPO (Europa)</option>
+                    <option value="todas">Todas as Fontes</option>
+                    <option value="INPI">INPI/BR</option>
+                    <option value="EPO">EPO</option>
                 </select>
-                
-                <label for="filterTipo">Tipo:</label>
                 <select id="filterTipo" onchange="filtrarPatentes()">
-                    <option value="todos">Todos</option>
-                    <option value="molecula_principal">Molécula Principal</option>
-                    <option value="sal">Sal/Polimorfo</option>
+                    <option value="todos">Todos os Tipos</option>
+                    <option value="molecula_principal">Molécula</option>
+                    <option value="sal">Sal</option>
                     <option value="cristal">Cristal</option>
                     <option value="formulacao">Formulação</option>
                     <option value="forma_farmaceutica">Forma Farmacêutica</option>
+                    <option value="outros">Outros</option>
                 </select>
             </div>
 
             <div class="table-container">
-                <h3>🔎 Patentes (<span id="count">0</span>)</h3>
-                <div style="overflow-x: auto; margin-top: 1rem;">
+                <h3>📑 Patentes (<span id="count">0</span>)</h3>
+                <div style="overflow-x: auto;">
                     <table>
                         <thead>
                             <tr>
@@ -190,8 +189,7 @@
         </div>
     </div>
 
-    <!-- MODAL -->
-    <div id="modal" class="modal" onclick="if(event.target.id==='modal') fecharModal()">
+    <div id="modal" class="modal" onclick="if(event.target===this) fecharModal()">
         <div class="modal-content">
             <div class="modal-header">
                 <h2 id="modalTitle">Detalhes da Patente</h2>
@@ -202,72 +200,84 @@
     </div>
 
     <script>
-        console.log('🚀 Dashboard v6 - FINAL');
+        console.log('Dashboard v6 - FINAL');
         
         let todasPatentes = [];
         let patentesFiltradas = [];
         
-        function carregar() {
-            console.log('Carregando dados...');
-            
-            const stored = localStorage.getItem('patentAnalysis');
-            
-            if (!stored) {
-                document.getElementById('loading').classList.add('hidden');
-                document.getElementById('error').classList.remove('hidden');
-                document.getElementById('errorMsg').textContent = 'Nenhum dado encontrado. Faça uma nova busca.';
-                return;
+        // ⭐ FUNÇÃO PARA CORRIGIR [object Object] - ÚNICA ADIÇÃO
+        function safeString(value) {
+            if (value == null) return '';
+            if (typeof value === 'object') {
+                if (Array.isArray(value)) return value.join(', ');
+                return '';
             }
-            
-            console.log('Dados encontrados:', stored.length, 'bytes');
-            
+            const str = String(value);
+            if (str.includes('[object Object]')) return '';
+            return str;
+        }
+        
+        function carregar() {
             try {
-                const raw = JSON.parse(stored);
-                const dados = Array.isArray(raw) && raw[0] && raw[0].output ? JSON.parse(raw[0].output) : (Array.isArray(raw) && raw[0] ? raw[0] : raw);
+                console.log('Carregando dados...');
+                const dados = localStorage.getItem('patentAnalysis');
                 
-                console.log('Meta:', dados.meta);
-                console.log('Estatisticas:', dados.estatisticas);
+                if (!dados) {
+                    throw new Error('Nenhum dado encontrado no localStorage');
+                }
                 
-                // HEADER
-                document.getElementById('title').textContent = dados.meta.nome_comercial || 'Dashboard';
-                document.getElementById('subtitle').textContent = 'Análise de Portfólio de Patentes';
-                document.getElementById('moleculaName').textContent = dados.meta.molecula || '-';
-                document.getElementById('comercialName').textContent = dados.meta.nome_comercial || '-';
-                document.getElementById('classeName').textContent = dados.meta.classe_terapeutica || '-';
+                console.log('Dados brutos encontrados:', dados.substring(0, 200) + '...');
+
+                const rawData = JSON.parse(dados);
+                console.log('✅ JSON parseado');
+
+                let data = rawData;
+                if (Array.isArray(rawData) && rawData.length > 0 && rawData[0].output) {
+                    console.log('📝 Detectado formato com output, parseando...');
+                    try {
+                        data = JSON.parse(rawData[0].output);
+                    } catch (e) {
+                        console.error('❌ Erro ao parsear output:', e);
+                        data = rawData[0];
+                    }
+                }
+
+                console.log('Meta:', data.meta);
+                console.log('Estatisticas:', data.estatisticas);
                 
-                // CARDS
-                const estat = dados.estatisticas || {};
-                const totalPatentes = estat.total_patentes || 0;
-                const porFonte = estat.por_fonte || {};
+                const meta = data.meta || {};
+                const stats = data.estatisticas || {};
+                const metricas = data.metricas_chave || {};
+                const relatorio = data.relatorio_executivo || {};
+                todasPatentes = data.patentes || [];
                 
-                document.getElementById('totalPatentes').textContent = totalPatentes;
-                document.getElementById('fontes').textContent = 'INPI: ' + (porFonte.INPI || 0) + ' | EPO: ' + (porFonte.EPO || 0);
+                document.getElementById('title').textContent = 'Dashboard - ' + (meta.nome_comercial || 'Análise de Patentes');
+                document.getElementById('subtitle').textContent = (meta.molecula || '') + ' | ' + (meta.classe_terapeutica || '');
+                document.getElementById('moleculaName').textContent = meta.molecula || '-';
+                document.getElementById('comercialName').textContent = meta.nome_comercial || '-';
+                document.getElementById('classeName').textContent = meta.classe_terapeutica || '-';
                 
-                const metricas = dados.metricas_chave || {};
+                document.getElementById('totalPatentes').textContent = stats.total_patentes || 0;
+                console.log('Total de patentes:', stats.total_patentes);
+                
                 document.getElementById('anosProtecao').textContent = metricas.anos_protecao_restantes || 0;
                 document.getElementById('altaAmeaca').textContent = metricas.patentes_alta_ameaca || 0;
                 
-                const topTitulares = estat.top_titulares || [];
-                if (topTitulares.length > 0) {
-                    const top = topTitulares[0];
-                    document.getElementById('titular').textContent = top.titular.substring(0, 20);
-                    document.getElementById('titularPerc').textContent = top.percentual + '% do total';
+                const topTitular = stats.top_titulares && stats.top_titulares[0];
+                if (topTitular) {
+                    const nome = topTitular.titular || '-';
+                    document.getElementById('titular').textContent = nome.length > 20 ? nome.substring(0, 20) + '...' : nome;
+                    document.getElementById('titularPerc').textContent = (metricas.concentracao_titular || 0) + '% do portfólio';
                 } else {
-                    document.getElementById('titular').textContent = 'N/A';
+                    document.getElementById('titular').textContent = '-';
+                    document.getElementById('titularPerc').textContent = '-';
                 }
                 
-                // RELATORIO
-                const rel = dados.relatorio_executivo || {};
-                document.getElementById('panorama').textContent = rel.panorama_geral || 'Não disponível';
-                document.getElementById('titularDesc').textContent = rel.titular_dominante || 'Não disponível';
-                document.getElementById('barreiras').textContent = rel.barreiras_criticas || 'Não disponível';
-                document.getElementById('janelas').textContent = rel.janelas_oportunidade || 'Não disponível';
+                document.getElementById('panorama').textContent = relatorio.panorama_geral || '-';
+                document.getElementById('titularDesc').textContent = relatorio.titular_dominante || '-';
+                document.getElementById('barreiras').textContent = relatorio.barreiras_criticas || '-';
+                document.getElementById('oportunidades').textContent = relatorio.janelas_oportunidade || '-';
                 
-                // PATENTES
-                todasPatentes = dados.patentes || [];
-                console.log('Total de patentes:', todasPatentes.length);
-                
-                // Verificar distribuição de fontes
                 let countINPI = 0;
                 let countEPO = 0;
                 for (let i = 0; i < todasPatentes.length; i++) {
@@ -361,14 +371,14 @@
                     ameacaBadge = '<span class="badge ' + badgeAmeaca + '">' + ameaca + '</span>';
                 }
                 
+                // ⭐ CORREÇÃO: Usar safeString para título
+                let titulo = safeString(p.titulo);
+                if (!titulo || titulo === '') titulo = 'Sem título';
+                if (titulo.length > 80) titulo = titulo.substring(0, 80) + '...';
+                
                 tr.innerHTML = '<td><span class="badge ' + badgeClass + '">' + fonteDisplay + '</span></td>' +
                     '<td><code style="font-size:0.75rem">' + (p.numero_completo || p.numero || '-').substring(0, 20) + '</code></td>' +
-               '<td>' + (typeof p.titulo === "object" 
-                       ? Array.isArray(p.titulo) 
-                           ? p.titulo.join(", ").substring(0, 80) 
-                           : JSON.stringify(p.titulo).substring(0, 80)
-                           : (p.titulo || "Sem título").substring(0, 80)
-                ) + '</td>' +
+                    '<td>' + titulo + '</td>' +
                     '<td>' + (p.ano_deposito || p.ano || '-') + '</td>' +
                     '<td>' + tipoDisplay + '</td>' +
                     '<td>' + ameacaBadge + '</td>';
@@ -382,8 +392,12 @@
         function abrirModal(patente) {
             document.getElementById('modalTitle').textContent = patente.numero_completo || patente.numero || 'Patente';
             
+            // ⭐ CORREÇÃO: Usar safeString para título no modal
+            let titulo = safeString(patente.titulo);
+            if (!titulo || titulo === '') titulo = 'Sem título';
+            
             let html = '';
-            html += '<div class="detail"><strong>Título:</strong> ' + (patente.titulo || 'N/A') + '</div>';
+            html += '<div class="detail"><strong>Título:</strong> ' + titulo + '</div>';
             html += '<div class="detail"><strong>Fonte:</strong> ' + (patente.fonte || 'N/A') + '</div>';
             html += '<div class="detail"><strong>País:</strong> ' + (patente.country || patente.pais || 'N/A') + '</div>';
             html += '<div class="detail"><strong>Ano de Depósito:</strong> ' + (patente.ano_deposito || patente.ano || 'N/A') + '</div>';
