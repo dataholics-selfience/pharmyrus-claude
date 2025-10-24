@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -201,7 +200,7 @@
     </div>
 
     <script>
-        console.log('Dashboard v6 - FINAL');
+        console.log('Dashboard v6 - DEBUG');
         
         let todasPatentes = [];
         let patentesFiltradas = [];
@@ -228,26 +227,32 @@
                 }
                 
                 console.log('Dados encontrados:', dados.length, 'bytes');
+                console.log('Primeiros 500 chars:', dados.substring(0, 500));
                 
                 const parsed = JSON.parse(dados);
-                let data = parsed;
+                console.log('🔍 Tipo parsed:', Array.isArray(parsed) ? `Array[${parsed.length}]` : typeof parsed);
                 
-                if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].output) {
-                    try {
-                        data = JSON.parse(parsed[0].output);
-                    } catch (e) {
-                        data = parsed[0];
-                    }
+                // Ver as chaves do objeto
+                if (typeof parsed === 'object' && !Array.isArray(parsed)) {
+                    console.log('🔍 Chaves do objeto:', Object.keys(parsed));
                 }
                 
+                // AQUI ESTÁ O PROBLEMA! Vamos usar o parsed diretamente
+                const data = parsed;
+                
+                console.log('📊 Data final - tipo:', typeof data);
+                console.log('📊 Data keys:', Object.keys(data));
                 console.log('Meta:', data.meta);
                 console.log('Estatisticas:', data.estatisticas);
+                console.log('Patentes?:', data.patentes ? `Array[${data.patentes.length}]` : 'undefined');
                 
                 const meta = data.meta || {};
                 const stats = data.estatisticas || {};
                 const metricas = data.metricas_chave || {};
                 const relatorio = data.relatorio_executivo || {};
                 todasPatentes = data.patentes || [];
+                
+                console.log('todasPatentes length:', todasPatentes.length);
                 
                 document.getElementById('title').textContent = 'Dashboard - ' + (meta.nome_comercial || 'Análise de Patentes');
                 document.getElementById('subtitle').textContent = (meta.molecula || '') + ' | ' + (meta.classe_terapeutica || '');
@@ -256,7 +261,7 @@
                 document.getElementById('classeName').textContent = meta.classe_terapeutica || '-';
                 
                 document.getElementById('totalPatentes').textContent = stats.total_patentes || 0;
-                console.log('Total de patentes:', stats.total_patentes);
+                console.log('Total de patentes (stats):', stats.total_patentes);
                 
                 document.getElementById('anosProtecao').textContent = metricas.anos_protecao_restantes || 0;
                 document.getElementById('altaAmeaca').textContent = metricas.patentes_alta_ameaca || 0;
