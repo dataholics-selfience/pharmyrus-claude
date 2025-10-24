@@ -200,12 +200,11 @@
     </div>
 
     <script>
-        console.log('Dashboard v6 - DEBUG');
+        console.log('Dashboard v7 - CORRIGIDO');
         
         let todasPatentes = [];
         let patentesFiltradas = [];
         
-        // ⭐ FUNÇÃO PARA CORRIGIR [object Object]
         function safeString(value) {
             if (value == null) return 'N/A';
             if (typeof value === 'object') {
@@ -227,24 +226,25 @@
                 }
                 
                 console.log('Dados encontrados:', dados.length, 'bytes');
-                console.log('Primeiros 500 chars:', dados.substring(0, 500));
                 
                 const parsed = JSON.parse(dados);
                 console.log('🔍 Tipo parsed:', Array.isArray(parsed) ? `Array[${parsed.length}]` : typeof parsed);
                 
-                // Ver as chaves do objeto
-                if (typeof parsed === 'object' && !Array.isArray(parsed)) {
-                    console.log('🔍 Chaves do objeto:', Object.keys(parsed));
+                let data;
+                
+                if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].output) {
+                    console.log('📦 Array detectado com output, parseando...');
+                    data = JSON.parse(parsed[0].output);
+                    console.log('✅ Output parseado com sucesso');
+                } else {
+                    console.log('📦 Objeto direto detectado');
+                    data = parsed;
                 }
                 
-                // AQUI ESTÁ O PROBLEMA! Vamos usar o parsed diretamente
-                const data = parsed;
-                
-                console.log('📊 Data final - tipo:', typeof data);
-                console.log('📊 Data keys:', Object.keys(data));
+                console.log('📊 Data final:', data);
                 console.log('Meta:', data.meta);
                 console.log('Estatisticas:', data.estatisticas);
-                console.log('Patentes?:', data.patentes ? `Array[${data.patentes.length}]` : 'undefined');
+                console.log('Patentes:', data.patentes ? data.patentes.length : 0);
                 
                 const meta = data.meta || {};
                 const stats = data.estatisticas || {};
@@ -261,7 +261,7 @@
                 document.getElementById('classeName').textContent = meta.classe_terapeutica || '-';
                 
                 document.getElementById('totalPatentes').textContent = stats.total_patentes || 0;
-                console.log('Total de patentes (stats):', stats.total_patentes);
+                console.log('Total de patentes:', stats.total_patentes);
                 
                 document.getElementById('anosProtecao').textContent = metricas.anos_protecao_restantes || 0;
                 document.getElementById('altaAmeaca').textContent = metricas.patentes_alta_ameaca || 0;
@@ -304,7 +304,8 @@
                 console.log('✅ Dashboard pronto!');
                 
             } catch (erro) {
-                console.error('Erro:', erro);
+                console.error('❌ Erro:', erro);
+                console.error('Stack:', erro.stack);
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('error').classList.remove('hidden');
                 document.getElementById('errorMsg').textContent = erro.message;
@@ -376,7 +377,6 @@
                     ameacaBadge = '<span class="badge ' + badgeAmeaca + '">' + ameaca + '</span>';
                 }
                 
-                // ⭐ CORREÇÃO: Usar safeString para o título
                 const tituloSeguro = safeString(p.titulo).substring(0, 80);
                 
                 tr.innerHTML = '<td><span class="badge ' + badgeClass + '">' + fonteDisplay + '</span></td>' +
@@ -396,7 +396,6 @@
             document.getElementById('modalTitle').textContent = patente.numero_completo || patente.numero || 'Patente';
             
             let html = '';
-            // ⭐ CORREÇÃO: Usar safeString para o título no modal
             html += '<div class="detail"><strong>Título:</strong> ' + safeString(patente.titulo) + '</div>';
             html += '<div class="detail"><strong>Fonte:</strong> ' + (patente.fonte || 'N/A') + '</div>';
             html += '<div class="detail"><strong>País:</strong> ' + (patente.country || patente.pais || 'N/A') + '</div>';
