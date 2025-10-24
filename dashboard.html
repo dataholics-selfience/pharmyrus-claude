@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Pharmyrus</title>
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+    <header class="dashboard-header">
+        <div class="container">
+            <div class="logo-section">
+                <img src="images/logo.png" alt="Pharmyrus Logo" class="logo">
+                <h1>Pharmyrus Dashboard</h1>
+            </div>
+            <nav>
+                <a href="index.html" class="btn-secondary">← Nova Busca</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section id="loading" class="loading-section">
+            <div class="spinner"></div>
+            <p>Carregando resultados...</p>
+        </section>
+
+        <section id="error" class="error-section" style="display: none;">
+            <div class="error-card">
+                <h2>⚠️ Erro</h2>
+                <p id="error-message"></p>
+                <a href="index.html" class="btn-primary">Voltar à Busca</a>
+            </div>
+        </section>
+
+        <section id="results" class="results-section" style="display: none;">
+            <!-- Informações da Busca -->
+            <div class="search-info">
+                <h2>Resultados da Análise</h2>
+                <div id="search-params"></div>
+            </div>
+
+            <!-- Métricas Principais -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <span class="metric-icon">📊</span>
+                    <div class="metric-content">
+                        <span class="metric-label">Total de Patentes</span>
+                        <span class="metric-value" id="total-patents">-</span>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-icon">🌍</span>
+                    <div class="metric-content">
+                        <span class="metric-label">Jurisdições</span>
+                        <span class="metric-value" id="total-jurisdictions">-</span>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-icon">📅</span>
+                    <div class="metric-content">
+                        <span class="metric-label">Período</span>
+                        <span class="metric-value" id="date-range">-</span>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-icon">✅</span>
+                    <div class="metric-content">
+                        <span class="metric-label">Status Ativo</span>
+                        <span class="metric-value" id="active-patents">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Análise de IA -->
+            <div id="ai-analysis" class="ai-analysis-section">
+                <h3>🤖 Análise Inteligente</h3>
+                <div id="ai-content" class="ai-content">
+                    <p class="loading-ai">Gerando análise com IA...</p>
+                </div>
+            </div>
+
+            <!-- Lista de Patentes -->
+            <div class="patents-list">
+                <div class="list-header">
+                    <h3>📋 Patentes Encontradas</h3>
+                    <div class="list-controls">
+                        <button id="export-pdf" class="btn-secondary">
+                            📄 Exportar PDF
+                        </button>
+                        <select id="sort-select" class="sort-select">
+                            <option value="date-desc">Mais Recentes</option>
+                            <option value="date-asc">Mais Antigas</option>
+                            <option value="title">Por Título</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="patents-container"></div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>© 2025 Pharmyrus. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <script src="js/dashboard.js"></script>
+</body>
+</html>
