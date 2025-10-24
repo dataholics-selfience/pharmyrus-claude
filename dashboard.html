@@ -44,7 +44,7 @@
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
         .stat-card { background: white; padding: 1.5rem; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .stat-card .value { font-size: 2.5rem; font-weight: 700; color: #667eea; margin-bottom: 0.5rem; }
-        .stat-card .value.small { font-size: 1.67rem; } /* 33% menor */
+        .stat-card .value.small { font-size: 1.67rem; }
         .stat-card .label { color: #6b7280; font-weight: 600; font-size: 0.875rem; margin-bottom: 0.25rem; }
         .stat-card .info { color: #9ca3af; font-size: 0.75rem; }
         
@@ -261,7 +261,7 @@
         </div>
     </div>
     <script>
-console.log('Dashboard v10');
+console.log('Dashboard v10.1');
 const State = {allPatents: [], filteredPatents: [], filters: {search:'',fonte:'',pais:'',ano:'',titular:'',tipo:'',ameaca:''}, unique: {paises:[],anos:[],titulares:[],tipos:[]}};
 const Utils = {
     safe(v) {
@@ -275,16 +275,22 @@ const Utils = {
 };
 const Loader = {
     async load() {
+        console.log('🔍 Iniciando carregamento...');
         const d = localStorage.getItem('patentAnalysis');
-        if(!d) throw new Error('Nenhum dado');
+        if(!d) throw new Error('Nenhum dado encontrado');
+        console.log('✅ Dados encontrados');
         const p = JSON.parse(d);
+        console.log('Tipo dos dados parseados:', typeof p, Array.isArray(p) ? 'Array' : 'Object');
         const data = Array.isArray(p) && p[0] && p[0].output ? JSON.parse(p[0].output) : (Array.isArray(p)?p[0]:p);
-        if(!data.patentes) throw new Error('Campo patentes não encontrado');
-        State.allPatents = data.patentes;
+        console.log('Data após extração:', data);
+        if(!data || !data.patentes) throw new Error('Campo "patentes" não encontrado nos dados');
+        console.log('✅ Patentes encontradas:', data.patentes.length);
+        State.allPatents = data.patentes || [];
         this.extractUnique();
         return data;
     },
     extractUnique() {
+        console.log('🔍 Extraindo valores únicos...');
         const paises=new Set(), anos=new Set(), titulares=new Set(), tipos=new Set();
         State.allPatents.forEach(p=>{
             const pais=p.pais||p.country; if(pais) paises.add(pais);
@@ -298,10 +304,17 @@ const Loader = {
             titulares: Array.from(titulares).sort(),
             tipos: Array.from(tipos).sort()
         };
+        console.log('✅ Valores únicos extraídos:', {
+            paises: State.unique.paises.length,
+            anos: State.unique.anos.length,
+            titulares: State.unique.titulares.length,
+            tipos: State.unique.tipos.length
+        });
     }
 };
 const Render = {
     dash(data) {
+        console.log('🎨 Renderizando dashboard...');
         const m=data.meta||{}, s=data.estatisticas||{}, k=data.metricas_chave||{}, r=data.relatorio_executivo||{};
         document.getElementById('dashboardTitle').textContent='Dashboard - '+(m.nome_comercial||'Patentes');
         document.getElementById('dashboardSubtitle').textContent=`${m.molecula||''} | ${m.classe_terapeutica||''}`;
@@ -324,16 +337,24 @@ const Render = {
         document.getElementById('janelasOportunidade').textContent=r.janelas_oportunidade||'-';
         this.filters();
         this.table();
+        console.log('✅ Dashboard renderizado');
     },
     filters() {
+        console.log('🔍 Populando filtros...');
         ['pais','ano','titular','tipo'].forEach(f=>{
             const sel=document.getElementById('filtro'+f.charAt(0).toUpperCase()+f.slice(1));
-            State.unique[f+'s'].slice(0,f==='titular'?20:999).forEach(v=>{
+            const valores = State.unique[f+'s'] || [];
+            const limite = f==='titular' ? 20 : 999;
+            const valoresFiltrados = valores.slice(0, limite);
+            console.log(`Filtro ${f}: ${valoresFiltrados.length} valores`);
+            valoresFiltrados.forEach(v=>{
                 const opt=document.createElement('option');
-                opt.value=v; opt.textContent=f==='titular'?Utils.trunc(v,40):v;
+                opt.value=v; 
+                opt.textContent=f==='titular'?Utils.trunc(v,40):v;
                 sel.appendChild(opt);
             });
         });
+        console.log('✅ Filtros populados');
     },
     table() {
         const tbody=document.getElementById('patentsTableBody');
@@ -461,13 +482,18 @@ const UI = {
         document.getElementById('errorState').classList.toggle('hidden',s!=='error');
         document.getElementById('dashboardContent').classList.toggle('hidden',s!=='dash');
     },
-    error(m) { this.show('error'); document.getElementById('errorMessage').textContent=m; },
+    error(m) { 
+        console.error('❌ Erro:', m);
+        this.show('error'); 
+        document.getElementById('errorMessage').textContent=m; 
+    },
     setup() {
         document.getElementById('btnNewSearch').addEventListener('click',()=>{if(confirm('Nova busca?')) {localStorage.removeItem('patentAnalysis'); window.location.href='index.html';}});
     }
 };
 async function init() {
     try {
+        console.log('🚀 Inicializando dashboard...');
         UI.show('loading');
         const data=await Loader.load();
         State.filteredPatents=State.allPatents;
@@ -477,7 +503,12 @@ async function init() {
         Modal.setup();
         UI.setup();
         UI.show('dash');
-    } catch(e) { UI.error(e.message); }
+        console.log('✅ Dashboard inicializado com sucesso!');
+    } catch(e) { 
+        console.error('❌ Erro fatal:', e);
+        console.error('Stack:', e.stack);
+        UI.error(e.message); 
+    }
 }
 function closeModal() { Modal.close(); }
 window.addEventListener('load',init);
