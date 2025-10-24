@@ -5,793 +5,233 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Pharmyrus</title>
     <style>
-        /* ========================================
-           RESET & BASE STYLES
-           ======================================== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 2rem;
-            color: #1f2937;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        /* ========================================
-           LOADING STATE
-           ======================================== */
-        .loading-state {
-            background: white;
-            padding: 3rem;
-            border-radius: 1rem;
-            text-align: center;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        }
-
-        .loading-state.hidden {
-            display: none;
-        }
-
-        .spinner {
-            width: 60px;
-            height: 60px;
-            border: 4px solid #e5e7eb;
-            border-top-color: #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 1.5rem;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .loading-state h2 {
-            color: #1f2937;
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .loading-state p {
-            color: #6b7280;
-            font-size: 0.875rem;
-        }
-
-        /* ========================================
-           ERROR STATE
-           ======================================== */
-        .error-state {
-            background: white;
-            padding: 3rem;
-            border-radius: 1rem;
-            text-align: center;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        }
-
-        .error-state.hidden {
-            display: none;
-        }
-
-        .error-state h2 {
-            color: #dc2626;
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .error-state p {
-            color: #6b7280;
-            margin-bottom: 1.5rem;
-        }
-
-        /* ========================================
-           HEADER
-           ======================================== */
-        .header {
-            background: white;
-            padding: 2rem;
-            border-radius: 1rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .header h1 {
-            color: #1f2937;
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-
-        .header .subtitle {
-            color: #6b7280;
-            font-size: 1.125rem;
-            margin-bottom: 1rem;
-        }
-
-        .info-pills {
-            display: flex;
-            gap: 0.75rem;
-            flex-wrap: wrap;
-            margin-bottom: 1rem;
-        }
-
-        .pill {
-            display: inline-flex;
-            align-items: center;
-            padding: 0.5rem 1rem;
-            background: #f3f4f6;
-            border-radius: 999px;
-            font-size: 0.875rem;
-            color: #374151;
-        }
-
-        .pill strong {
-            color: #1f2937;
-            margin-right: 0.25rem;
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        /* ========================================
-           BUTTONS
-           ======================================== */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.75rem 1.5rem;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 0.5rem;
-            font-weight: 600;
-            font-size: 0.875rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-decoration: none;
-        }
-
-        .btn:hover {
-            background: #5568d3;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-secondary {
-            background: #6b7280;
-        }
-
-        .btn-secondary:hover {
-            background: #4b5563;
-            box-shadow: 0 4px 12px rgba(107, 114, 128, 0.4);
-        }
-
-        /* ========================================
-           STATS CARDS
-           ======================================== */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 1rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
-        }
-
-        .stat-card .value {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #667eea;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-card .label {
-            color: #6b7280;
-            font-weight: 600;
-            font-size: 0.875rem;
-            margin-bottom: 0.25rem;
-        }
-
-        .stat-card .info {
-            color: #9ca3af;
-            font-size: 0.75rem;
-        }
-
-        /* ========================================
-           EXECUTIVE REPORT - LAYOUT 2x2
-           ======================================== */
-        .report-section {
-            background: white;
-            padding: 2rem;
-            border-radius: 1rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .report-section h3 {
-            color: #1f2937;
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .report-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-        }
-
-        .report-item h4 {
-            color: #1f2937;
-            font-size: 1rem;
-            font-weight: 600;
-            margin-bottom: 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .report-item p {
-            color: #4b5563;
-            font-size: 0.9375rem;
-            line-height: 1.6;
-        }
-
-        /* ========================================
-           SEARCH BAR
-           ======================================== */
-        .search-section {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 1rem;
-            margin-bottom: 1rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .search-wrapper {
-            position: relative;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 1rem 1rem 1rem 3rem;
-            border: 2px solid #e5e7eb;
-            border-radius: 0.5rem;
-            font-size: 1rem;
-            transition: border-color 0.2s;
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #9ca3af;
-            font-size: 1.25rem;
-        }
-
-        .autocomplete-results {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border: 2px solid #e5e7eb;
-            border-top: none;
-            border-radius: 0 0 0.5rem 0.5rem;
-            max-height: 300px;
-            overflow-y: auto;
-            z-index: 100;
-            display: none;
-        }
-
-        .autocomplete-results.show {
-            display: block;
-        }
-
-        .autocomplete-item {
-            padding: 0.75rem 1rem;
-            cursor: pointer;
-            transition: background 0.2s;
-            border-bottom: 1px solid #f3f4f6;
-        }
-
-        .autocomplete-item:hover {
-            background: #f9fafb;
-        }
-
-        .autocomplete-item:last-child {
-            border-bottom: none;
-        }
-
-        /* ========================================
-           FILTERS - COMPLETOS
-           ======================================== */
-        .filters-bar {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 1rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .filters-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .filter-group label {
-            font-weight: 600;
-            color: #374151;
-            font-size: 0.875rem;
-        }
-
-        .filter-group select {
-            padding: 0.5rem 1rem;
-            border: 2px solid #e5e7eb;
-            border-radius: 0.5rem;
-            font-size: 0.875rem;
-            color: #374151;
-            background: white;
-            cursor: pointer;
-            transition: border-color 0.2s;
-        }
-
-        .filter-group select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .filter-actions {
-            display: flex;
-            gap: 1rem;
-            justify-content: flex-end;
-        }
-
-        /* ========================================
-           TABLE
-           ======================================== */
-        .table-container {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 1rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .table-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .table-header h3 {
-            color: #1f2937;
-            font-size: 1.25rem;
-            font-weight: 700;
-        }
-
-        .table-wrapper {
-            overflow-x: auto;
-            border-radius: 0.5rem;
-            border: 1px solid #e5e7eb;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        thead {
-            background: #f9fafb;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        th {
-            padding: 1rem;
-            text-align: left;
-            font-weight: 600;
-            color: #374151;
-            font-size: 0.875rem;
-            border-bottom: 2px solid #e5e7eb;
-        }
-
-        td {
-            padding: 1rem;
-            border-bottom: 1px solid #e5e7eb;
-            font-size: 0.875rem;
-            color: #374151;
-        }
-
-        tbody tr {
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        tbody tr:hover {
-            background-color: #f9fafb;
-        }
-
-        tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-        /* ========================================
-           BADGES
-           ======================================== */
-        .badge {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .badge-alta {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .badge-media {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .badge-baixa {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-
-        .badge-tipo {
-            background: #f3f4f6;
-            color: #374151;
-        }
-
-        /* ========================================
-           MODAL
-           ======================================== */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-        }
-
-        .modal.show {
-            display: flex;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 2rem;
-            border-radius: 1rem;
-            max-width: 800px;
-            max-height: 90vh;
-            overflow-y: auto;
-            width: 100%;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: start;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid #e5e7eb;
-        }
-
-        .modal-header h2 {
-            color: #1f2937;
-            font-size: 1.25rem;
-            font-weight: 700;
-            flex: 1;
-        }
-
-        .modal-close {
-            background: #e5e7eb;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .modal-close:hover {
-            background: #d1d5db;
-        }
-
-        .modal-body {
-            color: #4b5563;
-            line-height: 1.6;
-        }
-
-        .detail-item {
-            margin-bottom: 1.5rem;
-        }
-
-        .detail-item strong {
-            color: #1f2937;
-            display: block;
-            margin-bottom: 0.5rem;
-            font-size: 0.875rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .detail-item p {
-            color: #4b5563;
-            font-size: 0.9375rem;
-        }
-
-        /* ========================================
-           UTILITIES
-           ======================================== */
-        .hidden {
-            display: none !important;
-        }
-
-        code {
-            background: #f3f4f6;
-            padding: 0.25rem 0.5rem;
-            border-radius: 0.25rem;
-            font-family: 'Courier New', monospace;
-            font-size: 0.875rem;
-        }
-
-        /* ========================================
-           RESPONSIVE
-           ======================================== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 2rem; color: #1f2937; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        
+        /* LOGO */
+        .logo-container { background: white; padding: 1.5rem 2rem; border-radius: 1rem 1rem 0 0; margin-bottom: 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 1rem; }
+        .logo { font-size: 2.5rem; font-weight: 800; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .logo-tagline { color: #6b7280; font-size: 0.875rem; font-weight: 500; }
+        
+        /* LOADING */
+        .loading-state { background: white; padding: 3rem; border-radius: 1rem; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .loading-state.hidden { display: none; }
+        .spinner { width: 60px; height: 60px; border: 4px solid #e5e7eb; border-top-color: #667eea; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1.5rem; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* ERROR */
+        .error-state { background: white; padding: 3rem; border-radius: 1rem; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .error-state.hidden { display: none; }
+        .error-state h2 { color: #dc2626; font-size: 1.5rem; margin-bottom: 1rem; }
+        
+        /* HEADER */
+        .header { background: white; padding: 2rem; border-radius: 0 0 1rem 1rem; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .header h1 { color: #1f2937; font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .header .subtitle { color: #6b7280; font-size: 1.125rem; margin-bottom: 1rem; }
+        .info-pills { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+        .pill { display: inline-flex; align-items: center; padding: 0.5rem 1rem; background: #f3f4f6; border-radius: 999px; font-size: 0.875rem; color: #374151; }
+        .pill strong { color: #1f2937; margin-right: 0.25rem; }
+        .header-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+        
+        /* BUTTONS */
+        .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; background: #667eea; color: white; border: none; border-radius: 0.5rem; font-weight: 600; font-size: 0.875rem; cursor: pointer; transition: all 0.2s; }
+        .btn:hover { background: #5568d3; transform: translateY(-1px); }
+        .btn-secondary { background: #6b7280; }
+        .btn-secondary:hover { background: #4b5563; }
+        
+        /* STATS */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .stat-card { background: white; padding: 1.5rem; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .stat-card .value { font-size: 2.5rem; font-weight: 700; color: #667eea; margin-bottom: 0.5rem; }
+        .stat-card .value.small { font-size: 1.67rem; } /* 33% menor */
+        .stat-card .label { color: #6b7280; font-weight: 600; font-size: 0.875rem; margin-bottom: 0.25rem; }
+        .stat-card .info { color: #9ca3af; font-size: 0.75rem; }
+        
+        /* REPORT - 2x2 */
+        .report-section { background: white; padding: 2rem; border-radius: 1rem; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .report-section h3 { color: #1f2937; font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; }
+        .report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .report-item h4 { color: #1f2937; font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; }
+        .report-item p { color: #4b5563; font-size: 0.9375rem; line-height: 1.6; }
+        
+        /* SEARCH */
+        .search-section { background: white; padding: 1.5rem; border-radius: 1rem; margin-bottom: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .search-wrapper { position: relative; }
+        .search-input { width: 100%; padding: 1rem 1rem 1rem 3rem; border: 2px solid #e5e7eb; border-radius: 0.5rem; font-size: 1rem; }
+        .search-input:focus { outline: none; border-color: #667eea; }
+        .search-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #9ca3af; font-size: 1.25rem; }
+        .autocomplete-results { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 2px solid #e5e7eb; border-top: none; border-radius: 0 0 0.5rem 0.5rem; max-height: 300px; overflow-y: auto; z-index: 100; display: none; }
+        .autocomplete-results.show { display: block; }
+        .autocomplete-item { padding: 0.75rem 1rem; cursor: pointer; border-bottom: 1px solid #f3f4f6; }
+        .autocomplete-item:hover { background: #f9fafb; }
+        
+        /* FILTERS - 3 POR LINHA */
+        .filters-bar { background: white; padding: 1.5rem; border-radius: 1rem; margin-bottom: 1.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .filters-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1rem; }
+        .filter-group { display: flex; flex-direction: column; gap: 0.5rem; }
+        .filter-group label { font-weight: 600; color: #374151; font-size: 0.875rem; }
+        .filter-group select { padding: 0.5rem 1rem; border: 2px solid #e5e7eb; border-radius: 0.5rem; font-size: 0.875rem; color: #374151; background: white; cursor: pointer; }
+        .filter-group select:focus { outline: none; border-color: #667eea; }
+        .filter-actions { display: flex; gap: 1rem; justify-content: flex-end; }
+        
+        /* TABLE */
+        .table-container { background: white; padding: 1.5rem; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .table-header h3 { color: #1f2937; font-size: 1.25rem; font-weight: 700; }
+        .table-wrapper { overflow-x: auto; border-radius: 0.5rem; border: 1px solid #e5e7eb; }
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: #f9fafb; position: sticky; top: 0; z-index: 10; }
+        th { padding: 1rem; text-align: left; font-weight: 600; color: #374151; font-size: 0.875rem; border-bottom: 2px solid #e5e7eb; }
+        td { padding: 1rem; border-bottom: 1px solid #e5e7eb; font-size: 0.875rem; color: #374151; }
+        tbody tr { cursor: pointer; transition: background 0.2s; }
+        tbody tr:hover { background: #f9fafb; }
+        
+        /* BADGES */
+        .badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+        .badge-alta { background: #fee2e2; color: #991b1b; }
+        .badge-media { background: #fef3c7; color: #92400e; }
+        .badge-baixa { background: #dbeafe; color: #1e40af; }
+        .badge-tipo { background: #f3f4f6; color: #374151; }
+        
+        /* MODAL */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; padding: 1rem; }
+        .modal.show { display: flex; }
+        .modal-content { background: white; padding: 2rem; border-radius: 1rem; max-width: 800px; max-height: 90vh; overflow-y: auto; width: 100%; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
+        .modal-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #e5e7eb; }
+        .modal-header h2 { color: #1f2937; font-size: 1.25rem; font-weight: 700; flex: 1; }
+        .modal-close { background: #e5e7eb; border: none; padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 600; cursor: pointer; }
+        .modal-close:hover { background: #d1d5db; }
+        .modal-body { color: #4b5563; line-height: 1.6; }
+        .detail-item { margin-bottom: 1.5rem; }
+        .detail-item strong { color: #1f2937; display: block; margin-bottom: 0.5rem; font-size: 0.875rem; text-transform: uppercase; }
+        
+        .hidden { display: none !important; }
+        code { background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-family: monospace; font-size: 0.875rem; }
+        
         @media (max-width: 768px) {
-            body {
-                padding: 1rem;
-            }
-
-            .header h1 {
-                font-size: 1.5rem;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .report-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .filters-grid {
-                grid-template-columns: 1fr;
-            }
+            body { padding: 1rem; }
+            .stats-grid, .report-grid, .filters-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- LOADING STATE -->
         <div id="loadingState" class="loading-state">
             <div class="spinner"></div>
-            <h2>Carregando Dashboard...</h2>
-            <p>Processando dados das patentes</p>
+            <h2>Carregando...</h2>
         </div>
-
-        <!-- ERROR STATE -->
         <div id="errorState" class="error-state hidden">
-            <h2>❌ Erro ao Carregar Dados</h2>
-            <p id="errorMessage">Ocorreu um erro ao processar os dados.</p>
-            <button class="btn" onclick="window.location.href='index.html'">🔍 Nova Busca</button>
+            <h2>❌ Erro</h2>
+            <p id="errorMessage"></p>
+            <button class="btn" onclick="window.location.href='index.html'">Nova Busca</button>
         </div>
-
-        <!-- DASHBOARD CONTENT -->
         <div id="dashboardContent" class="hidden">
-            <!-- HEADER -->
-            <div class="header">
-                <h1 id="dashboardTitle">Dashboard de Patentes</h1>
-                <p class="subtitle" id="dashboardSubtitle">Análise Completa do Portfólio</p>
-                
-                <div class="info-pills">
-                    <span class="pill">
-                        <strong>Molécula:</strong>
-                        <span id="moleculeName">-</span>
-                    </span>
-                    <span class="pill">
-                        <strong>Nome Comercial:</strong>
-                        <span id="brandName">-</span>
-                    </span>
-                    <span class="pill">
-                        <strong>Classe Terapêutica:</strong>
-                        <span id="therapeuticClass">-</span>
-                    </span>
-                </div>
-
-                <div class="header-actions">
-                    <button class="btn" onclick="window.print()">
-                        📥 Exportar PDF
-                    </button>
-                    <button class="btn btn-secondary" id="btnNewSearch">
-                        🔍 Nova Busca
-                    </button>
+            <div class="logo-container">
+                <div>
+                    <div class="logo">PHARMYRUS</div>
+                    <div class="logo-tagline">Inteligência de Patentes Farmacêuticas</div>
                 </div>
             </div>
-
-            <!-- STATS CARDS -->
+            <div class="header">
+                <h1 id="dashboardTitle">Dashboard</h1>
+                <p class="subtitle" id="dashboardSubtitle">Análise de Patentes</p>
+                <div class="info-pills">
+                    <span class="pill"><strong>Molécula:</strong> <span id="moleculeName">-</span></span>
+                    <span class="pill"><strong>Nome Comercial:</strong> <span id="brandName">-</span></span>
+                    <span class="pill"><strong>Classe:</strong> <span id="therapeuticClass">-</span></span>
+                </div>
+                <div class="header-actions">
+                    <button class="btn" onclick="window.print()">📥 Exportar</button>
+                    <button class="btn btn-secondary" id="btnNewSearch">🔍 Nova Busca</button>
+                </div>
+            </div>
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="value" id="totalPatentes">0</div>
                     <div class="label">Total de Patentes</div>
-                    <div class="info" id="fontesInfo">INPI: 0 | EPO: 0</div>
+                    <div class="info" id="fontesInfo">-</div>
                 </div>
-
                 <div class="stat-card">
                     <div class="value" id="anosProtecao">0</div>
                     <div class="label">Anos de Proteção</div>
-                    <div class="info">Restantes estimados</div>
+                    <div class="info">Restantes</div>
                 </div>
-
                 <div class="stat-card">
                     <div class="value" id="altaAmeaca">0</div>
-                    <div class="label">Patentes Alta Ameaça</div>
-                    <div class="info">Requerem atenção imediata</div>
+                    <div class="label">Alta Ameaça</div>
+                    <div class="info">Críticas</div>
                 </div>
-
                 <div class="stat-card">
-                    <div class="value" id="titularDominante">-</div>
+                    <div class="value small" id="titularDominante">-</div>
                     <div class="label">Titular Principal</div>
-                    <div class="info" id="concentracaoInfo">0% do portfólio</div>
+                    <div class="info" id="concentracaoInfo">-</div>
                 </div>
             </div>
-
-            <!-- EXECUTIVE REPORT - LAYOUT 2x2 -->
             <div class="report-section">
                 <h3>📊 Relatório Executivo</h3>
                 <div class="report-grid">
                     <div class="report-item">
                         <h4>📋 Panorama Geral</h4>
-                        <p id="panoramaGeral">Carregando...</p>
+                        <p id="panoramaGeral">-</p>
                     </div>
                     <div class="report-item">
                         <h4>🏢 Titular Dominante</h4>
-                        <p id="titularDominanteDesc">Carregando...</p>
+                        <p id="titularDominanteDesc">-</p>
                     </div>
                     <div class="report-item">
                         <h4>🚧 Barreiras Críticas</h4>
-                        <p id="barreirasCriticas">Carregando...</p>
+                        <p id="barreirasCriticas">-</p>
                     </div>
                     <div class="report-item">
                         <h4>💡 Janelas de Oportunidade</h4>
-                        <p id="janelasOportunidade">Carregando...</p>
+                        <p id="janelasOportunidade">-</p>
                     </div>
                 </div>
             </div>
-
-            <!-- SEARCH BAR -->
             <div class="search-section">
                 <div class="search-wrapper">
                     <span class="search-icon">🔍</span>
-                    <input 
-                        type="text" 
-                        id="searchInput" 
-                        class="search-input" 
-                        placeholder="Buscar por número, título, titular..."
-                    >
+                    <input type="text" id="searchInput" class="search-input" placeholder="Buscar...">
                     <div id="autocompleteResults" class="autocomplete-results"></div>
                 </div>
             </div>
-
-            <!-- FILTERS - COMPLETOS -->
             <div class="filters-bar">
                 <div class="filters-grid">
                     <div class="filter-group">
                         <label for="filtroFonte">Fonte:</label>
-                        <select id="filtroFonte">
-                            <option value="">Todas</option>
-                            <option value="INPI">INPI</option>
-                            <option value="EPO">EPO</option>
-                        </select>
+                        <select id="filtroFonte"><option value="">Todas</option><option value="INPI">INPI</option><option value="EPO">EPO</option></select>
                     </div>
-
                     <div class="filter-group">
                         <label for="filtroPais">País:</label>
-                        <select id="filtroPais">
-                            <option value="">Todos</option>
-                        </select>
+                        <select id="filtroPais"><option value="">Todos</option></select>
                     </div>
-
                     <div class="filter-group">
                         <label for="filtroAno">Ano:</label>
-                        <select id="filtroAno">
-                            <option value="">Todos</option>
-                        </select>
+                        <select id="filtroAno"><option value="">Todos</option></select>
                     </div>
-
                     <div class="filter-group">
                         <label for="filtroTitular">Titular:</label>
-                        <select id="filtroTitular">
-                            <option value="">Todos</option>
-                        </select>
+                        <select id="filtroTitular"><option value="">Todos</option></select>
                     </div>
-
                     <div class="filter-group">
                         <label for="filtroTipo">Tipo:</label>
-                        <select id="filtroTipo">
-                            <option value="">Todos</option>
-                        </select>
+                        <select id="filtroTipo"><option value="">Todos</option></select>
                     </div>
-
                     <div class="filter-group">
                         <label for="filtroAmeaca">Ameaça:</label>
-                        <select id="filtroAmeaca">
-                            <option value="">Todos</option>
-                            <option value="Alta">Alta</option>
-                            <option value="Média">Média</option>
-                            <option value="Baixa">Baixa</option>
-                        </select>
+                        <select id="filtroAmeaca"><option value="">Todos</option><option value="Alta">Alta</option><option value="Média">Média</option><option value="Baixa">Baixa</option></select>
                     </div>
                 </div>
-
                 <div class="filter-actions">
-                    <button class="btn btn-secondary" id="btnClearFilters">
-                        🔄 Limpar Filtros
-                    </button>
+                    <button class="btn btn-secondary" id="btnClearFilters">🔄 Limpar</button>
                 </div>
             </div>
-
-            <!-- PATENTS TABLE -->
             <div class="table-container">
                 <div class="table-header">
-                    <h3>🔬 Patentes Encontradas</h3>
-                    <span id="resultsCount" style="color: #6b7280; font-size: 0.875rem;">0 patentes</span>
+                    <h3>🔬 Patentes</h3>
+                    <span id="resultsCount" style="color: #6b7280; font-size: 0.875rem;">0</span>
                 </div>
-
                 <div class="table-wrapper">
                     <table>
                         <thead>
@@ -805,725 +245,242 @@
                                 <th>Ameaça</th>
                             </tr>
                         </thead>
-                        <tbody id="patentsTableBody">
-                            <!-- Populated by JavaScript -->
-                        </tbody>
+                        <tbody id="patentsTableBody"></tbody>
                     </table>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- MODAL -->
     <div id="patentModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="modalTitle">Detalhes da Patente</h2>
-                <button class="modal-close" onclick="closeModal()">✕ Fechar</button>
+                <h2 id="modalTitle">Detalhes</h2>
+                <button class="modal-close" onclick="closeModal()">✕</button>
             </div>
-            <div class="modal-body" id="modalBody">
-                <!-- Populated by JavaScript -->
-            </div>
+            <div class="modal-body" id="modalBody"></div>
         </div>
     </div>
-
     <script>
-// ========================================
-// PHARMYRUS DASHBOARD - v9.0 FINAL
-// ========================================
-
-console.log('🚀 Pharmyrus Dashboard v9.0 - FINAL');
-
-// ========================================
-// STATE MANAGEMENT
-// ========================================
-const DashboardState = {
-    rawData: null,
-    parsedData: null,
-    allPatents: [],
-    filteredPatents: [],
-    currentFilters: {
-        search: '',
-        fonte: '',
-        pais: '',
-        ano: '',
-        titular: '',
-        tipo: '',
-        ameaca: ''
-    },
-    uniqueValues: {
-        paises: [],
-        anos: [],
-        titulares: [],
-        tipos: []
-    }
-};
-
-// ========================================
-// UTILITY FUNCTIONS
-// ========================================
+console.log('Dashboard v10');
+const State = {allPatents: [], filteredPatents: [], filters: {search:'',fonte:'',pais:'',ano:'',titular:'',tipo:'',ameaca:''}, unique: {paises:[],anos:[],titulares:[],tipos:[]}};
 const Utils = {
-    safeString(value) {
-        if (value == null) return '';
-        if (typeof value === 'object') {
-            if (Array.isArray(value)) {
-                // Se for array, juntar e limpar
-                return value.map(v => this.safeString(v)).join(', ');
-            }
-            // Se for objeto, retornar vazio
-            return '';
-        }
-        const str = String(value);
-        if (str.includes('[object Object]')) return '';
-        return str.trim();
+    safe(v) {
+        if(!v) return '';
+        if(typeof v === 'object') return Array.isArray(v) ? v.map(x=>this.safe(x)).join(', ') : '';
+        let s = String(v);
+        return s.includes('[object Object]') ? '' : s.trim();
     },
-
-    truncate(text, maxLength = 80) {
-        const safe = this.safeString(text);
-        if (!safe) return '';
-        if (safe.length <= maxLength) return safe;
-        return safe.substring(0, maxLength) + '...';
-    },
-
-    formatNumber(num) {
-        if (!num) return '0';
-        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    },
-
-    normalize(text) {
-        return this.safeString(text).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    }
+    trunc(t,n=80) { const s=this.safe(t); return !s?'':s.length<=n?s:s.substring(0,n)+'...'; },
+    norm(t) { return this.safe(t).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); }
 };
-
-// ========================================
-// DATA LOADING & PARSING
-// ========================================
-const DataLoader = {
-    async loadData() {
-        try {
-            console.log('📦 Carregando dados do localStorage...');
-            
-            const stored = localStorage.getItem('patentAnalysis');
-            
-            if (!stored) {
-                throw new Error('Nenhum dado encontrado. Por favor, faça uma nova busca.');
-            }
-
-            console.log(`✅ Dados encontrados: ${stored.length} bytes`);
-            
-            const parsed = JSON.parse(stored);
-            const data = this.extractData(parsed);
-            this.validateData(data);
-            
-            DashboardState.rawData = stored;
-            DashboardState.parsedData = data;
-            DashboardState.allPatents = data.patentes || [];
-            
-            // Extrair valores únicos para os filtros
-            this.extractUniqueValues();
-            
-            console.log(`✅ ${DashboardState.allPatents.length} patentes carregadas`);
-            
-            return data;
-            
-        } catch (error) {
-            console.error('❌ Erro ao carregar dados:', error);
-            throw error;
-        }
+const Loader = {
+    async load() {
+        const d = localStorage.getItem('patentAnalysis');
+        if(!d) throw new Error('Nenhum dado');
+        const p = JSON.parse(d);
+        const data = Array.isArray(p) && p[0] && p[0].output ? JSON.parse(p[0].output) : (Array.isArray(p)?p[0]:p);
+        if(!data.patentes) throw new Error('Campo patentes não encontrado');
+        State.allPatents = data.patentes;
+        this.extractUnique();
+        return data;
     },
-
-    extractData(parsed) {
-        console.log('🔍 Analisando estrutura dos dados...');
-        
-        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].output) {
-            console.log('📝 Detectado: Array com campo output');
-            try {
-                return JSON.parse(parsed[0].output);
-            } catch (e) {
-                console.warn('⚠️ Erro ao parsear output, usando objeto direto');
-                return parsed[0];
-            }
-        }
-        
-        if (Array.isArray(parsed) && parsed.length > 0) {
-            console.log('📝 Detectado: Array simples');
-            return parsed[0];
-        }
-        
-        if (typeof parsed === 'object') {
-            console.log('📝 Detectado: Objeto direto');
-            return parsed;
-        }
-        
-        throw new Error('Estrutura de dados não reconhecida');
-    },
-
-    validateData(data) {
-        if (!data) {
-            throw new Error('Dados vazios ou inválidos');
-        }
-        
-        if (!data.patentes || !Array.isArray(data.patentes)) {
-            throw new Error('Campo "patentes" não encontrado ou inválido');
-        }
-        
-        console.log('✅ Validação de dados concluída');
-    },
-
-    extractUniqueValues() {
-        const paises = new Set();
-        const anos = new Set();
-        const titulares = new Set();
-        const tipos = new Set();
-
-        DashboardState.allPatents.forEach(patent => {
-            // País
-            const pais = patent.pais || patent.country;
-            if (pais) paises.add(pais);
-
-            // Ano
-            const ano = patent.ano_deposito || patent.ano;
-            if (ano) anos.add(ano);
-
-            // Titular
-            const titular = Utils.safeString(patent.applicant);
-            if (titular) titulares.add(titular);
-
-            // Tipo
-            const tipo = patent.tipo_barreira || patent.tipo_patente;
-            if (tipo) tipos.add(tipo);
+    extractUnique() {
+        const paises=new Set(), anos=new Set(), titulares=new Set(), tipos=new Set();
+        State.allPatents.forEach(p=>{
+            const pais=p.pais||p.country; if(pais) paises.add(pais);
+            const ano=p.ano_deposito||p.ano; if(ano) anos.add(ano);
+            const tit=Utils.safe(p.applicant); if(tit) titulares.add(tit);
+            const tipo=p.tipo_barreira||p.tipo_patente; if(tipo) tipos.add(tipo);
         });
-
-        DashboardState.uniqueValues = {
+        State.unique = {
             paises: Array.from(paises).sort(),
-            anos: Array.from(anos).sort((a, b) => b - a),
+            anos: Array.from(anos).sort((a,b)=>b-a),
             titulares: Array.from(titulares).sort(),
             tipos: Array.from(tipos).sort()
         };
-
-        console.log('✅ Valores únicos extraídos:', DashboardState.uniqueValues);
     }
 };
-
-// ========================================
-// RENDERING FUNCTIONS
-// ========================================
-const Renderer = {
-    renderDashboard(data) {
-        console.log('🎨 Renderizando dashboard...');
-        
-        this.renderHeader(data.meta || {});
-        this.renderStats(data.estatisticas || {}, data.metricas_chave || {});
-        this.renderReport(data.relatorio_executivo || {});
-        this.populateFilterOptions();
-        this.renderPatentsTable();
-        
-        console.log('✅ Dashboard renderizado com sucesso');
-    },
-
-    renderHeader(meta) {
-        const titulo = meta.nome_comercial || 'Análise de Patentes';
-        const subtitulo = `${meta.molecula || ''} | ${meta.classe_terapeutica || ''}`.trim();
-        
-        document.getElementById('dashboardTitle').textContent = `Dashboard - ${titulo}`;
-        document.getElementById('dashboardSubtitle').textContent = subtitulo || 'Análise Completa do Portfólio';
-        document.getElementById('moleculeName').textContent = meta.molecula || '-';
-        document.getElementById('brandName').textContent = meta.nome_comercial || '-';
-        document.getElementById('therapeuticClass').textContent = meta.classe_terapeutica || '-';
-    },
-
-    renderStats(estatisticas, metricas) {
-        const totalPatentes = estatisticas.total_patentes || 0;
-        document.getElementById('totalPatentes').textContent = Utils.formatNumber(totalPatentes);
-        
-        const porFonte = estatisticas.por_fonte || {};
-        const inpi = porFonte.INPI || 0;
-        const epo = porFonte.EPO || 0;
-        document.getElementById('fontesInfo').textContent = `INPI: ${inpi} | EPO: ${epo}`;
-        
-        const anosProtecao = metricas.anos_protecao_restantes || 0;
-        document.getElementById('anosProtecao').textContent = anosProtecao;
-        
-        const altaAmeaca = metricas.patentes_alta_ameaca || 0;
-        document.getElementById('altaAmeaca').textContent = altaAmeaca;
-        
-        const topTitulares = estatisticas.top_titulares || [];
-        if (topTitulares.length > 0) {
-            const top = topTitulares[0];
-            const nome = Utils.truncate(top.titular || 'N/A', 20);
-            const percentual = metricas.concentracao_titular || 0;
-            
-            document.getElementById('titularDominante').textContent = nome;
-            document.getElementById('concentracaoInfo').textContent = `${percentual}% do portfólio`;
+const Render = {
+    dash(data) {
+        const m=data.meta||{}, s=data.estatisticas||{}, k=data.metricas_chave||{}, r=data.relatorio_executivo||{};
+        document.getElementById('dashboardTitle').textContent='Dashboard - '+(m.nome_comercial||'Patentes');
+        document.getElementById('dashboardSubtitle').textContent=`${m.molecula||''} | ${m.classe_terapeutica||''}`;
+        document.getElementById('moleculeName').textContent=m.molecula||'-';
+        document.getElementById('brandName').textContent=m.nome_comercial||'-';
+        document.getElementById('therapeuticClass').textContent=m.classe_terapeutica||'-';
+        document.getElementById('totalPatentes').textContent=s.total_patentes||0;
+        const f=s.por_fonte||{}; document.getElementById('fontesInfo').textContent=`INPI: ${f.INPI||0} | EPO: ${f.EPO||0}`;
+        document.getElementById('anosProtecao').textContent=k.anos_protecao_restantes||0;
+        document.getElementById('altaAmeaca').textContent=k.patentes_alta_ameaca||0;
+        const t=s.top_titulares||[]; if(t.length>0) {
+            document.getElementById('titularDominante').textContent=Utils.trunc(t[0].titular||'-',20);
+            document.getElementById('concentracaoInfo').textContent=(k.concentracao_titular||0)+'%';
         } else {
-            document.getElementById('titularDominante').textContent = 'N/A';
-            document.getElementById('concentracaoInfo').textContent = '-';
+            document.getElementById('titularDominante').textContent='N/A';
         }
+        document.getElementById('panoramaGeral').textContent=r.panorama_geral||'-';
+        document.getElementById('titularDominanteDesc').textContent=r.titular_dominante||'-';
+        document.getElementById('barreirasCriticas').textContent=r.barreiras_criticas||'-';
+        document.getElementById('janelasOportunidade').textContent=r.janelas_oportunidade||'-';
+        this.filters();
+        this.table();
     },
-
-    renderReport(relatorio) {
-        document.getElementById('panoramaGeral').textContent = 
-            relatorio.panorama_geral || 'Não disponível';
-        
-        document.getElementById('titularDominanteDesc').textContent = 
-            relatorio.titular_dominante || 'Não disponível';
-        
-        document.getElementById('barreirasCriticas').textContent = 
-            relatorio.barreiras_criticas || 'Não disponível';
-        
-        document.getElementById('janelasOportunidade').textContent = 
-            relatorio.janelas_oportunidade || 'Não disponível';
+    filters() {
+        ['pais','ano','titular','tipo'].forEach(f=>{
+            const sel=document.getElementById('filtro'+f.charAt(0).toUpperCase()+f.slice(1));
+            State.unique[f+'s'].slice(0,f==='titular'?20:999).forEach(v=>{
+                const opt=document.createElement('option');
+                opt.value=v; opt.textContent=f==='titular'?Utils.trunc(v,40):v;
+                sel.appendChild(opt);
+            });
+        });
     },
-
-    populateFilterOptions() {
-        // Países
-        const filtroPais = document.getElementById('filtroPais');
-        DashboardState.uniqueValues.paises.forEach(pais => {
-            const option = document.createElement('option');
-            option.value = pais;
-            option.textContent = pais;
-            filtroPais.appendChild(option);
-        });
-
-        // Anos
-        const filtroAno = document.getElementById('filtroAno');
-        DashboardState.uniqueValues.anos.forEach(ano => {
-            const option = document.createElement('option');
-            option.value = ano;
-            option.textContent = ano;
-            filtroAno.appendChild(option);
-        });
-
-        // Titulares (limitado aos top 20 para não sobrecarregar)
-        const filtroTitular = document.getElementById('filtroTitular');
-        DashboardState.uniqueValues.titulares.slice(0, 20).forEach(titular => {
-            const option = document.createElement('option');
-            option.value = titular;
-            option.textContent = Utils.truncate(titular, 40);
-            filtroTitular.appendChild(option);
-        });
-
-        // Tipos
-        const filtroTipo = document.getElementById('filtroTipo');
-        DashboardState.uniqueValues.tipos.forEach(tipo => {
-            const option = document.createElement('option');
-            option.value = tipo;
-            option.textContent = tipo;
-            filtroTipo.appendChild(option);
-        });
-
-        console.log('✅ Filtros populados');
-    },
-
-    renderPatentsTable() {
-        const tbody = document.getElementById('patentsTableBody');
-        tbody.innerHTML = '';
-        
-        const patents = DashboardState.filteredPatents;
-        
-        if (patents.length === 0) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="7" style="text-align: center; padding: 2rem; color: #9ca3af;">
-                        Nenhuma patente encontrada com os filtros aplicados
-                    </td>
-                </tr>
-            `;
-            document.getElementById('resultsCount').textContent = '0 patentes';
+    table() {
+        const tbody=document.getElementById('patentsTableBody');
+        tbody.innerHTML='';
+        const pts=State.filteredPatents;
+        if(!pts.length) {
+            tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:2rem;color:#9ca3af;">Nenhuma patente</td></tr>';
+            document.getElementById('resultsCount').textContent='0';
             return;
         }
-
-        patents.forEach(patent => {
-            const row = this.createPatentRow(patent);
-            tbody.appendChild(row);
+        pts.forEach(p=>{
+            const tr=document.createElement('tr');
+            tr.onclick=()=>Modal.open(p);
+            const titulo=Utils.trunc(Utils.safe(p.titulo)||'Sem título',60);
+            const titular=Utils.trunc(Utils.safe(p.applicant)||'-',40);
+            const pais=p.pais||p.country||'-';
+            const ano=p.ano_deposito||p.ano||'-';
+            const tipo=p.tipo_barreira||p.tipo_patente||'-';
+            const ameaca=p.nivel_ameaca||'';
+            let badge='<span style="color:#9ca3af;">N/A</span>';
+            if(ameaca) {
+                const bc=ameaca==='Alta'?'badge-alta':ameaca==='Média'?'badge-media':'badge-baixa';
+                badge=`<span class="badge ${bc}">${ameaca}</span>`;
+            }
+            tr.innerHTML=`<td><code>${Utils.trunc(p.numero_completo||p.numero||'-',20)}</code></td><td>${titulo}</td><td>${titular}</td><td style="text-align:center;">${pais}</td><td style="text-align:center;">${ano}</td><td style="text-align:center;"><span class="badge badge-tipo">${tipo}</span></td><td style="text-align:center;">${badge}</td>`;
+            tbody.appendChild(tr);
         });
-
-        document.getElementById('resultsCount').textContent = `${patents.length} patentes`;
-    },
-
-    createPatentRow(patent) {
-        const tr = document.createElement('tr');
-        tr.onclick = () => Modal.open(patent);
-
-        // Obter título real do JSON
-        const tituloRaw = patent.titulo || patent.titulo_original || patent.title;
-        const titulo = Utils.truncate(Utils.safeString(tituloRaw), 60) || 'Sem título';
-
-        const titular = Utils.truncate(Utils.safeString(patent.applicant), 40) || 'Não informado';
-        const pais = patent.pais || patent.country || '-';
-        const ano = patent.ano_deposito || patent.ano || '-';
-        const tipo = patent.tipo_barreira || patent.tipo_patente || '-';
-
-        const ameaca = patent.nivel_ameaca || '';
-        let ameacaBadge = '<span style="color: #9ca3af; font-size: 0.75rem;">N/A</span>';
-        if (ameaca) {
-            const badgeClass = ameaca === 'Alta' ? 'badge-alta' : 
-                              ameaca === 'Média' ? 'badge-media' : 'badge-baixa';
-            ameacaBadge = `<span class="badge ${badgeClass}">${ameaca}</span>`;
-        }
-
-        tr.innerHTML = `
-            <td><code>${Utils.truncate(patent.numero_completo || patent.numero || '-', 20)}</code></td>
-            <td>${titulo}</td>
-            <td>${titular}</td>
-            <td style="text-align: center;">${pais}</td>
-            <td style="text-align: center;">${ano}</td>
-            <td style="text-align: center;"><span class="badge badge-tipo">${tipo}</span></td>
-            <td style="text-align: center;">${ameacaBadge}</td>
-        `;
-
-        return tr;
+        document.getElementById('resultsCount').textContent=pts.length+' patentes';
     }
 };
-
-// ========================================
-// SEARCH & AUTOCOMPLETE
-// ========================================
+const Filters = {
+    apply() {
+        let f=State.allPatents;
+        if(State.filters.search) {
+            const n=Utils.norm(State.filters.search);
+            f=f.filter(p=>Utils.norm(p.numero_completo||p.numero||'').includes(n)||Utils.norm(Utils.safe(p.titulo)).includes(n)||Utils.norm(Utils.safe(p.applicant)).includes(n));
+        }
+        if(State.filters.fonte) {
+            f=f.filter(p=>{
+                const pais=p.pais||p.country||'';
+                const fonte=p.fonte||'';
+                if(State.filters.fonte==='INPI') return fonte==='INPI'||pais==='BR';
+                if(State.filters.fonte==='EPO') return fonte==='EPO'||(fonte!=='INPI'&&pais!=='BR'&&pais!=='');
+                return true;
+            });
+        }
+        if(State.filters.pais) f=f.filter(p=>(p.pais||p.country)===State.filters.pais);
+        if(State.filters.ano) f=f.filter(p=>String(p.ano_deposito||p.ano||'')===State.filters.ano);
+        if(State.filters.titular) f=f.filter(p=>Utils.safe(p.applicant)===State.filters.titular);
+        if(State.filters.tipo) f=f.filter(p=>(p.tipo_barreira||p.tipo_patente)===State.filters.tipo);
+        if(State.filters.ameaca) f=f.filter(p=>p.nivel_ameaca===State.filters.ameaca);
+        State.filteredPatents=f;
+        Render.table();
+    },
+    clear() {
+        State.filters={search:'',fonte:'',pais:'',ano:'',titular:'',tipo:'',ameaca:''};
+        document.getElementById('searchInput').value='';
+        ['fonte','pais','ano','titular','tipo','ameaca'].forEach(f=>document.getElementById('filtro'+f.charAt(0).toUpperCase()+f.slice(1)).value='');
+        this.apply();
+    },
+    setup() {
+        ['fonte','pais','ano','titular','tipo','ameaca'].forEach(f=>{
+            document.getElementById('filtro'+f.charAt(0).toUpperCase()+f.slice(1)).addEventListener('change',e=>{
+                State.filters[f]=e.target.value; this.apply();
+            });
+        });
+        document.getElementById('btnClearFilters').addEventListener('click',()=>this.clear());
+    }
+};
 const Search = {
-    setupListeners() {
-        const searchInput = document.getElementById('searchInput');
-        const autocompleteResults = document.getElementById('autocompleteResults');
-
-        searchInput.addEventListener('input', (e) => {
-            const query = e.target.value.trim();
-            DashboardState.currentFilters.search = query;
-
-            if (query.length >= 2) {
-                this.showAutocomplete(query);
-            } else {
-                autocompleteResults.classList.remove('show');
-            }
-
+    setup() {
+        const inp=document.getElementById('searchInput'), res=document.getElementById('autocompleteResults');
+        inp.addEventListener('input',e=>{
+            const q=e.target.value.trim();
+            State.filters.search=q;
+            if(q.length>=2) this.show(q); else res.classList.remove('show');
             Filters.apply();
         });
-
-        // Fechar autocomplete ao clicar fora
-        document.addEventListener('click', (e) => {
-            if (!searchInput.contains(e.target) && !autocompleteResults.contains(e.target)) {
-                autocompleteResults.classList.remove('show');
-            }
-        });
+        document.addEventListener('click',e=>{if(!inp.contains(e.target)&&!res.contains(e.target)) res.classList.remove('show');});
     },
-
-    showAutocomplete(query) {
-        const normalized = Utils.normalize(query);
-        const results = DashboardState.allPatents
-            .filter(p => {
-                const numero = Utils.normalize(p.numero_completo || p.numero || '');
-                const titulo = Utils.normalize(Utils.safeString(p.titulo));
-                const titular = Utils.normalize(Utils.safeString(p.applicant));
-                
-                return numero.includes(normalized) || 
-                       titulo.includes(normalized) || 
-                       titular.includes(normalized);
-            })
-            .slice(0, 5);
-
-        const autocompleteResults = document.getElementById('autocompleteResults');
-        
-        if (results.length === 0) {
-            autocompleteResults.classList.remove('show');
-            return;
-        }
-
-        autocompleteResults.innerHTML = results.map(p => {
-            const titulo = Utils.truncate(Utils.safeString(p.titulo), 50) || 'Sem título';
-            return `
-                <div class="autocomplete-item" onclick="Search.selectPatent('${p.numero_completo || p.numero}')">
-                    <strong>${p.numero_completo || p.numero}</strong><br>
-                    <small>${titulo}</small>
-                </div>
-            `;
-        }).join('');
-
-        autocompleteResults.classList.add('show');
+    show(q) {
+        const n=Utils.norm(q);
+        const r=State.allPatents.filter(p=>Utils.norm(p.numero_completo||p.numero||'').includes(n)||Utils.norm(Utils.safe(p.titulo)).includes(n)||Utils.norm(Utils.safe(p.applicant)).includes(n)).slice(0,5);
+        const res=document.getElementById('autocompleteResults');
+        if(!r.length) {res.classList.remove('show'); return;}
+        res.innerHTML=r.map(p=>`<div class="autocomplete-item" onclick="Search.select('${p.numero_completo||p.numero}')"><strong>${p.numero_completo||p.numero}</strong><br><small>${Utils.trunc(Utils.safe(p.titulo),50)||'Sem título'}</small></div>`).join('');
+        res.classList.add('show');
     },
-
-    selectPatent(numero) {
-        document.getElementById('searchInput').value = numero;
-        DashboardState.currentFilters.search = numero;
+    select(n) {
+        document.getElementById('searchInput').value=n;
+        State.filters.search=n;
         document.getElementById('autocompleteResults').classList.remove('show');
         Filters.apply();
     }
 };
-
-// ========================================
-// FILTERING
-// ========================================
-const Filters = {
-    apply() {
-        let filtered = DashboardState.allPatents;
-
-        // Search
-        if (DashboardState.currentFilters.search) {
-            const normalized = Utils.normalize(DashboardState.currentFilters.search);
-            filtered = filtered.filter(p => {
-                const numero = Utils.normalize(p.numero_completo || p.numero || '');
-                const titulo = Utils.normalize(Utils.safeString(p.titulo));
-                const titular = Utils.normalize(Utils.safeString(p.applicant));
-                
-                return numero.includes(normalized) || 
-                       titulo.includes(normalized) || 
-                       titular.includes(normalized);
-            });
-        }
-
-        // Fonte
-        if (DashboardState.currentFilters.fonte) {
-            filtered = filtered.filter(p => {
-                const fonte = p.fonte || (p.pais === 'BR' ? 'INPI' : 'EPO');
-                return fonte === DashboardState.currentFilters.fonte;
-            });
-        }
-
-        // País
-        if (DashboardState.currentFilters.pais) {
-            filtered = filtered.filter(p => {
-                const pais = p.pais || p.country;
-                return pais === DashboardState.currentFilters.pais;
-            });
-        }
-
-        // Ano
-        if (DashboardState.currentFilters.ano) {
-            filtered = filtered.filter(p => {
-                const ano = String(p.ano_deposito || p.ano || '');
-                return ano === DashboardState.currentFilters.ano;
-            });
-        }
-
-        // Titular
-        if (DashboardState.currentFilters.titular) {
-            filtered = filtered.filter(p => {
-                const titular = Utils.safeString(p.applicant);
-                return titular === DashboardState.currentFilters.titular;
-            });
-        }
-
-        // Tipo
-        if (DashboardState.currentFilters.tipo) {
-            filtered = filtered.filter(p => {
-                const tipo = p.tipo_barreira || p.tipo_patente;
-                return tipo === DashboardState.currentFilters.tipo;
-            });
-        }
-
-        // Ameaça
-        if (DashboardState.currentFilters.ameaca) {
-            filtered = filtered.filter(p => {
-                return p.nivel_ameaca === DashboardState.currentFilters.ameaca;
-            });
-        }
-
-        DashboardState.filteredPatents = filtered;
-        Renderer.renderPatentsTable();
-    },
-
-    clear() {
-        DashboardState.currentFilters = {
-            search: '',
-            fonte: '',
-            pais: '',
-            ano: '',
-            titular: '',
-            tipo: '',
-            ameaca: ''
-        };
-        
-        document.getElementById('searchInput').value = '';
-        document.getElementById('filtroFonte').value = '';
-        document.getElementById('filtroPais').value = '';
-        document.getElementById('filtroAno').value = '';
-        document.getElementById('filtroTitular').value = '';
-        document.getElementById('filtroTipo').value = '';
-        document.getElementById('filtroAmeaca').value = '';
-        
-        this.apply();
-    },
-
-    setupListeners() {
-        const filters = ['fonte', 'pais', 'ano', 'titular', 'tipo', 'ameaca'];
-        
-        filters.forEach(filter => {
-            document.getElementById(`filtro${filter.charAt(0).toUpperCase() + filter.slice(1)}`).addEventListener('change', (e) => {
-                DashboardState.currentFilters[filter] = e.target.value;
-                this.apply();
-            });
-        });
-
-        document.getElementById('btnClearFilters').addEventListener('click', () => {
-            this.clear();
-        });
-    }
-};
-
-// ========================================
-// MODAL
-// ========================================
 const Modal = {
-    open(patent) {
-        const modal = document.getElementById('patentModal');
-        const modalBody = document.getElementById('modalBody');
-
-        document.getElementById('modalTitle').textContent = 
-            patent.numero_completo || patent.numero || 'Detalhes da Patente';
-
-        const tituloRaw = patent.titulo || patent.titulo_original || patent.title;
-        const titulo = Utils.safeString(tituloRaw) || 'Sem título';
-        const titular = Utils.safeString(patent.applicant) || 'Não informado';
-        const abstract = Utils.safeString(patent.abstract) || '';
-        const comentarioIA = Utils.safeString(patent.comentario_ia) || '';
-
-        modalBody.innerHTML = `
-            <div class="detail-item">
-                <strong>Número da Patente</strong>
-                <p><code style="font-size: 1rem; padding: 0.5rem;">${patent.numero_completo || patent.numero || '-'}</code></p>
-            </div>
-
-            <div class="detail-item">
-                <strong>Título</strong>
-                <p>${titulo}</p>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                <div class="detail-item">
-                    <strong>País</strong>
-                    <p>${patent.pais || patent.country || '-'}</p>
-                </div>
-                <div class="detail-item">
-                    <strong>Ano de Depósito</strong>
-                    <p>${patent.ano_deposito || patent.ano || '-'}</p>
-                </div>
-            </div>
-
-            <div class="detail-item">
-                <strong>Titular</strong>
-                <p>${titular}</p>
-            </div>
-
-            <div class="detail-item">
-                <strong>Classificação IPC</strong>
-                <p><code>${patent.ipc || '-'}</code></p>
-            </div>
-
-            ${abstract && abstract !== 'N/A' ? `
-                <div class="detail-item">
-                    <strong>Resumo</strong>
-                    <p>${abstract}</p>
-                </div>
-            ` : ''}
-
-            ${comentarioIA ? `
-                <div class="detail-item" style="background: #f0f9ff; padding: 1rem; border-radius: 0.5rem; border-left: 4px solid #667eea;">
-                    <strong>📊 Análise IA</strong>
-                    <p>${comentarioIA}</p>
-                </div>
-            ` : ''}
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
-                <div class="detail-item">
-                    <strong>Nível de Ameaça</strong>
-                    <p>${patent.nivel_ameaca ? 
-                        `<span class="badge badge-${patent.nivel_ameaca.toLowerCase()}" style="padding: 0.5rem 1rem; font-size: 0.875rem;">${patent.nivel_ameaca}</span>` 
-                        : '<span style="color: #9ca3af;">N/A</span>'
-                    }</p>
-                </div>
-                <div class="detail-item">
-                    <strong>Tipo de Barreira</strong>
-                    <p><span class="badge badge-tipo" style="padding: 0.5rem 1rem; font-size: 0.875rem;">${patent.tipo_barreira || patent.tipo_patente || '-'}</span></p>
-                </div>
-            </div>
-        `;
-
-        modal.classList.add('show');
-        document.body.style.overflow = 'hidden';
+    open(p) {
+        document.getElementById('modalTitle').textContent=p.numero_completo||p.numero||'Patente';
+        const titulo=Utils.safe(p.titulo)||'Sem título';
+        const titular=Utils.safe(p.applicant)||'-';
+        const abs=Utils.safe(p.abstract)||'';
+        const com=Utils.safe(p.comentario_ia)||'';
+        let html=`<div class="detail-item"><strong>Número</strong><p><code>${p.numero_completo||p.numero||'-'}</code></p></div>`;
+        html+=`<div class="detail-item"><strong>Título</strong><p>${titulo}</p></div>`;
+        html+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;"><div class="detail-item"><strong>País</strong><p>${p.pais||p.country||'-'}</p></div><div class="detail-item"><strong>Ano</strong><p>${p.ano_deposito||p.ano||'-'}</p></div></div>`;
+        html+=`<div class="detail-item"><strong>Titular</strong><p>${titular}</p></div>`;
+        html+=`<div class="detail-item"><strong>IPC</strong><p><code>${p.ipc||'-'}</code></p></div>`;
+        if(abs&&abs!=='N/A') html+=`<div class="detail-item"><strong>Resumo</strong><p>${abs}</p></div>`;
+        if(com) html+=`<div class="detail-item" style="background:#f0f9ff;padding:1rem;border-radius:0.5rem;border-left:4px solid #667eea;"><strong>📊 Análise IA</strong><p>${com}</p></div>`;
+        document.getElementById('modalBody').innerHTML=html;
+        document.getElementById('patentModal').classList.add('show');
+        document.body.style.overflow='hidden';
     },
-
     close() {
-        const modal = document.getElementById('patentModal');
-        modal.classList.remove('show');
-        document.body.style.overflow = 'auto';
+        document.getElementById('patentModal').classList.remove('show');
+        document.body.style.overflow='auto';
     },
-
-    setupListeners() {
-        document.getElementById('patentModal').addEventListener('click', (e) => {
-            if (e.target.id === 'patentModal') {
-                this.close();
-            }
-        });
+    setup() {
+        document.getElementById('patentModal').addEventListener('click',e=>{if(e.target.id==='patentModal') this.close();});
     }
 };
-
-// ========================================
-// UI FUNCTIONS
-// ========================================
 const UI = {
-    showLoading() {
-        document.getElementById('loadingState').classList.remove('hidden');
-        document.getElementById('errorState').classList.add('hidden');
-        document.getElementById('dashboardContent').classList.add('hidden');
+    show(s) {
+        document.getElementById('loadingState').classList.toggle('hidden',s!=='loading');
+        document.getElementById('errorState').classList.toggle('hidden',s!=='error');
+        document.getElementById('dashboardContent').classList.toggle('hidden',s!=='dash');
     },
-
-    showError(message) {
-        document.getElementById('loadingState').classList.add('hidden');
-        document.getElementById('errorState').classList.remove('hidden');
-        document.getElementById('errorMessage').textContent = message;
-        document.getElementById('dashboardContent').classList.add('hidden');
-    },
-
-    showDashboard() {
-        document.getElementById('loadingState').classList.add('hidden');
-        document.getElementById('errorState').classList.add('hidden');
-        document.getElementById('dashboardContent').classList.remove('hidden');
-    },
-
-    setupListeners() {
-        document.getElementById('btnNewSearch').addEventListener('click', () => {
-            if (confirm('Deseja iniciar uma nova busca? Os dados atuais serão perdidos.')) {
-                localStorage.removeItem('patentAnalysis');
-                window.location.href = 'index.html';
-            }
-        });
+    error(m) { this.show('error'); document.getElementById('errorMessage').textContent=m; },
+    setup() {
+        document.getElementById('btnNewSearch').addEventListener('click',()=>{if(confirm('Nova busca?')) {localStorage.removeItem('patentAnalysis'); window.location.href='index.html';}});
     }
 };
-
-// ========================================
-// INITIALIZATION
-// ========================================
 async function init() {
     try {
-        console.log('🚀 Inicializando dashboard...');
-        
-        UI.showLoading();
-        
-        const data = await DataLoader.loadData();
-        
-        DashboardState.filteredPatents = DashboardState.allPatents;
-        
-        Renderer.renderDashboard(data);
-        
-        Search.setupListeners();
-        Filters.setupListeners();
-        Modal.setupListeners();
-        UI.setupListeners();
-        
-        UI.showDashboard();
-        
-        console.log('✅ Dashboard inicializado com sucesso!');
-        
-    } catch (error) {
-        console.error('❌ Erro na inicialização:', error);
-        UI.showError(error.message);
-    }
+        UI.show('loading');
+        const data=await Loader.load();
+        State.filteredPatents=State.allPatents;
+        Render.dash(data);
+        Search.setup();
+        Filters.setup();
+        Modal.setup();
+        UI.setup();
+        UI.show('dash');
+    } catch(e) { UI.error(e.message); }
 }
-
-function closeModal() {
-    Modal.close();
-}
-
-window.addEventListener('load', init);
-
-console.log('✅ Dashboard.js v9.0 carregado');
+function closeModal() { Modal.close(); }
+window.addEventListener('load',init);
     </script>
 </body>
 </html>
