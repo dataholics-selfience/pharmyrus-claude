@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sudo Admin - Pharmyrus</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); min-height: 100vh; padding: 2rem; color: white; }
+        
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; padding-bottom: 1.5rem; border-bottom: 2px solid rgba(255,255,255,0.1); }
+        .logo { font-size: 1.5rem; font-weight: 800; color: #10b981; }
+        .user-info { display: flex; align-items: center; gap: 1rem; }
+        .badge { background: #10b981; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+        .btn-logout { padding: 0.5rem 1rem; background: #ef4444; border: none; border-radius: 0.5rem; color: white; font-weight: 600; cursor: pointer; }
+        
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem; }
+        
+        .card { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 1rem; padding: 2rem; }
+        .card h2 { font-size: 1.5rem; margin-bottom: 1.5rem; color: #10b981; }
+        
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: rgba(255,255,255,0.7); }
+        .form-group input { width: 100%; padding: 0.75rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 0.5rem; color: white; font-size: 1rem; }
+        .form-group input:focus { outline: none; border-color: #10b981; background: rgba(255,255,255,0.15); }
+        
+        .btn-primary { width: 100%; padding: 1rem; background: #10b981; border: none; border-radius: 0.5rem; color: white; font-weight: 600; font-size: 1rem; cursor: pointer; transition: all 0.2s; }
+        .btn-primary:hover { background: #059669; transform: translateY(-1px); }
+        .btn-primary:disabled { background: #6b7280; cursor: not-allowed; transform: none; }
+        
+        .success { background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; padding: 1rem; border-radius: 0.5rem; margin-top: 1rem; display: none; }
+        .success.show { display: block; }
+        .success-code { font-size: 2rem; font-weight: 800; text-align: center; margin: 1rem 0; color: #10b981; letter-spacing: 0.5rem; }
+        
+        .error { background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #fca5a5; padding: 1rem; border-radius: 0.5rem; margin-top: 1rem; display: none; }
+        .error.show { display: block; }
+        
+        .invites-list { background: rgba(255,255,255,0.05); border-radius: 0.5rem; max-height: 500px; overflow-y: auto; }
+        .invite-item { padding: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); display: grid; grid-template-columns: 120px 1fr 150px 100px; gap: 1rem; align-items: center; }
+        .invite-item:last-child { border-bottom: none; }
+        .invite-code { font-family: 'Courier New', monospace; font-weight: 700; font-size: 1.125rem; color: #10b981; }
+        .invite-email { color: rgba(255,255,255,0.9); }
+        .invite-status { padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; text-align: center; }
+        .status-pending { background: rgba(234, 179, 8, 0.2); color: #fbbf24; border: 1px solid #fbbf24; }
+        .status-used { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid #4ade80; }
+        .status-expired { background: rgba(107, 114, 128, 0.2); color: #9ca3af; border: 1px solid #9ca3af; }
+        
+        .btn-copy { padding: 0.5rem 1rem; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; border-radius: 0.5rem; color: #10b981; font-size: 0.875rem; cursor: pointer; }
+        .btn-copy:hover { background: rgba(16, 185, 129, 0.3); }
+        
+        .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem; }
+        .stat-card { background: rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 0.5rem; text-align: center; }
+        .stat-number { font-size: 2.5rem; font-weight: 800; color: #10b981; }
+        .stat-label { font-size: 0.875rem; color: rgba(255,255,255,0.6); margin-top: 0.5rem; }
+        
+        .loading { text-align: center; padding: 2rem; color: rgba(255,255,255,0.5); }
+        
+        @media (max-width: 768px) {
+            .grid { grid-template-columns: 1fr; }
+            .invite-item { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">⚡ SUDO ADMIN - PHARMYRUS</div>
+            <div class="user-info">
+                <span class="badge">ADMIN</span>
+                <span id="adminEmail">daniel.mendes@dataholics.io</span>
+                <button class="btn-logout" onclick="logout()">Sair</button>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalInvites">0</div>
+                <div class="stat-label">Total de Convites</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="pendingInvites">0</div>
+                <div class="stat-label">Pendentes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="usedInvites">0</div>
+                <div class="stat-label">Utilizados</div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h2>🎟️ Criar Convite</h2>
+                
+                <form id="inviteForm">
+                    <div class="form-group">
+                        <label for="inviteEmail">E-mail do Convidado</label>
+                        <input type="email" id="inviteEmail" placeholder="usuario@exemplo.com" required>
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="btnCreateInvite">
+                        Gerar Código de Convite
+                    </button>
+                </form>
+
+                <div id="successMessage" class="success">
+                    <p style="text-align: center; margin-bottom: 0.5rem;">✅ Convite criado com sucesso!</p>
+                    <div class="success-code" id="generatedCode">------</div>
+                    <p style="text-align: center; font-size: 0.875rem; color: rgba(255,255,255,0.7);">
+                        Envie este código para <strong id="invitedEmail"></strong>
+                    </p>
+                    <button class="btn-primary" onclick="copyCode()" style="margin-top: 1rem;">
+                        📋 Copiar Código
+                    </button>
+                </div>
+
+                <div id="errorMessage" class="error"></div>
+            </div>
+
+            <div class="card">
+                <h2>📊 Estatísticas</h2>
+                <div style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 0.5rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                        <span>Taxa de conversão:</span>
+                        <strong id="conversionRate">0%</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                        <span>Convites hoje:</span>
+                        <strong id="todayInvites">0</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Usuários ativos:</span>
+                        <strong id="activeUsers">0</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📋 Convites Criados</h2>
+            <div id="invitesList" class="invites-list">
+                <div class="loading">Carregando convites...</div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy, where, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAHq5Tvn3qZvbj1D2GJdUW-BhPWiAURBJI",
+            authDomain: "patentes-51d85.firebaseapp.com",
+            projectId: "patentes-51d85",
+            storageBucket: "patentes-51d85.firebasestorage.app",
+            messagingSenderId: "278792677855",
+            appId: "1:278792677855:web:a801a4894efe7aa1bbbc6a"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+        let lastGeneratedCode = '';
+
+        // Check Auth + Admin
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            if (user.email !== 'daniel.mendes@dataholics.io') {
+                alert('⛔ Acesso negado. Apenas Sudo Admins podem acessar esta página.');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            currentUser = user;
+            document.getElementById('adminEmail').textContent = user.email;
+            await loadInvites();
+            await loadStats();
+        });
+
+        // Generate Code
+        function generateCode() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Sem I, O, 0, 1
+            let code = '';
+            for (let i = 0; i < 6; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return code;
+        }
+
+        // Create Invite
+        document.getElementById('inviteForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('inviteEmail').value.trim().toLowerCase();
+            const btn = document.getElementById('btnCreateInvite');
+            const successMsg = document.getElementById('successMessage');
+            const errorMsg = document.getElementById('errorMessage');
+
+            successMsg.classList.remove('show');
+            errorMsg.classList.remove('show');
+
+            btn.disabled = true;
+            btn.textContent = 'Gerando...';
+
+            try {
+                // Check if email already has pending invite
+                const existingQuery = query(
+                    collection(db, 'invites'),
+                    where('email', '==', email),
+                    where('status', '==', 'pending')
+                );
+                const existingSnap = await getDocs(existingQuery);
+
+                if (!existingSnap.empty) {
+                    throw new Error('Este e-mail já possui um convite pendente');
+                }
+
+                // Generate unique code
+                let code = generateCode();
+                let attempts = 0;
+                while (attempts < 10) {
+                    const codeQuery = query(
+                        collection(db, 'invites'),
+                        where('code', '==', code)
+                    );
+                    const codeSnap = await getDocs(codeQuery);
+                    
+                    if (codeSnap.empty) break;
+                    
+                    code = generateCode();
+                    attempts++;
+                }
+
+                if (attempts >= 10) {
+                    throw new Error('Erro ao gerar código único');
+                }
+
+                // Create invite
+                await addDoc(collection(db, 'invites'), {
+                    code: code,
+                    email: email,
+                    createdBy: currentUser.email,
+                    createdAt: serverTimestamp(),
+                    usedAt: null,
+                    usedBy: null,
+                    status: 'pending',
+                    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 dias
+                });
+
+                lastGeneratedCode = code;
+                document.getElementById('generatedCode').textContent = code;
+                document.getElementById('invitedEmail').textContent = email;
+                successMsg.classList.add('show');
+
+                document.getElementById('inviteEmail').value = '';
+
+                await loadInvites();
+                await loadStats();
+
+            } catch (error) {
+                console.error('Erro:', error);
+                errorMsg.textContent = '❌ ' + error.message;
+                errorMsg.classList.add('show');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Gerar Código de Convite';
+            }
+        });
+
+        // Copy Code
+        window.copyCode = function() {
+            navigator.clipboard.writeText(lastGeneratedCode);
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = '✅ Copiado!';
+            setTimeout(() => {
+                btn.textContent = originalText;
+            }, 2000);
+        };
+
+        // Load Invites
+        async function loadInvites() {
+            const invitesQuery = query(
+                collection(db, 'invites'),
+                orderBy('createdAt', 'desc')
+            );
+
+            const snapshot = await getDocs(invitesQuery);
+            const invitesList = document.getElementById('invitesList');
+
+            if (snapshot.empty) {
+                invitesList.innerHTML = '<div class="loading">Nenhum convite criado ainda</div>';
+                return;
+            }
+
+            let html = '';
+            snapshot.forEach(doc => {
+                const invite = doc.data();
+                const statusClass = `status-${invite.status}`;
+                const statusText = {
+                    'pending': 'Pendente',
+                    'used': 'Utilizado',
+                    'expired': 'Expirado'
+                }[invite.status];
+
+                html += `
+                    <div class="invite-item">
+                        <div class="invite-code">${invite.code}</div>
+                        <div class="invite-email">${invite.email}</div>
+                        <div class="invite-status ${statusClass}">${statusText}</div>
+                        <button class="btn-copy" onclick="copyToClipboard('${invite.code}')">
+                            Copiar
+                        </button>
+                    </div>
+                `;
+            });
+
+            invitesList.innerHTML = html;
+        }
+
+        // Load Stats
+        async function loadStats() {
+            const invitesSnap = await getDocs(collection(db, 'invites'));
+            const usersSnap = await getDocs(collection(db, 'users'));
+
+            const total = invitesSnap.size;
+            let pending = 0;
+            let used = 0;
+            let today = 0;
+
+            const todayStart = new Date();
+            todayStart.setHours(0, 0, 0, 0);
+
+            invitesSnap.forEach(doc => {
+                const invite = doc.data();
+                if (invite.status === 'pending') pending++;
+                if (invite.status === 'used') used++;
+                
+                if (invite.createdAt && invite.createdAt.toDate() >= todayStart) {
+                    today++;
+                }
+            });
+
+            document.getElementById('totalInvites').textContent = total;
+            document.getElementById('pendingInvites').textContent = pending;
+            document.getElementById('usedInvites').textContent = used;
+            document.getElementById('todayInvites').textContent = today;
+            document.getElementById('activeUsers').textContent = usersSnap.size;
+
+            const conversionRate = total > 0 ? ((used / total) * 100).toFixed(1) : 0;
+            document.getElementById('conversionRate').textContent = conversionRate + '%';
+        }
+
+        // Copy to Clipboard
+        window.copyToClipboard = function(text) {
+            navigator.clipboard.writeText(text);
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = '✅';
+            setTimeout(() => {
+                btn.textContent = originalText;
+            }, 1500);
+        };
+
+        // Logout
+        window.logout = async function() {
+            await signOut(auth);
+            window.location.href = 'login.html';
+        };
+    </script>
+</body>
+</html>
