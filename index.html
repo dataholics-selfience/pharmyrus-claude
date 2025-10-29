@@ -131,7 +131,8 @@
             signInWithEmailAndPassword, 
             createUserWithEmailAndPassword,
             sendPasswordResetEmail,
-            updateProfile
+            updateProfile,
+            onAuthStateChanged
         } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
         import { 
             getFirestore, 
@@ -161,6 +162,9 @@
 
         console.log('🔥 Firebase inicializado - Sistema de Convites');
 
+        // Flag para prevenir múltiplos redirects
+        let isRedirecting = false;
+
         function showError(message) {
             const el = document.getElementById('errorMessage');
             el.textContent = message;
@@ -175,13 +179,9 @@
             setTimeout(() => el.classList.remove('show'), 5000);
         }
 
-        // LIMPAR CAMPOS ao trocar de aba
         function clearAllFields() {
-            // Login form
             document.getElementById('loginEmail').value = '';
             document.getElementById('loginPassword').value = '';
-            
-            // Register form
             document.getElementById('inviteCode').value = '';
             document.getElementById('registerEmail').value = '';
             document.getElementById('registerName').value = '';
@@ -189,12 +189,9 @@
             document.getElementById('registerPasswordConfirm').value = '';
         }
 
-        // Switch Tabs
         window.switchTab = function(tab) {
             const tabs = document.querySelectorAll('.tab');
             tabs.forEach(t => t.classList.remove('active'));
-            
-            // LIMPAR CAMPOS
             clearAllFields();
             
             if (tab === 'login') {
@@ -239,32 +236,62 @@
             return { inviteRef: inviteDoc.ref, invite };
         }
 
-        // Create User Document
+        // Create User Document - GARANTIDO
         async function createUserDocument(user, displayName, inviteCode) {
+            console.log('📝 Criando documento do usuário:', user.email);
+            
             const userRef = doc(db, 'users', user.uid);
-            const userSnap = await getDoc(userRef);
+            
+            try {
+                const userSnap = await getDoc(userRef);
 
-            if (!userSnap.exists()) {
-                const isAdmin = user.email === 'daniel.mendes@dataholics.io';
-                
-                await setDoc(userRef, {
-                    email: user.email,
-                    displayName: displayName || user.displayName || user.email.split('@')[0],
-                    createdAt: serverTimestamp(),
-                    inviteCode: inviteCode || null,
-                    quotaLimit: isAdmin ? -1 : 10,
-                    quotaUsed: 0,
-                    quotaResetDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1),
-                    isAdmin: isAdmin
-                });
+                if (!userSnap.exists()) {
+                    const isAdmin = user.email === 'daniel.mendes@dataholics.io';
+                    
+                    const userData = {
+                        email: user.email,
+                        displayName: displayName || user.displayName || user.email.split('@')[0],
+                        createdAt: serverTimestamp(),
+                        inviteCode: inviteCode || null,
+                        quotaLimit: isAdmin ? -1 : 10,
+                        quotaUsed: 0,
+                        quotaResetDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1),
+                        isAdmin: isAdmin
+                    };
 
-                console.log('✅ Documento do usuário criado');
+                    await setDoc(userRef, userData);
+                    console.log('✅ Documento do usuário criado com sucesso');
+                    
+                    // Aguardar propagação
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    // Verificar se foi criado
+                    const verifySnap = await getDoc(userRef);
+                    if (verifySnap.exists()) {
+                        console.log('✅ Documento verificado:', verifySnap.data());
+                        return true;
+                    } else {
+                        console.error('❌ Documento não foi criado');
+                        return false;
+                    }
+                } else {
+                    console.log('✅ Documento do usuário já existe');
+                    return true;
+                }
+            } catch (error) {
+                console.error('❌ Erro ao criar documento:', error);
+                throw error;
             }
         }
 
-        // Login
+        // Login with GARANTIA de redirect
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            if (isRedirecting) {
+                console.log('⏳ Já está redirecionando...');
+                return;
+            }
             
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
@@ -274,18 +301,33 @@
             btn.textContent = 'Entrando...';
 
             try {
+                console.log('🔐 Fazendo login:', email);
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                console.log('✅ Login bem-sucedido:', userCredential.user.uid);
                 
+                btn.textContent = 'Verificando dados...';
+                
+                // GARANTIR que o documento existe
+                const docCreated = await createUserDocument(userCredential.user);
+                
+                if (!docCreated) {
+                    throw new Error('Erro ao criar documento do usuário');
+                }
+                
+                btn.textContent = 'Redirecionando...';
                 showSuccess('Login realizado com sucesso!');
-                setTimeout(() => {
-                    if (email === 'daniel.mendes@dataholics.io') {
-                        window.location.href = 'index.html'; // Admin vai pro index normal (com link sudo)
-                    } else {
-                        window.location.href = 'index.html';
-                    }
-                }, 1000);
+                
+                isRedirecting = true;
+                
+                // Aguardar 1 segundo para garantir propagação
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Redirecionar com replace (não volta com botão voltar)
+                console.log('🚀 Redirecionando para index.html');
+                window.location.replace('index.html');
+                
             } catch (error) {
-                console.error('Erro no login:', error);
+                console.error('❌ Erro no login:', error);
                 let message = 'Erro ao fazer login';
                 
                 if (error.code === 'auth/user-not-found') {
@@ -296,18 +338,28 @@
                     message = 'E-mail inválido';
                 } else if (error.code === 'auth/invalid-credential') {
                     message = 'E-mail ou senha incorretos';
+                } else {
+                    message = error.message;
                 }
                 
                 showError(message);
+                isRedirecting = false;
             } finally {
-                btn.disabled = false;
-                btn.textContent = 'Entrar';
+                if (!isRedirecting) {
+                    btn.disabled = false;
+                    btn.textContent = 'Entrar';
+                }
             }
         });
 
         // Register with Invite Code
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            if (isRedirecting) {
+                console.log('⏳ Já está redirecionando...');
+                return;
+            }
             
             const inviteCode = document.getElementById('inviteCode').value.trim().toUpperCase();
             const email = document.getElementById('registerEmail').value.trim();
@@ -325,19 +377,25 @@
             btn.textContent = 'Validando convite...';
 
             try {
-                // Step 1: Validate invite code
+                console.log('🎟️ Validando código de convite:', inviteCode);
                 const { inviteRef, invite } = await validateInviteCode(inviteCode, email);
 
                 btn.textContent = 'Criando conta...';
+                console.log('👤 Criando usuário:', email);
 
-                // Step 2: Create user
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 await updateProfile(userCredential.user, { displayName: name });
-                await createUserDocument(userCredential.user, name, inviteCode);
+                
+                btn.textContent = 'Criando perfil...';
+                const docCreated = await createUserDocument(userCredential.user, name, inviteCode);
+                
+                if (!docCreated) {
+                    throw new Error('Erro ao criar perfil do usuário');
+                }
 
                 btn.textContent = 'Marcando convite...';
+                console.log('✅ Marcando convite como usado');
 
-                // Step 3: Mark invite as used
                 await updateDoc(inviteRef, {
                     status: 'used',
                     usedAt: serverTimestamp(),
@@ -345,13 +403,15 @@
                 });
 
                 showSuccess('Conta criada com sucesso! Redirecionando...');
+                isRedirecting = true;
                 
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 1500);
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                console.log('🚀 Redirecionando para index.html');
+                window.location.replace('index.html');
 
             } catch (error) {
-                console.error('Erro no cadastro:', error);
+                console.error('❌ Erro no cadastro:', error);
                 let message = 'Erro ao criar conta';
                 
                 if (error.message.includes('convite')) {
@@ -362,12 +422,17 @@
                     message = 'Senha muito fraca (mínimo 6 caracteres)';
                 } else if (error.code === 'auth/invalid-email') {
                     message = 'E-mail inválido';
+                } else {
+                    message = error.message;
                 }
                 
                 showError(message);
+                isRedirecting = false;
             } finally {
-                btn.disabled = false;
-                btn.textContent = 'Criar Conta';
+                if (!isRedirecting) {
+                    btn.disabled = false;
+                    btn.textContent = 'Criar Conta';
+                }
             }
         });
 
@@ -384,6 +449,18 @@
                 showError('Erro ao enviar e-mail de recuperação');
             }
         };
+
+        // Check if already logged in - COM LOG
+        onAuthStateChanged(auth, (user) => {
+            if (user && !isRedirecting) {
+                console.log('✅ Usuário já está logado:', user.email);
+                console.log('🔄 Já está na página de login, redirecionando...');
+                isRedirecting = true;
+                setTimeout(() => {
+                    window.location.replace('index.html');
+                }, 500);
+            }
+        });
     </script>
 </body>
 </html>
