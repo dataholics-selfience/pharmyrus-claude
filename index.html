@@ -131,7 +131,9 @@
             signInWithEmailAndPassword, 
             createUserWithEmailAndPassword,
             sendPasswordResetEmail,
-            updateProfile
+            updateProfile,
+            setPersistence,
+            browserLocalPersistence
         } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
         import { 
             getFirestore, 
@@ -159,10 +161,13 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // SEM onAuthStateChanged - evita loop
-        // NÃO verificar se já está logado na página de login
+        // FORÇAR persistência local
+        setPersistence(auth, browserLocalPersistence);
+
+        console.log('🔥 Firebase inicializado');
 
         function showError(message) {
+            console.log('❌ ERRO:', message);
             const el = document.getElementById('errorMessage');
             el.textContent = message;
             el.classList.add('show');
@@ -170,6 +175,7 @@
         }
 
         function showSuccess(message) {
+            console.log('✅ SUCESSO:', message);
             const el = document.getElementById('successMessage');
             el.textContent = message;
             el.classList.add('show');
@@ -201,7 +207,6 @@
             }
         };
 
-        // Validate Invite Code
         async function validateInviteCode(code, email) {
             const invitesQuery = query(
                 collection(db, 'invites'),
@@ -232,8 +237,8 @@
             return { inviteRef: inviteDoc.ref, invite };
         }
 
-        // Create User Document
         async function createUserDocument(user, displayName, inviteCode) {
+            console.log('📝 Criando documento:', user.email);
             const userRef = doc(db, 'users', user.uid);
             const userSnap = await getDoc(userRef);
 
@@ -250,12 +255,17 @@
                     quotaResetDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1),
                     isAdmin: isAdmin
                 });
+                console.log('✅ Documento criado');
+            } else {
+                console.log('✅ Documento já existe');
             }
         }
 
-        // LOGIN - REDIRECIONAMENTO SECO
+        // LOGIN COM SALVAMENTO FORÇADO NO LOCALSTORAGE
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            console.log('🔐 Iniciando login...');
             
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
@@ -265,15 +275,30 @@
             btn.textContent = 'Entrando...';
 
             try {
+                console.log('🔐 Autenticando:', email);
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                console.log('✅ Autenticado:', userCredential.user.uid);
+                
+                console.log('📝 Criando/verificando documento...');
                 await createUserDocument(userCredential.user);
                 
-                // REDIRECIONAMENTO IMEDIATO E SECO
+                console.log('💾 Salvando no localStorage...');
+                localStorage.setItem('pharmyrus_logged_in', 'true');
+                localStorage.setItem('pharmyrus_user_email', email);
+                localStorage.setItem('pharmyrus_user_uid', userCredential.user.uid);
+                
+                console.log('✅ Tudo pronto, redirecionando...');
+                showSuccess('Login realizado! Redirecionando...');
+                
+                // Aguardar 2 segundos para garantir propagação
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                console.log('🚀 REDIRECIONANDO AGORA');
                 window.location.href = 'index.html';
                 
             } catch (error) {
-                console.error('Erro no login:', error);
-                let message = 'Erro ao fazer login';
+                console.error('❌ Erro completo:', error);
+                let message = 'Erro ao fazer login: ' + error.message;
                 
                 if (error.code === 'auth/user-not-found') {
                     message = 'Usuário não encontrado';
@@ -291,9 +316,11 @@
             }
         });
 
-        // REGISTER - REDIRECIONAMENTO SECO
+        // REGISTER
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            console.log('📝 Iniciando cadastro...');
             
             const inviteCode = document.getElementById('inviteCode').value.trim().toUpperCase();
             const email = document.getElementById('registerEmail').value.trim();
@@ -311,15 +338,18 @@
             btn.textContent = 'Validando convite...';
 
             try {
+                console.log('🎟️ Validando convite:', inviteCode);
                 const { inviteRef, invite } = await validateInviteCode(inviteCode, email);
 
                 btn.textContent = 'Criando conta...';
+                console.log('👤 Criando usuário:', email);
 
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 await updateProfile(userCredential.user, { displayName: name });
                 await createUserDocument(userCredential.user, name, inviteCode);
 
                 btn.textContent = 'Marcando convite...';
+                console.log('✅ Marcando convite como usado');
 
                 await updateDoc(inviteRef, {
                     status: 'used',
@@ -327,12 +357,21 @@
                     usedBy: userCredential.user.uid
                 });
 
-                // REDIRECIONAMENTO IMEDIATO E SECO
+                console.log('💾 Salvando no localStorage...');
+                localStorage.setItem('pharmyrus_logged_in', 'true');
+                localStorage.setItem('pharmyrus_user_email', email);
+                localStorage.setItem('pharmyrus_user_uid', userCredential.user.uid);
+
+                showSuccess('Conta criada! Redirecionando...');
+                
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                console.log('🚀 REDIRECIONANDO AGORA');
                 window.location.href = 'index.html';
 
             } catch (error) {
-                console.error('Erro no cadastro:', error);
-                let message = 'Erro ao criar conta';
+                console.error('❌ Erro completo:', error);
+                let message = 'Erro ao criar conta: ' + error.message;
                 
                 if (error.message.includes('convite')) {
                     message = error.message;
@@ -350,7 +389,6 @@
             }
         });
 
-        // Reset Password
         window.resetPassword = async function() {
             const email = prompt('Digite seu e-mail:');
             if (!email) return;
@@ -363,6 +401,8 @@
                 showError('Erro ao enviar e-mail de recuperação');
             }
         };
+
+        console.log('✅ Script carregado completamente');
     </script>
 </body>
 </html>
