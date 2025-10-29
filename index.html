@@ -131,8 +131,7 @@
             signInWithEmailAndPassword, 
             createUserWithEmailAndPassword,
             sendPasswordResetEmail,
-            updateProfile,
-            onAuthStateChanged
+            updateProfile
         } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
         import { 
             getFirestore, 
@@ -160,10 +159,8 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        console.log('🔥 Firebase inicializado - Sistema de Convites');
-
-        // Flag para prevenir múltiplos redirects
-        let isRedirecting = false;
+        // SEM onAuthStateChanged - evita loop
+        // NÃO verificar se já está logado na página de login
 
         function showError(message) {
             const el = document.getElementById('errorMessage');
@@ -176,7 +173,6 @@
             const el = document.getElementById('successMessage');
             el.textContent = message;
             el.classList.add('show');
-            setTimeout(() => el.classList.remove('show'), 5000);
         }
 
         function clearAllFields() {
@@ -236,62 +232,30 @@
             return { inviteRef: inviteDoc.ref, invite };
         }
 
-        // Create User Document - GARANTIDO
+        // Create User Document
         async function createUserDocument(user, displayName, inviteCode) {
-            console.log('📝 Criando documento do usuário:', user.email);
-            
             const userRef = doc(db, 'users', user.uid);
-            
-            try {
-                const userSnap = await getDoc(userRef);
+            const userSnap = await getDoc(userRef);
 
-                if (!userSnap.exists()) {
-                    const isAdmin = user.email === 'daniel.mendes@dataholics.io';
-                    
-                    const userData = {
-                        email: user.email,
-                        displayName: displayName || user.displayName || user.email.split('@')[0],
-                        createdAt: serverTimestamp(),
-                        inviteCode: inviteCode || null,
-                        quotaLimit: isAdmin ? -1 : 10,
-                        quotaUsed: 0,
-                        quotaResetDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1),
-                        isAdmin: isAdmin
-                    };
-
-                    await setDoc(userRef, userData);
-                    console.log('✅ Documento do usuário criado com sucesso');
-                    
-                    // Aguardar propagação
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    
-                    // Verificar se foi criado
-                    const verifySnap = await getDoc(userRef);
-                    if (verifySnap.exists()) {
-                        console.log('✅ Documento verificado:', verifySnap.data());
-                        return true;
-                    } else {
-                        console.error('❌ Documento não foi criado');
-                        return false;
-                    }
-                } else {
-                    console.log('✅ Documento do usuário já existe');
-                    return true;
-                }
-            } catch (error) {
-                console.error('❌ Erro ao criar documento:', error);
-                throw error;
+            if (!userSnap.exists()) {
+                const isAdmin = user.email === 'daniel.mendes@dataholics.io';
+                
+                await setDoc(userRef, {
+                    email: user.email,
+                    displayName: displayName || user.displayName || user.email.split('@')[0],
+                    createdAt: serverTimestamp(),
+                    inviteCode: inviteCode || null,
+                    quotaLimit: isAdmin ? -1 : 10,
+                    quotaUsed: 0,
+                    quotaResetDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1),
+                    isAdmin: isAdmin
+                });
             }
         }
 
-        // Login with GARANTIA de redirect
+        // LOGIN - REDIRECIONAMENTO SECO
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            if (isRedirecting) {
-                console.log('⏳ Já está redirecionando...');
-                return;
-            }
             
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
@@ -301,33 +265,14 @@
             btn.textContent = 'Entrando...';
 
             try {
-                console.log('🔐 Fazendo login:', email);
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                console.log('✅ Login bem-sucedido:', userCredential.user.uid);
+                await createUserDocument(userCredential.user);
                 
-                btn.textContent = 'Verificando dados...';
-                
-                // GARANTIR que o documento existe
-                const docCreated = await createUserDocument(userCredential.user);
-                
-                if (!docCreated) {
-                    throw new Error('Erro ao criar documento do usuário');
-                }
-                
-                btn.textContent = 'Redirecionando...';
-                showSuccess('Login realizado com sucesso!');
-                
-                isRedirecting = true;
-                
-                // Aguardar 1 segundo para garantir propagação
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                
-                // Redirecionar com replace (não volta com botão voltar)
-                console.log('🚀 Redirecionando para index.html');
-                window.location.replace('index.html');
+                // REDIRECIONAMENTO IMEDIATO E SECO
+                window.location.href = 'index.html';
                 
             } catch (error) {
-                console.error('❌ Erro no login:', error);
+                console.error('Erro no login:', error);
                 let message = 'Erro ao fazer login';
                 
                 if (error.code === 'auth/user-not-found') {
@@ -338,28 +283,17 @@
                     message = 'E-mail inválido';
                 } else if (error.code === 'auth/invalid-credential') {
                     message = 'E-mail ou senha incorretos';
-                } else {
-                    message = error.message;
                 }
                 
                 showError(message);
-                isRedirecting = false;
-            } finally {
-                if (!isRedirecting) {
-                    btn.disabled = false;
-                    btn.textContent = 'Entrar';
-                }
+                btn.disabled = false;
+                btn.textContent = 'Entrar';
             }
         });
 
-        // Register with Invite Code
+        // REGISTER - REDIRECIONAMENTO SECO
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            if (isRedirecting) {
-                console.log('⏳ Já está redirecionando...');
-                return;
-            }
             
             const inviteCode = document.getElementById('inviteCode').value.trim().toUpperCase();
             const email = document.getElementById('registerEmail').value.trim();
@@ -377,24 +311,15 @@
             btn.textContent = 'Validando convite...';
 
             try {
-                console.log('🎟️ Validando código de convite:', inviteCode);
                 const { inviteRef, invite } = await validateInviteCode(inviteCode, email);
 
                 btn.textContent = 'Criando conta...';
-                console.log('👤 Criando usuário:', email);
 
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 await updateProfile(userCredential.user, { displayName: name });
-                
-                btn.textContent = 'Criando perfil...';
-                const docCreated = await createUserDocument(userCredential.user, name, inviteCode);
-                
-                if (!docCreated) {
-                    throw new Error('Erro ao criar perfil do usuário');
-                }
+                await createUserDocument(userCredential.user, name, inviteCode);
 
                 btn.textContent = 'Marcando convite...';
-                console.log('✅ Marcando convite como usado');
 
                 await updateDoc(inviteRef, {
                     status: 'used',
@@ -402,16 +327,11 @@
                     usedBy: userCredential.user.uid
                 });
 
-                showSuccess('Conta criada com sucesso! Redirecionando...');
-                isRedirecting = true;
-                
-                await new Promise(resolve => setTimeout(resolve, 1500));
-                
-                console.log('🚀 Redirecionando para index.html');
-                window.location.replace('index.html');
+                // REDIRECIONAMENTO IMEDIATO E SECO
+                window.location.href = 'index.html';
 
             } catch (error) {
-                console.error('❌ Erro no cadastro:', error);
+                console.error('Erro no cadastro:', error);
                 let message = 'Erro ao criar conta';
                 
                 if (error.message.includes('convite')) {
@@ -422,17 +342,11 @@
                     message = 'Senha muito fraca (mínimo 6 caracteres)';
                 } else if (error.code === 'auth/invalid-email') {
                     message = 'E-mail inválido';
-                } else {
-                    message = error.message;
                 }
                 
                 showError(message);
-                isRedirecting = false;
-            } finally {
-                if (!isRedirecting) {
-                    btn.disabled = false;
-                    btn.textContent = 'Criar Conta';
-                }
+                btn.disabled = false;
+                btn.textContent = 'Criar Conta';
             }
         });
 
@@ -449,18 +363,6 @@
                 showError('Erro ao enviar e-mail de recuperação');
             }
         };
-
-        // Check if already logged in - COM LOG
-        onAuthStateChanged(auth, (user) => {
-            if (user && !isRedirecting) {
-                console.log('✅ Usuário já está logado:', user.email);
-                console.log('🔄 Já está na página de login, redirecionando...');
-                isRedirecting = true;
-                setTimeout(() => {
-                    window.location.replace('index.html');
-                }, 500);
-            }
-        });
     </script>
 </body>
 </html>
