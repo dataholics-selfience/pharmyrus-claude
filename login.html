@@ -245,9 +245,14 @@
             if (!userSnap.exists()) {
                 const isAdmin = user.email === 'daniel.mendes@dataholics.io';
                 
+                // CORREÇÃO: Usar displayName passado como parâmetro OU email (NUNCA user.displayName)
+                const finalDisplayName = displayName || user.email;
+                
+                console.log('👤 DisplayName a salvar:', finalDisplayName);
+                
                 await setDoc(userRef, {
                     email: user.email,
-                    displayName: displayName || user.displayName || user.email.split('@')[0],
+                    displayName: finalDisplayName,
                     createdAt: serverTimestamp(),
                     inviteCode: inviteCode || null,
                     quotaLimit: isAdmin ? -1 : 10,
@@ -255,7 +260,7 @@
                     quotaResetDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1),
                     isAdmin: isAdmin
                 });
-                console.log('✅ Documento criado');
+                console.log('✅ Documento criado com displayName:', finalDisplayName);
             } else {
                 console.log('✅ Documento já existe');
             }
@@ -279,8 +284,15 @@
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
                 console.log('✅ Autenticado:', userCredential.user.uid);
                 
+                // CORREÇÃO: Atualizar displayName no Firebase Auth para usar o email
+                console.log('🔧 Atualizando displayName no Firebase Auth...');
+                await updateProfile(userCredential.user, { 
+                    displayName: email 
+                });
+                console.log('✅ DisplayName atualizado no Firebase Auth:', email);
+                
                 console.log('📝 Criando/verificando documento...');
-                await createUserDocument(userCredential.user);
+                await createUserDocument(userCredential.user, email); // Passar email como displayName
                 
                 console.log('💾 Salvando no localStorage...');
                 localStorage.setItem('pharmyrus_logged_in', 'true');
