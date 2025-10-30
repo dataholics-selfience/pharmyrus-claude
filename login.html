@@ -131,7 +131,9 @@
             signInWithEmailAndPassword, 
             createUserWithEmailAndPassword,
             sendPasswordResetEmail,
-            updateProfile
+            updateProfile,
+            setPersistence,
+            browserLocalPersistence
         } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
         import { 
             getFirestore, 
@@ -159,9 +161,13 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        console.log('🔥 Firebase inicializado - Sistema de Convites');
+        // FORÇAR persistência local
+        setPersistence(auth, browserLocalPersistence);
+
+        console.log('🔥 Firebase inicializado');
 
         function showError(message) {
+            console.log('❌ ERRO:', message);
             const el = document.getElementById('errorMessage');
             el.textContent = message;
             el.classList.add('show');
@@ -169,15 +175,26 @@
         }
 
         function showSuccess(message) {
+            console.log('✅ SUCESSO:', message);
             const el = document.getElementById('successMessage');
             el.textContent = message;
             el.classList.add('show');
-            setTimeout(() => el.classList.remove('show'), 5000);
+        }
+
+        function clearAllFields() {
+            document.getElementById('loginEmail').value = '';
+            document.getElementById('loginPassword').value = '';
+            document.getElementById('inviteCode').value = '';
+            document.getElementById('registerEmail').value = '';
+            document.getElementById('registerName').value = '';
+            document.getElementById('registerPassword').value = '';
+            document.getElementById('registerPasswordConfirm').value = '';
         }
 
         window.switchTab = function(tab) {
             const tabs = document.querySelectorAll('.tab');
             tabs.forEach(t => t.classList.remove('active'));
+            clearAllFields();
             
             if (tab === 'login') {
                 tabs[0].classList.add('active');
@@ -190,7 +207,6 @@
             }
         };
 
-        // Validate Invite Code
         async function validateInviteCode(code, email) {
             const invitesQuery = query(
                 collection(db, 'invites'),
@@ -206,17 +222,14 @@
             const inviteDoc = snapshot.docs[0];
             const invite = inviteDoc.data();
 
-            // Check if already used
             if (invite.status === 'used') {
                 throw new Error('Este código de convite já foi utilizado');
             }
 
-            // Check if expired
             if (invite.expiresAt && invite.expiresAt.toDate() < new Date()) {
                 throw new Error('Este código de convite expirou');
             }
 
-            // Check if email matches
             if (invite.email.toLowerCase() !== email.toLowerCase()) {
                 throw new Error('Este convite foi criado para outro e-mail');
             }
@@ -224,8 +237,8 @@
             return { inviteRef: inviteDoc.ref, invite };
         }
 
-        // Create User Document
         async function createUserDocument(user, displayName, inviteCode) {
+            console.log('📝 Criando documento:', user.email);
             const userRef = doc(db, 'users', user.uid);
             const userSnap = await getDoc(userRef);
 
@@ -242,14 +255,17 @@
                     quotaResetDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1),
                     isAdmin: isAdmin
                 });
-
-                console.log('✅ Documento do usuário criado');
+                console.log('✅ Documento criado');
+            } else {
+                console.log('✅ Documento já existe');
             }
         }
 
-        // Login
+        // LOGIN COM SALVAMENTO FORÇADO NO LOCALSTORAGE
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            console.log('🔐 Iniciando login...');
             
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
@@ -259,20 +275,30 @@
             btn.textContent = 'Entrando...';
 
             try {
+                console.log('🔐 Autenticando:', email);
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                console.log('✅ Autenticado:', userCredential.user.uid);
                 
-                showSuccess('Login realizado com sucesso!');
-                setTimeout(() => {
-                    // Redirect admin to sudo panel
-                    if (email === 'daniel.mendes@dataholics.io') {
-                        window.location.href = 'sudo-admin.html';
-                    } else {
-                        window.location.href = 'index.html';
-                    }
-                }, 1000);
+                console.log('📝 Criando/verificando documento...');
+                await createUserDocument(userCredential.user);
+                
+                console.log('💾 Salvando no localStorage...');
+                localStorage.setItem('pharmyrus_logged_in', 'true');
+                localStorage.setItem('pharmyrus_user_email', email);
+                localStorage.setItem('pharmyrus_user_uid', userCredential.user.uid);
+                
+                console.log('✅ Tudo pronto, redirecionando...');
+                showSuccess('Login realizado! Redirecionando...');
+                
+                // Aguardar 2 segundos para garantir propagação
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                console.log('🚀 REDIRECIONANDO AGORA');
+                window.location.href = 'index.html';
+                
             } catch (error) {
-                console.error('Erro no login:', error);
-                let message = 'Erro ao fazer login';
+                console.error('❌ Erro completo:', error);
+                let message = 'Erro ao fazer login: ' + error.message;
                 
                 if (error.code === 'auth/user-not-found') {
                     message = 'Usuário não encontrado';
@@ -285,15 +311,16 @@
                 }
                 
                 showError(message);
-            } finally {
                 btn.disabled = false;
                 btn.textContent = 'Entrar';
             }
         });
 
-        // Register with Invite Code
+        // REGISTER
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            console.log('📝 Iniciando cadastro...');
             
             const inviteCode = document.getElementById('inviteCode').value.trim().toUpperCase();
             const email = document.getElementById('registerEmail').value.trim();
@@ -311,34 +338,40 @@
             btn.textContent = 'Validando convite...';
 
             try {
-                // Step 1: Validate invite code
+                console.log('🎟️ Validando convite:', inviteCode);
                 const { inviteRef, invite } = await validateInviteCode(inviteCode, email);
 
                 btn.textContent = 'Criando conta...';
+                console.log('👤 Criando usuário:', email);
 
-                // Step 2: Create user
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 await updateProfile(userCredential.user, { displayName: name });
                 await createUserDocument(userCredential.user, name, inviteCode);
 
                 btn.textContent = 'Marcando convite...';
+                console.log('✅ Marcando convite como usado');
 
-                // Step 3: Mark invite as used
                 await updateDoc(inviteRef, {
                     status: 'used',
                     usedAt: serverTimestamp(),
                     usedBy: userCredential.user.uid
                 });
 
-                showSuccess('Conta criada com sucesso! Redirecionando...');
+                console.log('💾 Salvando no localStorage...');
+                localStorage.setItem('pharmyrus_logged_in', 'true');
+                localStorage.setItem('pharmyrus_user_email', email);
+                localStorage.setItem('pharmyrus_user_uid', userCredential.user.uid);
+
+                showSuccess('Conta criada! Redirecionando...');
                 
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 1500);
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                console.log('🚀 REDIRECIONANDO AGORA');
+                window.location.href = 'index.html';
 
             } catch (error) {
-                console.error('Erro no cadastro:', error);
-                let message = 'Erro ao criar conta';
+                console.error('❌ Erro completo:', error);
+                let message = 'Erro ao criar conta: ' + error.message;
                 
                 if (error.message.includes('convite')) {
                     message = error.message;
@@ -351,13 +384,11 @@
                 }
                 
                 showError(message);
-            } finally {
                 btn.disabled = false;
                 btn.textContent = 'Criar Conta';
             }
         });
 
-        // Reset Password
         window.resetPassword = async function() {
             const email = prompt('Digite seu e-mail:');
             if (!email) return;
@@ -371,18 +402,7 @@
             }
         };
 
-        // Check if already logged in
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                console.log('✅ Usuário já está logado:', user.email);
-                // Uncomment to auto-redirect
-                // if (user.email === 'daniel.mendes@dataholics.io') {
-                //     window.location.href = 'sudo-admin.html';
-                // } else {
-                //     window.location.href = 'index.html';
-                // }
-            }
-        });
+        console.log('✅ Script carregado completamente');
     </script>
 </body>
 </html>
