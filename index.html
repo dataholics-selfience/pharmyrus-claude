@@ -305,23 +305,36 @@
 
         // Load User Data
         async function loadUserData() {
+            console.log('📝 Carregando dados do usuário:', currentUser.uid);
+            console.log('📧 Email do Firebase Auth:', currentUser.email);
+            
             const userRef = doc(db, 'users', currentUser.uid);
             const userSnap = await getDoc(userRef);
 
             if (userSnap.exists()) {
                 userData = userSnap.data();
+                console.log('📊 Dados do Firestore:', userData);
+                console.log('📧 Email no documento:', userData.email);
                 updateUserUI();
+            } else {
+                console.error('❌ Documento do usuário não existe no Firestore!');
+                console.log('🔍 UID procurado:', currentUser.uid);
             }
         }
 
         // Update User UI
         function updateUserUI() {
+            console.log('🎨 Atualizando UI com userData:', userData);
+            
             const avatar = document.getElementById('userAvatar');
             const name = document.getElementById('userName');
             const quota = document.getElementById('quotaInfo');
 
-            avatar.textContent = (userData.displayName || userData.email).charAt(0).toUpperCase();
-            name.textContent = userData.displayName || userData.email;
+            const displayText = userData.displayName || userData.email;
+            console.log('👤 Nome a exibir:', displayText);
+            
+            avatar.textContent = displayText.charAt(0).toUpperCase();
+            name.textContent = displayText;
 
             if (userData.quotaLimit === -1) {
                 quota.textContent = '∞ Consultas Ilimitadas';
@@ -337,6 +350,8 @@
                     quota.classList.add('warning');
                 }
             }
+            
+            console.log('✅ UI atualizada');
         }
 
         // Check Quota
