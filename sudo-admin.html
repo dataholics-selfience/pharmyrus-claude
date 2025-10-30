@@ -14,6 +14,9 @@
         .user-info { display: flex; align-items: center; gap: 1rem; }
         .badge { background: #10b981; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
         .btn-logout { padding: 0.5rem 1rem; background: #ef4444; border: none; border-radius: 0.5rem; color: white; font-weight: 600; cursor: pointer; }
+        .btn-back { padding: 0.5rem 1rem; background: #667eea; border: none; border-radius: 0.5rem; color: white; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; }
+        .btn-back:hover { background: #5568d3; }
+        .header-actions { display: flex; align-items: center; gap: 0.5rem; }
         
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem; }
         
@@ -69,7 +72,10 @@
             <div class="user-info">
                 <span class="badge">ADMIN</span>
                 <span id="adminEmail">daniel.mendes@dataholics.io</span>
-                <button class="btn-logout" onclick="logout()">Sair</button>
+                <div class="header-actions">
+                    <a href="index.html" class="btn-back">← Voltar para Consultas</a>
+                    <button class="btn-logout" onclick="logout()">Sair</button>
+                </div>
             </div>
         </div>
 
