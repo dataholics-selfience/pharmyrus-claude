@@ -110,6 +110,19 @@
         .btn-secondary { flex: 1; padding: 1rem; background: #6b7280; color: white; border: none; border-radius: 0.5rem; font-weight: 600; font-size: 1rem; cursor: pointer; }
         .btn-secondary:hover { background: #4b5563; }
         .test-mode { text-align: center; }
+        /* Esconder botões de teste por padrão */
+        .btn-test-only {
+            display: none;
+        }
+        .btn-test-only.show {
+            display: block;
+        }
+        .test-mode {
+            display: none;
+        }
+        .test-mode.show {
+            display: block;
+        }
         .checkbox-label { display: inline-flex; align-items: center; gap: 0.5rem; color: #6b7280; font-size: 0.875rem; cursor: pointer; }
         .processing-status { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 3rem; border-radius: 1rem; text-align: center; color: white; margin-top: 2rem; }
         .processing-status.hidden { display: none; }
@@ -196,10 +209,10 @@
 
                 <div class="form-actions">
                     <button type="button" class="btn-primary" id="btnSearch">🔍 Iniciar Análise</button>
-                    <button type="button" class="btn-secondary" id="btnTest">🧪 Teste</button>
+                    <button type="button" class="btn-secondary btn-test-only" id="btnTest">🧪 Teste</button>
                 </div>
 
-                <div class="test-mode">
+                <div class="test-mode" id="testModeContainer">
                     <label class="checkbox-label">
                         <input type="checkbox" id="useTestEnv">
                         <span>Ambiente de testes</span>
@@ -369,6 +382,18 @@
             if (userData.isAdmin === true) {
                 console.log('👑 Usuário é ADMIN - Mostrando botão Sudo Admin');
                 btnSudoAdmin.classList.add('show');
+                
+                // Mostrar botões de teste para admin
+                const btnTest = document.getElementById('btnTest');
+                const testModeContainer = document.getElementById('testModeContainer');
+                if (btnTest) {
+                    btnTest.classList.add('show');
+                    console.log('🧪 Mostrando botão de Teste para admin');
+                }
+                if (testModeContainer) {
+                    testModeContainer.classList.add('show');
+                    console.log('🧪 Mostrando checkbox Ambiente de Testes para admin');
+                }
             } else {
                 console.log('👤 Usuário NÃO é admin');
                 btnSudoAdmin.classList.remove('show');
