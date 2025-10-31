@@ -530,23 +530,47 @@
 
         // Check Authentication
         auth.onAuthStateChanged(async (user) => {
+            console.log('🔐 onAuthStateChanged triggered');
+            console.log('👤 User:', user ? user.email : 'null');
+            
             if (!user) {
+                console.log('❌ Sem usuário, redirecionando para login...');
                 window.location.href = 'login.html';
                 return;
             }
 
-            const userDoc = await db.collection('users').doc(user.uid).get();
-            const userData = userDoc.data();
+            try {
+                console.log('📄 Buscando dados do usuário:', user.uid);
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                
+                if (!userDoc.exists) {
+                    console.log('❌ Documento do usuário não existe!');
+                    alert('Erro: Usuário não encontrado no banco de dados.');
+                    window.location.href = 'login.html';
+                    return;
+                }
+                
+                const userData = userDoc.data();
+                console.log('📊 Dados do usuário:', userData);
+                console.log('🔑 isAdmin:', userData.isAdmin);
 
-            if (!userData || !userData.isAdmin) {
-                alert('Acesso negado. Apenas administradores podem acessar esta página.');
-                window.location.href = 'index.html';
-                return;
+                if (!userData.isAdmin) {
+                    console.log('❌ Usuário não é admin!');
+                    alert('Acesso negado. Apenas administradores podem acessar esta página.');
+                    auth.signOut();
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                console.log('✅ Usuário é admin! Carregando dados...');
+                document.getElementById('adminEmail').textContent = user.email;
+                loadInvites();
+                loadContracts();
+            } catch (error) {
+                console.error('❌ Erro ao verificar usuário:', error);
+                alert('Erro ao verificar permissões: ' + error.message);
+                window.location.href = 'login.html';
             }
-
-            document.getElementById('adminEmail').textContent = user.email;
-            loadInvites();
-            loadContracts();
         });
 
         // Logout
@@ -692,13 +716,17 @@
         // ==========================================
         
         async function loadContracts() {
+            console.log('📜 Iniciando loadContracts...');
             const tbody = document.getElementById('contractsTableBody');
             tbody.innerHTML = '<tr><td colspan="8"><div class="loading">Carregando contratos</div></td></tr>';
             
             try {
+                console.log('🔍 Buscando contratos no Firestore...');
                 const snapshot = await db.collection('contracts').orderBy('acceptedAt', 'desc').get();
+                console.log('📊 Contratos encontrados:', snapshot.size);
                 
                 if (snapshot.empty) {
+                    console.log('⚠️ Nenhum contrato encontrado');
                     tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state">Nenhum contrato encontrado</div></td></tr>';
                     updateContractStats([], []);
                     return;
@@ -710,6 +738,7 @@
                 snapshot.forEach(doc => {
                     const contract = { id: doc.id, ...doc.data() };
                     allContracts.push(contract);
+                    console.log('📄 Contrato:', contract.id, '-', contract.userName);
                     
                     // Buscar dados adicionais do usuário
                     userPromises.push(
@@ -717,12 +746,15 @@
                             .then(userDoc => {
                                 if (userDoc.exists) {
                                     contract.userData = userDoc.data();
+                                    console.log('👤 Dados do usuário carregados:', contract.userId);
                                 }
                             })
                     );
                 });
                 
+                console.log('⏳ Aguardando dados dos usuários...');
                 await Promise.all(userPromises);
+                console.log('✅ Dados dos usuários carregados!');
                 
                 // Populate companies filter
                 populateCompaniesFilter();
