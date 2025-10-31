@@ -4,10 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sudo Admin - Pharmyrus</title>
-    
-    <!-- jsPDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); min-height: 100vh; padding: 2rem; color: white; }
@@ -22,15 +18,8 @@
         .btn-back:hover { background: #5568d3; }
         .header-actions { display: flex; align-items: center; gap: 0.5rem; }
         
-        /* Tabs */
-        .tabs { display: flex; gap: 0.5rem; margin-bottom: 2rem; border-bottom: 2px solid rgba(255,255,255,0.1); }
-        .tab { padding: 1rem 2rem; background: transparent; border: none; color: rgba(255,255,255,0.6); font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; }
-        .tab:hover { color: rgba(255,255,255,0.9); }
-        .tab.active { color: #10b981; border-bottom-color: #10b981; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem; }
+        
         .card { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 1rem; padding: 2rem; }
         .card h2 { font-size: 1.5rem; margin-bottom: 1.5rem; color: #10b981; }
         
@@ -58,6 +47,7 @@
         .invite-status { padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; text-align: center; }
         .status-pending { background: rgba(234, 179, 8, 0.2); color: #fbbf24; border: 1px solid #fbbf24; }
         .status-used { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid #4ade80; }
+        .status-expired { background: rgba(107, 114, 128, 0.2); color: #9ca3af; border: 1px solid #9ca3af; }
         
         .btn-copy { padding: 0.5rem 1rem; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; border-radius: 0.5rem; color: #10b981; font-size: 0.875rem; cursor: pointer; }
         .btn-copy:hover { background: rgba(16, 185, 129, 0.3); }
@@ -68,13 +58,6 @@
         .stat-label { font-size: 0.875rem; color: rgba(255,255,255,0.6); margin-top: 0.5rem; }
         
         .loading { text-align: center; padding: 2rem; color: rgba(255,255,255,0.5); }
-        
-        /* Contratos */
-        table { width: 100%; border-collapse: collapse; background: rgba(255,255,255,0.05); border-radius: 0.5rem; }
-        th { padding: 1rem; text-align: left; color: #10b981; border-bottom: 2px solid rgba(255,255,255,0.1); }
-        td { padding: 1rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .btn-pdf { padding: 0.5rem 1rem; background: #10b981; border: none; border-radius: 0.5rem; color: white; font-size: 0.875rem; cursor: pointer; }
-        .btn-pdf:hover { background: #059669; }
         
         @media (max-width: 768px) {
             .grid { grid-template-columns: 1fr; }
@@ -96,123 +79,120 @@
             </div>
         </div>
 
-        <!-- Tabs -->
-        <div class="tabs">
-            <button class="tab active" onclick="showTab('convites')">🎟️ Convites</button>
-            <button class="tab" onclick="showTab('contratos')">📜 Contratos</button>
-        </div>
-
-        <!-- Convites -->
-        <div id="tab-convites" class="tab-content active">
-            <div class="stats">
-                <div class="stat-card">
-                    <div class="stat-number" id="totalInvites">0</div>
-                    <div class="stat-label">Total de Convites</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="pendingInvites">0</div>
-                    <div class="stat-label">Pendentes</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="usedInvites">0</div>
-                    <div class="stat-label">Utilizados</div>
-                </div>
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalInvites">0</div>
+                <div class="stat-label">Total de Convites</div>
             </div>
-
-            <div class="grid">
-                <div class="card">
-                    <h2>🎟️ Criar Convite</h2>
-                    <form id="inviteForm" onsubmit="createInvite(event)">
-                        <div class="form-group">
-                            <label>Email para quem vai receber o convite</label>
-                            <input type="email" id="inviteEmail" placeholder="usuario@empresa.com" required>
-                        </div>
-                        <button type="submit" class="btn-primary" id="createBtn">Gerar Código de Convite</button>
-                    </form>
-                    <div class="success" id="successMsg">
-                        <p><strong>✅ Convite criado com sucesso!</strong></p>
-                        <div class="success-code" id="generatedCode">ABCD12</div>
-                        <p style="text-align: center; color: rgba(255,255,255,0.7); font-size: 0.875rem;">Envie este código para o usuário</p>
-                    </div>
-                    <div class="error" id="errorMsg"></div>
-                </div>
-
-                <div class="card">
-                    <h2>📋 Convites Criados</h2>
-                    <div class="invites-list" id="invitesList">
-                        <div class="loading">Carregando convites...</div>
-                    </div>
-                </div>
+            <div class="stat-card">
+                <div class="stat-number" id="pendingInvites">0</div>
+                <div class="stat-label">Pendentes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="usedInvites">0</div>
+                <div class="stat-label">Utilizados</div>
             </div>
         </div>
 
-        <!-- Contratos -->
-        <div id="tab-contratos" class="tab-content">
+        <div class="grid">
             <div class="card">
-                <h2>📜 Contratos Aceitos</h2>
-                <div id="contractsTable">
-                    <div class="loading">Carregando contratos...</div>
+                <h2>🎟️ Criar Convite</h2>
+                
+                <form id="inviteForm">
+                    <div class="form-group">
+                        <label for="inviteEmail">E-mail do Convidado</label>
+                        <input type="email" id="inviteEmail" placeholder="usuario@exemplo.com" required>
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="btnCreateInvite">
+                        Gerar Código de Convite
+                    </button>
+                </form>
+
+                <div id="successMessage" class="success">
+                    <p style="text-align: center; margin-bottom: 0.5rem;">✅ Convite criado com sucesso!</p>
+                    <div class="success-code" id="generatedCode">------</div>
+                    <p style="text-align: center; font-size: 0.875rem; color: rgba(255,255,255,0.7);">
+                        Envie este código para <strong id="invitedEmail"></strong>
+                    </p>
+                    <button class="btn-primary" onclick="copyCode()" style="margin-top: 1rem;">
+                        📋 Copiar Código
+                    </button>
                 </div>
+
+                <div id="errorMessage" class="error"></div>
+            </div>
+
+            <div class="card">
+                <h2>📊 Estatísticas</h2>
+                <div style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 0.5rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                        <span>Taxa de conversão:</span>
+                        <strong id="conversionRate">0%</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                        <span>Convites hoje:</span>
+                        <strong id="todayInvites">0</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Usuários ativos:</span>
+                        <strong id="activeUsers">0</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📋 Convites Criados</h2>
+            <div id="invitesList" class="invites-list">
+                <div class="loading">Carregando convites...</div>
             </div>
         </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy, where, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
-    <script>
         const firebaseConfig = {
-            apiKey: "AIzaSyDT6qU_mryl5SJJpnnYUWl2Yp71-rPQJEc",
+            apiKey: "AIzaSyAHq5Tvn3qZvbj1D2GJdUW-BhPWiAURBJI",
             authDomain: "patentes-51d85.firebaseapp.com",
             projectId: "patentes-51d85",
             storageBucket: "patentes-51d85.firebasestorage.app",
-            messagingSenderId: "446393212078",
-            appId: "1:446393212078:web:ad86e53feb933898b9c9b8"
+            messagingSenderId: "278792677855",
+            appId: "1:278792677855:web:a801a4894efe7aa1bbbc6a"
         };
 
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-        // Auth - NÃO MEXER
-        auth.onAuthStateChanged(async (user) => {
+        let currentUser = null;
+        let lastGeneratedCode = '';
+
+        // Check Auth + Admin
+        onAuthStateChanged(auth, async (user) => {
             if (!user) {
                 window.location.href = 'login.html';
                 return;
             }
 
-            const userDoc = await db.collection('users').doc(user.uid).get();
-            const userData = userDoc.data();
-
-            if (!userData || !userData.isAdmin) {
-                alert('Acesso negado.');
+            if (user.email !== 'daniel.mendes@dataholics.io') {
+                alert('⛔ Acesso negado. Apenas Sudo Admins podem acessar esta página.');
                 window.location.href = 'index.html';
                 return;
             }
 
+            currentUser = user;
             document.getElementById('adminEmail').textContent = user.email;
-            loadInvites();
+            await loadInvites();
+            await loadStats();
         });
 
-        function logout() {
-            auth.signOut().then(() => {
-                window.location.href = 'login.html';
-            });
-        }
-
-        function showTab(tab) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.getElementById('tab-' + tab).classList.add('active');
-            event.target.classList.add('active');
-            
-            if (tab === 'contratos') loadContracts();
-        }
-
-        // CONVITES - ORIGINAL
-        function generateInviteCode() {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        // Generate Code
+        function generateCode() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Sem I, O, 0, 1
             let code = '';
             for (let i = 0; i < 6; i++) {
                 code += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -220,180 +200,186 @@
             return code;
         }
 
-        async function createInvite(event) {
-            event.preventDefault();
-            
-            const email = document.getElementById('inviteEmail').value;
-            const createBtn = document.getElementById('createBtn');
-            const successMsg = document.getElementById('successMsg');
-            const errorMsg = document.getElementById('errorMsg');
-            
-            createBtn.disabled = true;
-            createBtn.textContent = 'Gerando...';
+        // Create Invite
+        document.getElementById('inviteForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('inviteEmail').value.trim().toLowerCase();
+            const btn = document.getElementById('btnCreateInvite');
+            const successMsg = document.getElementById('successMessage');
+            const errorMsg = document.getElementById('errorMessage');
+
             successMsg.classList.remove('show');
             errorMsg.classList.remove('show');
-            
+
+            btn.disabled = true;
+            btn.textContent = 'Gerando...';
+
             try {
-                const code = generateInviteCode();
-                
-                await db.collection('invites').doc(code).set({
+                // Check if email already has pending invite
+                const existingQuery = query(
+                    collection(db, 'invites'),
+                    where('email', '==', email),
+                    where('status', '==', 'pending')
+                );
+                const existingSnap = await getDocs(existingQuery);
+
+                if (!existingSnap.empty) {
+                    throw new Error('Este e-mail já possui um convite pendente');
+                }
+
+                // Generate unique code
+                let code = generateCode();
+                let attempts = 0;
+                while (attempts < 10) {
+                    const codeQuery = query(
+                        collection(db, 'invites'),
+                        where('code', '==', code)
+                    );
+                    const codeSnap = await getDocs(codeQuery);
+                    
+                    if (codeSnap.empty) break;
+                    
+                    code = generateCode();
+                    attempts++;
+                }
+
+                if (attempts >= 10) {
+                    throw new Error('Erro ao gerar código único');
+                }
+
+                // Create invite
+                await addDoc(collection(db, 'invites'), {
                     code: code,
-                    forEmail: email,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    used: false,
+                    email: email,
+                    createdBy: currentUser.email,
+                    createdAt: serverTimestamp(),
+                    usedAt: null,
                     usedBy: null,
-                    usedAt: null
+                    status: 'pending',
+                    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 dias
                 });
-                
+
+                lastGeneratedCode = code;
                 document.getElementById('generatedCode').textContent = code;
+                document.getElementById('invitedEmail').textContent = email;
                 successMsg.classList.add('show');
+
                 document.getElementById('inviteEmail').value = '';
-                
-                loadInvites();
+
+                await loadInvites();
+                await loadStats();
+
             } catch (error) {
-                errorMsg.textContent = 'Erro ao criar convite: ' + error.message;
+                console.error('Erro:', error);
+                errorMsg.textContent = '❌ ' + error.message;
                 errorMsg.classList.add('show');
             } finally {
-                createBtn.disabled = false;
-                createBtn.textContent = 'Gerar Código de Convite';
+                btn.disabled = false;
+                btn.textContent = 'Gerar Código de Convite';
             }
-        }
+        });
 
+        // Copy Code
+        window.copyCode = function() {
+            navigator.clipboard.writeText(lastGeneratedCode);
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = '✅ Copiado!';
+            setTimeout(() => {
+                btn.textContent = originalText;
+            }, 2000);
+        };
+
+        // Load Invites
         async function loadInvites() {
+            const invitesQuery = query(
+                collection(db, 'invites'),
+                orderBy('createdAt', 'desc')
+            );
+
+            const snapshot = await getDocs(invitesQuery);
             const invitesList = document.getElementById('invitesList');
-            
-            try {
-                const snapshot = await db.collection('invites').orderBy('createdAt', 'desc').get();
-                
-                if (snapshot.empty) {
-                    invitesList.innerHTML = '<div style="padding:2rem;text-align:center;color:rgba(255,255,255,0.5)">Nenhum convite</div>';
-                    updateInviteStats(0, 0, 0);
-                    return;
-                }
-                
-                let total = 0;
-                let pending = 0;
-                let used = 0;
-                let html = '';
-                
-                snapshot.forEach(doc => {
-                    const invite = doc.data();
-                    total++;
-                    
-                    if (invite.used) {
-                        used++;
-                    } else {
-                        pending++;
-                    }
-                    
-                    const statusClass = invite.used ? 'status-used' : 'status-pending';
-                    const statusText = invite.used ? 'Usado' : 'Pendente';
-                    
-                    html += `
-                        <div class="invite-item">
-                            <div class="invite-code">${invite.code}</div>
-                            <div class="invite-email">${invite.forEmail}</div>
-                            <div class="invite-status ${statusClass}">${statusText}</div>
-                            <button class="btn-copy" onclick="copyCode('${invite.code}')">Copiar</button>
-                        </div>
-                    `;
-                });
-                
-                invitesList.innerHTML = html;
-                updateInviteStats(total, pending, used);
-            } catch (error) {
-                invitesList.innerHTML = '<div class="error show">Erro ao carregar</div>';
+
+            if (snapshot.empty) {
+                invitesList.innerHTML = '<div class="loading">Nenhum convite criado ainda</div>';
+                return;
             }
+
+            let html = '';
+            snapshot.forEach(doc => {
+                const invite = doc.data();
+                const statusClass = `status-${invite.status}`;
+                const statusText = {
+                    'pending': 'Pendente',
+                    'used': 'Utilizado',
+                    'expired': 'Expirado'
+                }[invite.status];
+
+                html += `
+                    <div class="invite-item">
+                        <div class="invite-code">${invite.code}</div>
+                        <div class="invite-email">${invite.email}</div>
+                        <div class="invite-status ${statusClass}">${statusText}</div>
+                        <button class="btn-copy" onclick="copyToClipboard('${invite.code}')">
+                            Copiar
+                        </button>
+                    </div>
+                `;
+            });
+
+            invitesList.innerHTML = html;
         }
 
-        function updateInviteStats(total, pending, used) {
+        // Load Stats
+        async function loadStats() {
+            const invitesSnap = await getDocs(collection(db, 'invites'));
+            const usersSnap = await getDocs(collection(db, 'users'));
+
+            const total = invitesSnap.size;
+            let pending = 0;
+            let used = 0;
+            let today = 0;
+
+            const todayStart = new Date();
+            todayStart.setHours(0, 0, 0, 0);
+
+            invitesSnap.forEach(doc => {
+                const invite = doc.data();
+                if (invite.status === 'pending') pending++;
+                if (invite.status === 'used') used++;
+                
+                if (invite.createdAt && invite.createdAt.toDate() >= todayStart) {
+                    today++;
+                }
+            });
+
             document.getElementById('totalInvites').textContent = total;
             document.getElementById('pendingInvites').textContent = pending;
             document.getElementById('usedInvites').textContent = used;
+            document.getElementById('todayInvites').textContent = today;
+            document.getElementById('activeUsers').textContent = usersSnap.size;
+
+            const conversionRate = total > 0 ? ((used / total) * 100).toFixed(1) : 0;
+            document.getElementById('conversionRate').textContent = conversionRate + '%';
         }
 
-        function copyCode(code) {
-            navigator.clipboard.writeText(code).then(() => {
-                alert('Código copiado: ' + code);
-            });
-        }
+        // Copy to Clipboard
+        window.copyToClipboard = function(text) {
+            navigator.clipboard.writeText(text);
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = '✅';
+            setTimeout(() => {
+                btn.textContent = originalText;
+            }, 1500);
+        };
 
-        // CONTRATOS - NOVO
-        async function loadContracts() {
-            const div = document.getElementById('contractsTable');
-            div.innerHTML = '<div class="loading">Carregando...</div>';
-            
-            try {
-                const snapshot = await db.collection('contracts').orderBy('acceptedAt', 'desc').get();
-                
-                if (snapshot.empty) {
-                    div.innerHTML = '<p style="text-align:center;color:rgba(255,255,255,0.5);padding:2rem">Nenhum contrato</p>';
-                    return;
-                }
-                
-                let html = '<table><thead><tr><th>ID</th><th>Nome</th><th>Email</th><th>Empresa</th><th>Data</th><th>PDF</th></tr></thead><tbody>';
-                
-                for (const doc of snapshot.docs) {
-                    const c = doc.data();
-                    const date = c.acceptedAt ? new Date(c.acceptedAt.toDate()).toLocaleDateString('pt-BR') : 'N/A';
-                    
-                    html += `<tr>
-                        <td>${c.contractId.substring(0,10)}...</td>
-                        <td>${c.userName}</td>
-                        <td>${c.userEmail}</td>
-                        <td>${c.userCompany}</td>
-                        <td>${date}</td>
-                        <td><button class="btn-pdf" onclick="downloadPDF('${doc.id}')">PDF</button></td>
-                    </tr>`;
-                }
-                
-                html += '</tbody></table>';
-                div.innerHTML = html;
-                
-            } catch (error) {
-                div.innerHTML = '<div class="error show">Erro: ' + error.message + '</div>';
-            }
-        }
-
-        async function downloadPDF(id) {
-            try {
-                const doc = await db.collection('contracts').doc(id).get();
-                const c = doc.data();
-                
-                const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF();
-                
-                pdf.setFillColor(16, 185, 129);
-                pdf.rect(0, 0, 210, 30, 'F');
-                pdf.setTextColor(255, 255, 255);
-                pdf.setFontSize(16);
-                pdf.text('PHARMYRUS - CONTRATO', 20, 20);
-                
-                let y = 50;
-                pdf.setTextColor(0, 0, 0);
-                pdf.setFontSize(12);
-                pdf.text('Contract ID: ' + c.contractId, 20, y);
-                y += 10;
-                pdf.text('Nome: ' + c.userName, 20, y);
-                y += 10;
-                pdf.text('Email: ' + c.userEmail, 20, y);
-                y += 10;
-                pdf.text('Empresa: ' + c.userCompany, 20, y);
-                y += 10;
-                
-                const date = c.acceptedAt ? new Date(c.acceptedAt.toDate()).toLocaleString('pt-BR') : 'N/A';
-                pdf.text('Data: ' + date, 20, y);
-                y += 10;
-                pdf.text('IP: ' + (c.ipAddress || 'N/A'), 20, y);
-                
-                pdf.save(`contrato-${c.contractId.substring(0,10)}.pdf`);
-                
-            } catch (error) {
-                alert('Erro: ' + error.message);
-            }
-        }
-
-        console.log('Admin carregado');
+        // Logout
+        window.logout = async function() {
+            await signOut(auth);
+            window.location.href = 'login.html';
+        };
     </script>
 </body>
 </html>
