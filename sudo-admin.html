@@ -5,15 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sudo Admin - Pharmyrus</title>
     
-    <!-- jsPDF para geração de PDF -->
+    <!-- jsPDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); min-height: 100vh; padding: 2rem; color: white; }
         
-        .container { max-width: 1400px; margin: 0 auto; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 2px solid rgba(255,255,255,0.1); }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; padding-bottom: 1.5rem; border-bottom: 2px solid rgba(255,255,255,0.1); }
         .logo { font-size: 1.5rem; font-weight: 800; color: #10b981; }
         .user-info { display: flex; align-items: center; gap: 1rem; }
         .badge { background: #10b981; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
@@ -24,16 +24,14 @@
         
         /* Tabs */
         .tabs { display: flex; gap: 0.5rem; margin-bottom: 2rem; border-bottom: 2px solid rgba(255,255,255,0.1); }
-        .tab { padding: 1rem 2rem; background: transparent; border: none; color: rgba(255,255,255,0.6); font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; }
+        .tab { padding: 1rem 2rem; background: transparent; border: none; color: rgba(255,255,255,0.6); font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; }
         .tab:hover { color: rgba(255,255,255,0.9); }
         .tab.active { color: #10b981; border-bottom-color: #10b981; }
-        
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem; }
-        
-        .card { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 1rem; padding: 2rem; margin-bottom: 2rem; }
+        .card { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 1rem; padding: 2rem; }
         .card h2 { font-size: 1.5rem; margin-bottom: 1.5rem; color: #10b981; }
         
         .form-group { margin-bottom: 1.5rem; }
@@ -64,26 +62,19 @@
         .btn-copy { padding: 0.5rem 1rem; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; border-radius: 0.5rem; color: #10b981; font-size: 0.875rem; cursor: pointer; }
         .btn-copy:hover { background: rgba(16, 185, 129, 0.3); }
         
-        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem; }
         .stat-card { background: rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 0.5rem; text-align: center; }
         .stat-number { font-size: 2.5rem; font-weight: 800; color: #10b981; }
         .stat-label { font-size: 0.875rem; color: rgba(255,255,255,0.6); margin-top: 0.5rem; }
         
         .loading { text-align: center; padding: 2rem; color: rgba(255,255,255,0.5); }
         
-        /* Table */
-        .table-container { background: rgba(255,255,255,0.05); border-radius: 0.5rem; overflow-x: auto; max-height: 600px; overflow-y: auto; }
-        table { width: 100%; border-collapse: collapse; }
-        thead { background: rgba(255,255,255,0.1); position: sticky; top: 0; z-index: 10; }
-        th { padding: 1rem; text-align: left; font-weight: 600; color: #10b981; border-bottom: 2px solid rgba(255,255,255,0.1); }
-        td { padding: 1rem; border-bottom: 1px solid rgba(255,255,255,0.05); color: rgba(255,255,255,0.9); }
-        tr:hover { background: rgba(255,255,255,0.03); }
-        
-        .btn-pdf { padding: 0.5rem 1rem; background: #10b981; border: none; border-radius: 0.5rem; color: white; font-weight: 600; cursor: pointer; font-size: 0.875rem; transition: all 0.2s; }
-        .btn-pdf:hover { background: #059669; transform: translateY(-2px); }
-        .btn-pdf:disabled { background: #6b7280; cursor: not-allowed; transform: none; }
-        
-        .contract-id { font-family: 'Courier New', monospace; font-size: 0.875rem; color: #10b981; font-weight: 600; }
+        /* Contratos */
+        table { width: 100%; border-collapse: collapse; background: rgba(255,255,255,0.05); border-radius: 0.5rem; }
+        th { padding: 1rem; text-align: left; color: #10b981; border-bottom: 2px solid rgba(255,255,255,0.1); }
+        td { padding: 1rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .btn-pdf { padding: 0.5rem 1rem; background: #10b981; border: none; border-radius: 0.5rem; color: white; font-size: 0.875rem; cursor: pointer; }
+        .btn-pdf:hover { background: #059669; }
         
         @media (max-width: 768px) {
             .grid { grid-template-columns: 1fr; }
@@ -97,9 +88,9 @@
             <div class="logo">⚡ SUDO ADMIN - PHARMYRUS</div>
             <div class="user-info">
                 <span class="badge">ADMIN</span>
-                <span id="adminEmail">Carregando...</span>
+                <span id="adminEmail">daniel.mendes@dataholics.io</span>
                 <div class="header-actions">
-                    <a href="index.html" class="btn-back">← Voltar</a>
+                    <a href="index.html" class="btn-back">← Voltar para Consultas</a>
                     <button class="btn-logout" onclick="logout()">Sair</button>
                 </div>
             </div>
@@ -109,10 +100,9 @@
         <div class="tabs">
             <button class="tab active" onclick="showTab('convites')">🎟️ Convites</button>
             <button class="tab" onclick="showTab('contratos')">📜 Contratos</button>
-            <button class="tab" onclick="showTab('stats')">📊 Estatísticas</button>
         </div>
 
-        <!-- Tab: Convites -->
+        <!-- Convites -->
         <div id="tab-convites" class="tab-content active">
             <div class="stats">
                 <div class="stat-card">
@@ -142,9 +132,7 @@
                     <div class="success" id="successMsg">
                         <p><strong>✅ Convite criado com sucesso!</strong></p>
                         <div class="success-code" id="generatedCode">ABCD12</div>
-                        <p style="text-align: center; color: rgba(255,255,255,0.7); font-size: 0.875rem;">
-                            Envie este código para o usuário usar no cadastro
-                        </p>
+                        <p style="text-align: center; color: rgba(255,255,255,0.7); font-size: 0.875rem;">Envie este código para o usuário</p>
                     </div>
                     <div class="error" id="errorMsg"></div>
                 </div>
@@ -158,64 +146,22 @@
             </div>
         </div>
 
-        <!-- Tab: Contratos -->
+        <!-- Contratos -->
         <div id="tab-contratos" class="tab-content">
-            <div class="stats">
-                <div class="stat-card">
-                    <div class="stat-number" id="totalContracts">0</div>
-                    <div class="stat-label">Total de Contratos</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="totalCompanies">0</div>
-                    <div class="stat-label">Empresas</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="totalConsultations">0</div>
-                    <div class="stat-label">Consultas Totais</div>
-                </div>
-            </div>
-
             <div class="card">
                 <h2>📜 Contratos Aceitos</h2>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Contract ID</th>
-                                <th>Nome</th>
-                                <th>Email</th>
-                                <th>Empresa</th>
-                                <th>Data</th>
-                                <th>Consultas</th>
-                                <th>PDF</th>
-                            </tr>
-                        </thead>
-                        <tbody id="contractsTableBody">
-                            <tr>
-                                <td colspan="7"><div class="loading">Carregando contratos...</div></td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div id="contractsTable">
+                    <div class="loading">Carregando contratos...</div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Tab: Estatísticas -->
-        <div id="tab-stats" class="tab-content">
-            <div class="card">
-                <h2>📊 Estatísticas Gerais</h2>
-                <p style="color: rgba(255,255,255,0.7);">Em desenvolvimento...</p>
             </div>
         </div>
     </div>
 
-    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 
     <script>
-        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyDT6qU_mryl5SJJpnnYUWl2Yp71-rPQJEc",
             authDomain: "patentes-51d85.firebaseapp.com",
@@ -225,34 +171,28 @@
             appId: "1:446393212078:web:ad86e53feb933898b9c9b8"
         };
 
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // Check Authentication - CÓDIGO ORIGINAL QUE FUNCIONAVA
+        // Auth - NÃO MEXER
         auth.onAuthStateChanged(async (user) => {
             if (!user) {
                 window.location.href = 'login.html';
                 return;
             }
 
-            try {
-                const userDoc = await db.collection('users').doc(user.uid).get();
-                const userData = userDoc.data();
+            const userDoc = await db.collection('users').doc(user.uid).get();
+            const userData = userDoc.data();
 
-                if (!userData || !userData.isAdmin) {
-                    alert('Acesso negado. Apenas administradores.');
-                    window.location.href = 'index.html';
-                    return;
-                }
-
-                document.getElementById('adminEmail').textContent = user.email;
-                loadInvites();
-            } catch (error) {
-                console.error('Erro:', error);
-                alert('Erro: ' + error.message);
+            if (!userData || !userData.isAdmin) {
+                alert('Acesso negado.');
+                window.location.href = 'index.html';
+                return;
             }
+
+            document.getElementById('adminEmail').textContent = user.email;
+            loadInvites();
         });
 
         function logout() {
@@ -261,19 +201,16 @@
             });
         }
 
-        function showTab(tabName) {
+        function showTab(tab) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            
-            document.getElementById(`tab-${tabName}`).classList.add('active');
+            document.getElementById('tab-' + tab).classList.add('active');
             event.target.classList.add('active');
-
-            if (tabName === 'contratos') {
-                loadContracts();
-            }
+            
+            if (tab === 'contratos') loadContracts();
         }
 
-        // CONVITES - CÓDIGO ORIGINAL
+        // CONVITES - ORIGINAL
         function generateInviteCode() {
             const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
             let code = '';
@@ -303,7 +240,9 @@
                     code: code,
                     forEmail: email,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    used: false
+                    used: false,
+                    usedBy: null,
+                    usedAt: null
                 });
                 
                 document.getElementById('generatedCode').textContent = code;
@@ -312,7 +251,7 @@
                 
                 loadInvites();
             } catch (error) {
-                errorMsg.textContent = 'Erro: ' + error.message;
+                errorMsg.textContent = 'Erro ao criar convite: ' + error.message;
                 errorMsg.classList.add('show');
             } finally {
                 createBtn.disabled = false;
@@ -327,12 +266,15 @@
                 const snapshot = await db.collection('invites').orderBy('createdAt', 'desc').get();
                 
                 if (snapshot.empty) {
-                    invitesList.innerHTML = '<div style="padding: 2rem; text-align: center; color: rgba(255,255,255,0.5);">Nenhum convite criado</div>';
+                    invitesList.innerHTML = '<div style="padding:2rem;text-align:center;color:rgba(255,255,255,0.5)">Nenhum convite</div>';
                     updateInviteStats(0, 0, 0);
                     return;
                 }
                 
-                let total = 0, pending = 0, used = 0, html = '';
+                let total = 0;
+                let pending = 0;
+                let used = 0;
+                let html = '';
                 
                 snapshot.forEach(doc => {
                     const invite = doc.data();
@@ -378,154 +320,80 @@
 
         // CONTRATOS - NOVO
         async function loadContracts() {
-            const tbody = document.getElementById('contractsTableBody');
-            tbody.innerHTML = '<tr><td colspan="7"><div class="loading">Carregando...</div></td></tr>';
+            const div = document.getElementById('contractsTable');
+            div.innerHTML = '<div class="loading">Carregando...</div>';
             
             try {
                 const snapshot = await db.collection('contracts').orderBy('acceptedAt', 'desc').get();
                 
                 if (snapshot.empty) {
-                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: rgba(255,255,255,0.5);">Nenhum contrato encontrado</td></tr>';
-                    updateContractStats(0, 0, 0);
+                    div.innerHTML = '<p style="text-align:center;color:rgba(255,255,255,0.5);padding:2rem">Nenhum contrato</p>';
                     return;
                 }
                 
-                let html = '';
-                let totalContracts = 0;
-                let companies = new Set();
-                let totalConsultations = 0;
+                let html = '<table><thead><tr><th>ID</th><th>Nome</th><th>Email</th><th>Empresa</th><th>Data</th><th>PDF</th></tr></thead><tbody>';
                 
                 for (const doc of snapshot.docs) {
-                    const contract = doc.data();
-                    totalContracts++;
-                    companies.add(contract.userCompany);
+                    const c = doc.data();
+                    const date = c.acceptedAt ? new Date(c.acceptedAt.toDate()).toLocaleDateString('pt-BR') : 'N/A';
                     
-                    // Buscar dados do usuário
-                    let quotaUsed = 0;
-                    try {
-                        const userDoc = await db.collection('users').doc(contract.userId).get();
-                        if (userDoc.exists) {
-                            quotaUsed = userDoc.data().quotaUsed || 0;
-                            totalConsultations += quotaUsed;
-                        }
-                    } catch (e) {
-                        console.log('Erro ao buscar usuário:', e);
-                    }
-                    
-                    const date = contract.acceptedAt ? 
-                        new Date(contract.acceptedAt.toDate()).toLocaleDateString('pt-BR') : 
-                        'N/A';
-                    
-                    html += `
-                        <tr>
-                            <td><span class="contract-id">${contract.contractId.substring(0, 12)}...</span></td>
-                            <td>${contract.userName}</td>
-                            <td>${contract.userEmail}</td>
-                            <td>${contract.userCompany}</td>
-                            <td>${date}</td>
-                            <td><strong>${quotaUsed}</strong></td>
-                            <td>
-                                <button class="btn-pdf" onclick="downloadPDF('${doc.id}')">
-                                    📄 PDF
-                                </button>
-                            </td>
-                        </tr>
-                    `;
+                    html += `<tr>
+                        <td>${c.contractId.substring(0,10)}...</td>
+                        <td>${c.userName}</td>
+                        <td>${c.userEmail}</td>
+                        <td>${c.userCompany}</td>
+                        <td>${date}</td>
+                        <td><button class="btn-pdf" onclick="downloadPDF('${doc.id}')">PDF</button></td>
+                    </tr>`;
                 }
                 
-                tbody.innerHTML = html;
-                updateContractStats(totalContracts, companies.size, totalConsultations);
+                html += '</tbody></table>';
+                div.innerHTML = html;
                 
             } catch (error) {
-                console.error('Erro ao carregar contratos:', error);
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: #ef4444;">Erro ao carregar contratos</td></tr>';
+                div.innerHTML = '<div class="error show">Erro: ' + error.message + '</div>';
             }
         }
 
-        function updateContractStats(total, companies, consultations) {
-            document.getElementById('totalContracts').textContent = total;
-            document.getElementById('totalCompanies').textContent = companies;
-            document.getElementById('totalConsultations').textContent = consultations;
-        }
-
-        async function downloadPDF(contractId) {
-            const btn = event.target;
-            btn.disabled = true;
-            btn.textContent = '⏳...';
-            
+        async function downloadPDF(id) {
             try {
-                const contractDoc = await db.collection('contracts').doc(contractId).get();
-                const contract = contractDoc.data();
-                
-                const userDoc = await db.collection('users').doc(contract.userId).get();
-                const user = userDoc.exists ? userDoc.data() : {};
+                const doc = await db.collection('contracts').doc(id).get();
+                const c = doc.data();
                 
                 const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
+                const pdf = new jsPDF();
                 
-                let y = 20;
+                pdf.setFillColor(16, 185, 129);
+                pdf.rect(0, 0, 210, 30, 'F');
+                pdf.setTextColor(255, 255, 255);
+                pdf.setFontSize(16);
+                pdf.text('PHARMYRUS - CONTRATO', 20, 20);
                 
-                // Header
-                doc.setFillColor(16, 185, 129);
-                doc.rect(0, 0, 210, 40, 'F');
-                doc.setTextColor(255, 255, 255);
-                doc.setFontSize(18);
-                doc.text('PHARMYRUS', 20, 20);
-                doc.setFontSize(12);
-                doc.text('RELATÓRIO DE CONTRATO', 20, 30);
-                
-                y = 50;
-                doc.setTextColor(0, 0, 0);
-                doc.setFontSize(14);
-                doc.text('DADOS DO CONTRATO', 20, y);
+                let y = 50;
+                pdf.setTextColor(0, 0, 0);
+                pdf.setFontSize(12);
+                pdf.text('Contract ID: ' + c.contractId, 20, y);
+                y += 10;
+                pdf.text('Nome: ' + c.userName, 20, y);
+                y += 10;
+                pdf.text('Email: ' + c.userEmail, 20, y);
+                y += 10;
+                pdf.text('Empresa: ' + c.userCompany, 20, y);
                 y += 10;
                 
-                doc.setFontSize(10);
-                doc.text(`Contract ID: ${contract.contractId}`, 20, y);
-                y += 7;
-                doc.text(`Nome: ${contract.userName}`, 20, y);
-                y += 7;
-                doc.text(`Email: ${contract.userEmail}`, 20, y);
-                y += 7;
-                doc.text(`Empresa: ${contract.userCompany}`, 20, y);
-                y += 7;
-                
-                const date = contract.acceptedAt ? 
-                    new Date(contract.acceptedAt.toDate()).toLocaleString('pt-BR') : 
-                    'N/A';
-                doc.text(`Data de Aceite: ${date}`, 20, y);
-                y += 7;
-                doc.text(`IP: ${contract.ipAddress || 'N/A'}`, 20, y);
-                y += 15;
-                
-                doc.setFontSize(14);
-                doc.text('MÉTRICAS DE USO', 20, y);
+                const date = c.acceptedAt ? new Date(c.acceptedAt.toDate()).toLocaleString('pt-BR') : 'N/A';
+                pdf.text('Data: ' + date, 20, y);
                 y += 10;
+                pdf.text('IP: ' + (c.ipAddress || 'N/A'), 20, y);
                 
-                doc.setFontSize(10);
-                const quotaUsed = user.quotaUsed || 0;
-                doc.text(`Total de Consultas: ${quotaUsed}`, 20, y);
-                y += 7;
-                doc.text(`Quota Limite: ${user.quotaLimit || 50}`, 20, y);
-                
-                // Footer
-                const footerY = 280;
-                doc.setFontSize(8);
-                doc.setTextColor(100, 100, 100);
-                doc.text('Documento gerado digitalmente - Pharmyrus', 20, footerY);
-                doc.text(`Emitido em: ${new Date().toLocaleString('pt-BR')}`, 20, footerY + 5);
-                
-                doc.save(`contrato-${contract.contractId.substring(0, 12)}.pdf`);
+                pdf.save(`contrato-${c.contractId.substring(0,10)}.pdf`);
                 
             } catch (error) {
-                alert('Erro ao gerar PDF: ' + error.message);
-            } finally {
-                btn.disabled = false;
-                btn.textContent = '📄 PDF';
+                alert('Erro: ' + error.message);
             }
         }
 
-        console.log('Sudo Admin carregado');
+        console.log('Admin carregado');
     </script>
 </body>
 </html>
