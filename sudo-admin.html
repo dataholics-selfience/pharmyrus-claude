@@ -10,25 +10,10 @@
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); 
-            min-height: 100vh; 
-            padding: 2rem; 
-            color: white; 
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); min-height: 100vh; padding: 2rem; color: white; }
         
         .container { max-width: 1400px; margin: 0 auto; }
-        
-        /* Header */
-        .header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 2rem; 
-            padding-bottom: 1.5rem; 
-            border-bottom: 2px solid rgba(255,255,255,0.1); 
-        }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 2px solid rgba(255,255,255,0.1); }
         .logo { font-size: 1.5rem; font-weight: 800; color: #10b981; }
         .user-info { display: flex; align-items: center; gap: 1rem; }
         .badge { background: #10b981; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
@@ -38,337 +23,76 @@
         .header-actions { display: flex; align-items: center; gap: 0.5rem; }
         
         /* Tabs */
-        .tabs { 
-            display: flex; 
-            gap: 0.5rem; 
-            margin-bottom: 2rem; 
-            border-bottom: 2px solid rgba(255,255,255,0.1); 
-        }
-        .tab { 
-            padding: 1rem 2rem; 
-            background: transparent; 
-            border: none; 
-            color: rgba(255,255,255,0.6); 
-            font-weight: 600; 
-            cursor: pointer; 
-            border-bottom: 3px solid transparent; 
-            transition: all 0.2s; 
-        }
+        .tabs { display: flex; gap: 0.5rem; margin-bottom: 2rem; border-bottom: 2px solid rgba(255,255,255,0.1); }
+        .tab { padding: 1rem 2rem; background: transparent; border: none; color: rgba(255,255,255,0.6); font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; }
         .tab:hover { color: rgba(255,255,255,0.9); }
-        .tab.active { 
-            color: #10b981; 
-            border-bottom-color: #10b981; 
-        }
+        .tab.active { color: #10b981; border-bottom-color: #10b981; }
         
-        /* Tab Content */
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         
-        /* Cards */
-        .card { 
-            background: rgba(255,255,255,0.05); 
-            backdrop-filter: blur(10px); 
-            border: 1px solid rgba(255,255,255,0.1); 
-            border-radius: 1rem; 
-            padding: 2rem; 
-            margin-bottom: 2rem;
-        }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem; }
+        
+        .card { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 1rem; padding: 2rem; margin-bottom: 2rem; }
         .card h2 { font-size: 1.5rem; margin-bottom: 1.5rem; color: #10b981; }
         
-        /* Stats */
-        .stats { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
-            gap: 1rem; 
-            margin-bottom: 2rem; 
-        }
-        .stat-card { 
-            background: rgba(255,255,255,0.05); 
-            padding: 1.5rem; 
-            border-radius: 0.5rem; 
-            text-align: center; 
-        }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: rgba(255,255,255,0.7); }
+        .form-group input { width: 100%; padding: 0.75rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 0.5rem; color: white; font-size: 1rem; }
+        .form-group input:focus { outline: none; border-color: #10b981; background: rgba(255,255,255,0.15); }
+        
+        .btn-primary { width: 100%; padding: 1rem; background: #10b981; border: none; border-radius: 0.5rem; color: white; font-weight: 600; font-size: 1rem; cursor: pointer; transition: all 0.2s; }
+        .btn-primary:hover { background: #059669; transform: translateY(-1px); }
+        .btn-primary:disabled { background: #6b7280; cursor: not-allowed; transform: none; }
+        
+        .success { background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; padding: 1rem; border-radius: 0.5rem; margin-top: 1rem; display: none; }
+        .success.show { display: block; }
+        .success-code { font-size: 2rem; font-weight: 800; text-align: center; margin: 1rem 0; color: #10b981; letter-spacing: 0.5rem; }
+        
+        .error { background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #fca5a5; padding: 1rem; border-radius: 0.5rem; margin-top: 1rem; display: none; }
+        .error.show { display: block; }
+        
+        .invites-list { background: rgba(255,255,255,0.05); border-radius: 0.5rem; max-height: 500px; overflow-y: auto; }
+        .invite-item { padding: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); display: grid; grid-template-columns: 120px 1fr 150px 100px; gap: 1rem; align-items: center; }
+        .invite-item:last-child { border-bottom: none; }
+        .invite-code { font-family: 'Courier New', monospace; font-weight: 700; font-size: 1.125rem; color: #10b981; }
+        .invite-email { color: rgba(255,255,255,0.9); }
+        .invite-status { padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; text-align: center; }
+        .status-pending { background: rgba(234, 179, 8, 0.2); color: #fbbf24; border: 1px solid #fbbf24; }
+        .status-used { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid #4ade80; }
+        
+        .btn-copy { padding: 0.5rem 1rem; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; border-radius: 0.5rem; color: #10b981; font-size: 0.875rem; cursor: pointer; }
+        .btn-copy:hover { background: rgba(16, 185, 129, 0.3); }
+        
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .stat-card { background: rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 0.5rem; text-align: center; }
         .stat-number { font-size: 2.5rem; font-weight: 800; color: #10b981; }
         .stat-label { font-size: 0.875rem; color: rgba(255,255,255,0.6); margin-top: 0.5rem; }
         
-        /* Filters */
-        .filters { 
-            display: flex; 
-            gap: 1rem; 
-            margin-bottom: 1.5rem; 
-            flex-wrap: wrap;
-        }
-        .filter-group { flex: 1; min-width: 200px; }
-        .filter-group label { 
-            display: block; 
-            margin-bottom: 0.5rem; 
-            font-size: 0.875rem; 
-            color: rgba(255,255,255,0.7); 
-        }
-        .filter-group select,
-        .filter-group input { 
-            width: 100%; 
-            padding: 0.75rem; 
-            background: rgba(255,255,255,0.1); 
-            border: 1px solid rgba(255,255,255,0.2); 
-            border-radius: 0.5rem; 
-            color: white; 
-            font-size: 1rem; 
-        }
-        .filter-group select:focus,
-        .filter-group input:focus { 
-            outline: none; 
-            border-color: #10b981; 
-            background: rgba(255,255,255,0.15); 
-        }
+        .loading { text-align: center; padding: 2rem; color: rgba(255,255,255,0.5); }
         
         /* Table */
-        .table-container { 
-            background: rgba(255,255,255,0.05); 
-            border-radius: 0.5rem; 
-            overflow-x: auto; 
-            max-height: 600px;
-            overflow-y: auto;
-        }
-        table { 
-            width: 100%; 
-            border-collapse: collapse; 
-        }
-        thead { 
-            background: rgba(255,255,255,0.1); 
-            position: sticky; 
-            top: 0; 
-            z-index: 10;
-        }
-        th { 
-            padding: 1rem; 
-            text-align: left; 
-            font-weight: 600; 
-            color: #10b981; 
-            border-bottom: 2px solid rgba(255,255,255,0.1); 
-        }
-        td { 
-            padding: 1rem; 
-            border-bottom: 1px solid rgba(255,255,255,0.05); 
-            color: rgba(255,255,255,0.9); 
-        }
+        .table-container { background: rgba(255,255,255,0.05); border-radius: 0.5rem; overflow-x: auto; max-height: 600px; overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: rgba(255,255,255,0.1); position: sticky; top: 0; z-index: 10; }
+        th { padding: 1rem; text-align: left; font-weight: 600; color: #10b981; border-bottom: 2px solid rgba(255,255,255,0.1); }
+        td { padding: 1rem; border-bottom: 1px solid rgba(255,255,255,0.05); color: rgba(255,255,255,0.9); }
         tr:hover { background: rgba(255,255,255,0.03); }
         
-        /* Buttons */
-        .btn-pdf { 
-            padding: 0.5rem 1rem; 
-            background: #10b981; 
-            border: none; 
-            border-radius: 0.5rem; 
-            color: white; 
-            font-weight: 600; 
-            cursor: pointer; 
-            font-size: 0.875rem;
-            transition: all 0.2s;
-        }
-        .btn-pdf:hover { 
-            background: #059669; 
-            transform: translateY(-2px);
-        }
-        .btn-pdf:disabled {
-            background: #6b7280;
-            cursor: not-allowed;
-            transform: none;
-        }
+        .btn-pdf { padding: 0.5rem 1rem; background: #10b981; border: none; border-radius: 0.5rem; color: white; font-weight: 600; cursor: pointer; font-size: 0.875rem; transition: all 0.2s; }
+        .btn-pdf:hover { background: #059669; transform: translateY(-2px); }
+        .btn-pdf:disabled { background: #6b7280; cursor: not-allowed; transform: none; }
         
-        /* Contract ID */
-        .contract-id { 
-            font-family: 'Courier New', monospace; 
-            font-size: 0.875rem; 
-            color: #10b981; 
-            font-weight: 600;
-        }
-        
-        /* Status Badge */
-        .status-badge {
-            padding: 0.25rem 0.75rem;
-            border-radius: 999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            display: inline-block;
-        }
-        .status-active {
-            background: rgba(34, 197, 94, 0.2);
-            color: #4ade80;
-            border: 1px solid #4ade80;
-        }
-        .status-inactive {
-            background: rgba(107, 114, 128, 0.2);
-            color: #9ca3af;
-            border: 1px solid #9ca3af;
-        }
-        
-        /* Loading */
-        .loading { 
-            text-align: center; 
-            padding: 3rem; 
-            color: rgba(255,255,255,0.5); 
-        }
-        .loading::after {
-            content: "...";
-            animation: loading 1.5s infinite;
-        }
-        @keyframes loading {
-            0%, 20% { content: "."; }
-            40% { content: ".."; }
-            60%, 100% { content: "..."; }
-        }
-        
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 3rem;
-            color: rgba(255,255,255,0.5);
-        }
-        .empty-state svg {
-            width: 64px;
-            height: 64px;
-            margin-bottom: 1rem;
-            opacity: 0.3;
-        }
-        
-        /* Form (Convites) */
-        .form-group { margin-bottom: 1.5rem; }
-        .form-group label { 
-            display: block; 
-            margin-bottom: 0.5rem; 
-            font-size: 0.875rem; 
-            color: rgba(255,255,255,0.7); 
-        }
-        .form-group input { 
-            width: 100%; 
-            padding: 0.75rem; 
-            background: rgba(255,255,255,0.1); 
-            border: 1px solid rgba(255,255,255,0.2); 
-            border-radius: 0.5rem; 
-            color: white; 
-            font-size: 1rem; 
-        }
-        .form-group input:focus { 
-            outline: none; 
-            border-color: #10b981; 
-            background: rgba(255,255,255,0.15); 
-        }
-        
-        .btn-primary { 
-            width: 100%; 
-            padding: 1rem; 
-            background: #10b981; 
-            border: none; 
-            border-radius: 0.5rem; 
-            color: white; 
-            font-weight: 600; 
-            font-size: 1rem; 
-            cursor: pointer; 
-            transition: all 0.2s; 
-        }
-        .btn-primary:hover { 
-            background: #059669; 
-            transform: translateY(-1px); 
-        }
-        .btn-primary:disabled { 
-            background: #6b7280; 
-            cursor: not-allowed; 
-            transform: none; 
-        }
-        
-        .success { 
-            background: rgba(16, 185, 129, 0.2); 
-            border: 1px solid #10b981; 
-            padding: 1rem; 
-            border-radius: 0.5rem; 
-            margin-top: 1rem; 
-            display: none; 
-        }
-        .success.show { display: block; }
-        .success-code { 
-            font-size: 2rem; 
-            font-weight: 800; 
-            text-align: center; 
-            margin: 1rem 0; 
-            color: #10b981; 
-            letter-spacing: 0.5rem; 
-        }
-        
-        .error { 
-            background: rgba(239, 68, 68, 0.2); 
-            border: 1px solid #ef4444; 
-            color: #fca5a5; 
-            padding: 1rem; 
-            border-radius: 0.5rem; 
-            margin-top: 1rem; 
-            display: none; 
-        }
-        .error.show { display: block; }
-        
-        /* Invites List */
-        .invites-list { 
-            background: rgba(255,255,255,0.05); 
-            border-radius: 0.5rem; 
-            max-height: 500px; 
-            overflow-y: auto; 
-        }
-        .invite-item { 
-            padding: 1rem; 
-            border-bottom: 1px solid rgba(255,255,255,0.1); 
-            display: grid; 
-            grid-template-columns: 120px 1fr 150px 100px; 
-            gap: 1rem; 
-            align-items: center; 
-        }
-        .invite-item:last-child { border-bottom: none; }
-        .invite-code { 
-            font-family: 'Courier New', monospace; 
-            font-weight: 700; 
-            font-size: 1.125rem; 
-            color: #10b981; 
-        }
-        .invite-email { color: rgba(255,255,255,0.9); }
-        .invite-status { 
-            padding: 0.25rem 0.75rem; 
-            border-radius: 999px; 
-            font-size: 0.75rem; 
-            font-weight: 600; 
-            text-align: center; 
-        }
-        .status-pending { 
-            background: rgba(234, 179, 8, 0.2); 
-            color: #fbbf24; 
-            border: 1px solid #fbbf24; 
-        }
-        .status-used { 
-            background: rgba(34, 197, 94, 0.2); 
-            color: #4ade80; 
-            border: 1px solid #4ade80; 
-        }
-        
-        .btn-copy { 
-            padding: 0.5rem 1rem; 
-            background: rgba(16, 185, 129, 0.2); 
-            border: 1px solid #10b981; 
-            border-radius: 0.5rem; 
-            color: #10b981; 
-            font-size: 0.875rem; 
-            cursor: pointer; 
-        }
-        .btn-copy:hover { background: rgba(16, 185, 129, 0.3); }
+        .contract-id { font-family: 'Courier New', monospace; font-size: 0.875rem; color: #10b981; font-weight: 600; }
         
         @media (max-width: 768px) {
-            .filters { flex-direction: column; }
+            .grid { grid-template-columns: 1fr; }
             .invite-item { grid-template-columns: 1fr; }
-            table { font-size: 0.875rem; }
-            th, td { padding: 0.75rem 0.5rem; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
         <div class="header">
             <div class="logo">⚡ SUDO ADMIN - PHARMYRUS</div>
             <div class="user-info">
@@ -405,29 +129,31 @@
                 </div>
             </div>
 
-            <div class="card">
-                <h2>🎟️ Criar Convite</h2>
-                <form id="inviteForm" onsubmit="createInvite(event)">
-                    <div class="form-group">
-                        <label>Email para quem vai receber o convite</label>
-                        <input type="email" id="inviteEmail" placeholder="usuario@empresa.com" required>
+            <div class="grid">
+                <div class="card">
+                    <h2>🎟️ Criar Convite</h2>
+                    <form id="inviteForm" onsubmit="createInvite(event)">
+                        <div class="form-group">
+                            <label>Email para quem vai receber o convite</label>
+                            <input type="email" id="inviteEmail" placeholder="usuario@empresa.com" required>
+                        </div>
+                        <button type="submit" class="btn-primary" id="createBtn">Gerar Código de Convite</button>
+                    </form>
+                    <div class="success" id="successMsg">
+                        <p><strong>✅ Convite criado com sucesso!</strong></p>
+                        <div class="success-code" id="generatedCode">ABCD12</div>
+                        <p style="text-align: center; color: rgba(255,255,255,0.7); font-size: 0.875rem;">
+                            Envie este código para o usuário usar no cadastro
+                        </p>
                     </div>
-                    <button type="submit" class="btn-primary" id="createBtn">Gerar Código de Convite</button>
-                </form>
-                <div class="success" id="successMsg">
-                    <p><strong>✅ Convite criado com sucesso!</strong></p>
-                    <div class="success-code" id="generatedCode">ABCD12</div>
-                    <p style="text-align: center; color: rgba(255,255,255,0.7); font-size: 0.875rem;">
-                        Envie este código para o usuário usar no cadastro
-                    </p>
+                    <div class="error" id="errorMsg"></div>
                 </div>
-                <div class="error" id="errorMsg"></div>
-            </div>
 
-            <div class="card">
-                <h2>📋 Convites Criados</h2>
-                <div class="invites-list" id="invitesList">
-                    <div class="loading">Carregando convites</div>
+                <div class="card">
+                    <h2>📋 Convites Criados</h2>
+                    <div class="invites-list" id="invitesList">
+                        <div class="loading">Carregando convites...</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -441,34 +167,16 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-number" id="totalCompanies">0</div>
-                    <div class="stat-label">Empresas Únicas</div>
+                    <div class="stat-label">Empresas</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-number" id="totalConsultations">0</div>
                     <div class="stat-label">Consultas Totais</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="activeUsers">0</div>
-                    <div class="stat-label">Usuários Ativos</div>
-                </div>
             </div>
 
             <div class="card">
                 <h2>📜 Contratos Aceitos</h2>
-                
-                <div class="filters">
-                    <div class="filter-group">
-                        <label>🏢 Filtrar por Empresa</label>
-                        <select id="filterCompany" onchange="filterContracts()">
-                            <option value="">Todas as empresas</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label>🔍 Buscar por Nome ou Email</label>
-                        <input type="text" id="searchText" placeholder="Digite para buscar..." oninput="filterContracts()">
-                    </div>
-                </div>
-
                 <div class="table-container">
                     <table>
                         <thead>
@@ -477,17 +185,14 @@
                                 <th>Nome</th>
                                 <th>Email</th>
                                 <th>Empresa</th>
-                                <th>Data Aceite</th>
+                                <th>Data</th>
                                 <th>Consultas</th>
-                                <th>Status</th>
-                                <th>Ações</th>
+                                <th>PDF</th>
                             </tr>
                         </thead>
                         <tbody id="contractsTableBody">
                             <tr>
-                                <td colspan="8">
-                                    <div class="loading">Carregando contratos</div>
-                                </td>
+                                <td colspan="7"><div class="loading">Carregando contratos...</div></td>
                             </tr>
                         </tbody>
                     </table>
@@ -525,85 +230,50 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        let allContracts = [];
-        let filteredContracts = [];
-
-        // Check Authentication
+        // Check Authentication - CÓDIGO ORIGINAL QUE FUNCIONAVA
         auth.onAuthStateChanged(async (user) => {
-            console.log('🔐 onAuthStateChanged triggered');
-            console.log('👤 User:', user ? user.email : 'null');
-            
             if (!user) {
-                console.log('❌ Sem usuário, redirecionando para login...');
                 window.location.href = 'login.html';
                 return;
             }
 
             try {
-                console.log('📄 Buscando dados do usuário:', user.uid);
                 const userDoc = await db.collection('users').doc(user.uid).get();
-                
-                if (!userDoc.exists) {
-                    console.log('❌ Documento do usuário não existe!');
-                    alert('Erro: Usuário não encontrado no banco de dados.');
-                    window.location.href = 'login.html';
-                    return;
-                }
-                
                 const userData = userDoc.data();
-                console.log('📊 Dados do usuário:', userData);
-                console.log('🔑 isAdmin:', userData.isAdmin);
 
-                if (!userData.isAdmin) {
-                    console.log('❌ Usuário não é admin!');
-                    alert('Acesso negado. Apenas administradores podem acessar esta página.');
-                    auth.signOut();
+                if (!userData || !userData.isAdmin) {
+                    alert('Acesso negado. Apenas administradores.');
                     window.location.href = 'index.html';
                     return;
                 }
 
-                console.log('✅ Usuário é admin! Carregando dados...');
                 document.getElementById('adminEmail').textContent = user.email;
                 loadInvites();
-                loadContracts();
             } catch (error) {
-                console.error('❌ Erro ao verificar usuário:', error);
-                alert('Erro ao verificar permissões: ' + error.message);
-                window.location.href = 'login.html';
+                console.error('Erro:', error);
+                alert('Erro: ' + error.message);
             }
         });
 
-        // Logout
         function logout() {
             auth.signOut().then(() => {
                 window.location.href = 'login.html';
             });
         }
 
-        // Tab Management
         function showTab(tabName) {
-            // Hide all tabs
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            document.querySelectorAll('.tab').forEach(btn => {
-                btn.classList.remove('active');
-            });
-
-            // Show selected tab
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            
             document.getElementById(`tab-${tabName}`).classList.add('active');
             event.target.classList.add('active');
 
-            // Reload data if needed
             if (tabName === 'contratos') {
                 loadContracts();
             }
         }
 
-        // ==========================================
-        // CONVITES (Existing functionality)
-        // ==========================================
-        
+        // CONVITES - CÓDIGO ORIGINAL
         function generateInviteCode() {
             const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
             let code = '';
@@ -633,9 +303,7 @@
                     code: code,
                     forEmail: email,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    used: false,
-                    usedBy: null,
-                    usedAt: null
+                    used: false
                 });
                 
                 document.getElementById('generatedCode').textContent = code;
@@ -644,7 +312,7 @@
                 
                 loadInvites();
             } catch (error) {
-                errorMsg.textContent = 'Erro ao criar convite: ' + error.message;
+                errorMsg.textContent = 'Erro: ' + error.message;
                 errorMsg.classList.add('show');
             } finally {
                 createBtn.disabled = false;
@@ -659,15 +327,12 @@
                 const snapshot = await db.collection('invites').orderBy('createdAt', 'desc').get();
                 
                 if (snapshot.empty) {
-                    invitesList.innerHTML = '<div class="empty-state">Nenhum convite criado ainda</div>';
+                    invitesList.innerHTML = '<div style="padding: 2rem; text-align: center; color: rgba(255,255,255,0.5);">Nenhum convite criado</div>';
                     updateInviteStats(0, 0, 0);
                     return;
                 }
                 
-                let total = 0;
-                let pending = 0;
-                let used = 0;
-                let html = '';
+                let total = 0, pending = 0, used = 0, html = '';
                 
                 snapshot.forEach(doc => {
                     const invite = doc.data();
@@ -695,7 +360,7 @@
                 invitesList.innerHTML = html;
                 updateInviteStats(total, pending, used);
             } catch (error) {
-                invitesList.innerHTML = '<div class="error show">Erro ao carregar convites</div>';
+                invitesList.innerHTML = '<div class="error show">Erro ao carregar</div>';
             }
         }
 
@@ -711,177 +376,148 @@
             });
         }
 
-        // ==========================================
-        // CONTRATOS (New functionality)
-        // ==========================================
-        
+        // CONTRATOS - NOVO
         async function loadContracts() {
-            console.log('📜 Iniciando loadContracts...');
             const tbody = document.getElementById('contractsTableBody');
-            tbody.innerHTML = '<tr><td colspan="8"><div class="loading">Carregando contratos</div></td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7"><div class="loading">Carregando...</div></td></tr>';
             
             try {
-                console.log('🔍 Buscando contratos no Firestore...');
                 const snapshot = await db.collection('contracts').orderBy('acceptedAt', 'desc').get();
-                console.log('📊 Contratos encontrados:', snapshot.size);
                 
                 if (snapshot.empty) {
-                    console.log('⚠️ Nenhum contrato encontrado');
-                    tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state">Nenhum contrato encontrado</div></td></tr>';
-                    updateContractStats([], []);
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: rgba(255,255,255,0.5);">Nenhum contrato encontrado</td></tr>';
+                    updateContractStats(0, 0, 0);
                     return;
                 }
                 
-                allContracts = [];
-                const userPromises = [];
+                let html = '';
+                let totalContracts = 0;
+                let companies = new Set();
+                let totalConsultations = 0;
                 
-                snapshot.forEach(doc => {
-                    const contract = { id: doc.id, ...doc.data() };
-                    allContracts.push(contract);
-                    console.log('📄 Contrato:', contract.id, '-', contract.userName);
+                for (const doc of snapshot.docs) {
+                    const contract = doc.data();
+                    totalContracts++;
+                    companies.add(contract.userCompany);
                     
-                    // Buscar dados adicionais do usuário
-                    userPromises.push(
-                        db.collection('users').doc(contract.userId).get()
-                            .then(userDoc => {
-                                if (userDoc.exists) {
-                                    contract.userData = userDoc.data();
-                                    console.log('👤 Dados do usuário carregados:', contract.userId);
-                                }
-                            })
-                    );
-                });
+                    // Buscar dados do usuário
+                    let quotaUsed = 0;
+                    try {
+                        const userDoc = await db.collection('users').doc(contract.userId).get();
+                        if (userDoc.exists) {
+                            quotaUsed = userDoc.data().quotaUsed || 0;
+                            totalConsultations += quotaUsed;
+                        }
+                    } catch (e) {
+                        console.log('Erro ao buscar usuário:', e);
+                    }
+                    
+                    const date = contract.acceptedAt ? 
+                        new Date(contract.acceptedAt.toDate()).toLocaleDateString('pt-BR') : 
+                        'N/A';
+                    
+                    html += `
+                        <tr>
+                            <td><span class="contract-id">${contract.contractId.substring(0, 12)}...</span></td>
+                            <td>${contract.userName}</td>
+                            <td>${contract.userEmail}</td>
+                            <td>${contract.userCompany}</td>
+                            <td>${date}</td>
+                            <td><strong>${quotaUsed}</strong></td>
+                            <td>
+                                <button class="btn-pdf" onclick="downloadPDF('${doc.id}')">
+                                    📄 PDF
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }
                 
-                console.log('⏳ Aguardando dados dos usuários...');
-                await Promise.all(userPromises);
-                console.log('✅ Dados dos usuários carregados!');
-                
-                // Populate companies filter
-                populateCompaniesFilter();
-                
-                // Update stats
-                updateContractStats(allContracts, allContracts);
-                
-                // Display contracts
-                filteredContracts = allContracts;
-                displayContracts(filteredContracts);
+                tbody.innerHTML = html;
+                updateContractStats(totalContracts, companies.size, totalConsultations);
                 
             } catch (error) {
                 console.error('Erro ao carregar contratos:', error);
-                tbody.innerHTML = '<tr><td colspan="8"><div class="error show">Erro ao carregar contratos</div></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: #ef4444;">Erro ao carregar contratos</td></tr>';
             }
         }
 
-        function populateCompaniesFilter() {
-            const select = document.getElementById('filterCompany');
-            const companies = [...new Set(allContracts.map(c => c.userCompany))].sort();
-            
-            let html = '<option value="">Todas as empresas</option>';
-            companies.forEach(company => {
-                html += `<option value="${company}">${company}</option>`;
-            });
-            
-            select.innerHTML = html;
+        function updateContractStats(total, companies, consultations) {
+            document.getElementById('totalContracts').textContent = total;
+            document.getElementById('totalCompanies').textContent = companies;
+            document.getElementById('totalConsultations').textContent = consultations;
         }
 
-        function filterContracts() {
-            const companyFilter = document.getElementById('filterCompany').value.toLowerCase();
-            const searchText = document.getElementById('searchText').value.toLowerCase();
-            
-            filteredContracts = allContracts.filter(contract => {
-                const matchCompany = !companyFilter || contract.userCompany.toLowerCase() === companyFilter;
-                const matchSearch = !searchText || 
-                    contract.userName.toLowerCase().includes(searchText) ||
-                    contract.userEmail.toLowerCase().includes(searchText);
-                
-                return matchCompany && matchSearch;
-            });
-            
-            displayContracts(filteredContracts);
-            updateContractStats(allContracts, filteredContracts);
-        }
-
-        function displayContracts(contracts) {
-            const tbody = document.getElementById('contractsTableBody');
-            
-            if (contracts.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state">Nenhum contrato encontrado com os filtros aplicados</div></td></tr>';
-                return;
-            }
-            
-            let html = '';
-            contracts.forEach(contract => {
-                const date = contract.acceptedAt ? 
-                    new Date(contract.acceptedAt.toDate()).toLocaleDateString('pt-BR', { 
-                        day: '2-digit', 
-                        month: '2-digit',
-                        year: 'numeric'
-                    }) : 
-                    'N/A';
-                
-                const totalConsultations = contract.userData?.quotaUsed || 0;
-                const isActive = totalConsultations > 0;
-                const statusClass = isActive ? 'status-active' : 'status-inactive';
-                const statusText = isActive ? 'Ativo' : 'Inativo';
-                
-                html += `
-                    <tr>
-                        <td><span class="contract-id">${contract.contractId.substring(0, 12)}...</span></td>
-                        <td>${contract.userName}</td>
-                        <td>${contract.userEmail}</td>
-                        <td>${contract.userCompany}</td>
-                        <td>${date}</td>
-                        <td><strong>${totalConsultations}</strong></td>
-                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-                        <td>
-                            <button class="btn-pdf" onclick="downloadContractPDF('${contract.id}')">
-                                📄 PDF
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            });
-            
-            tbody.innerHTML = html;
-        }
-
-        function updateContractStats(allContracts, filteredContracts) {
-            const totalContracts = filteredContracts.length;
-            const companies = [...new Set(filteredContracts.map(c => c.userCompany))];
-            const totalConsultations = filteredContracts.reduce((sum, c) => sum + (c.userData?.quotaUsed || 0), 0);
-            const activeUsers = filteredContracts.filter(c => (c.userData?.quotaUsed || 0) > 0).length;
-            
-            document.getElementById('totalContracts').textContent = totalContracts;
-            document.getElementById('totalCompanies').textContent = companies.length;
-            document.getElementById('totalConsultations').textContent = totalConsultations;
-            document.getElementById('activeUsers').textContent = activeUsers;
-        }
-
-        // ==========================================
-        // PDF GENERATION
-        // ==========================================
-        
-        async function downloadContractPDF(contractId) {
+        async function downloadPDF(contractId) {
             const btn = event.target;
             btn.disabled = true;
-            btn.textContent = '⏳ Gerando...';
+            btn.textContent = '⏳...';
             
             try {
-                // Buscar dados completos
                 const contractDoc = await db.collection('contracts').doc(contractId).get();
-                if (!contractDoc.exists) {
-                    throw new Error('Contrato não encontrado');
-                }
+                const contract = contractDoc.data();
                 
-                const contractData = contractDoc.data();
-                const userDoc = await db.collection('users').doc(contractData.userId).get();
-                const userData = userDoc.exists ? userDoc.data() : {};
+                const userDoc = await db.collection('users').doc(contract.userId).get();
+                const user = userDoc.exists ? userDoc.data() : {};
                 
-                // Gerar PDF
-                await generatePDF(contractData, userData);
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                let y = 20;
+                
+                // Header
+                doc.setFillColor(16, 185, 129);
+                doc.rect(0, 0, 210, 40, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(18);
+                doc.text('PHARMYRUS', 20, 20);
+                doc.setFontSize(12);
+                doc.text('RELATÓRIO DE CONTRATO', 20, 30);
+                
+                y = 50;
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(14);
+                doc.text('DADOS DO CONTRATO', 20, y);
+                y += 10;
+                
+                doc.setFontSize(10);
+                doc.text(`Contract ID: ${contract.contractId}`, 20, y);
+                y += 7;
+                doc.text(`Nome: ${contract.userName}`, 20, y);
+                y += 7;
+                doc.text(`Email: ${contract.userEmail}`, 20, y);
+                y += 7;
+                doc.text(`Empresa: ${contract.userCompany}`, 20, y);
+                y += 7;
+                
+                const date = contract.acceptedAt ? 
+                    new Date(contract.acceptedAt.toDate()).toLocaleString('pt-BR') : 
+                    'N/A';
+                doc.text(`Data de Aceite: ${date}`, 20, y);
+                y += 7;
+                doc.text(`IP: ${contract.ipAddress || 'N/A'}`, 20, y);
+                y += 15;
+                
+                doc.setFontSize(14);
+                doc.text('MÉTRICAS DE USO', 20, y);
+                y += 10;
+                
+                doc.setFontSize(10);
+                const quotaUsed = user.quotaUsed || 0;
+                doc.text(`Total de Consultas: ${quotaUsed}`, 20, y);
+                y += 7;
+                doc.text(`Quota Limite: ${user.quotaLimit || 50}`, 20, y);
+                
+                // Footer
+                const footerY = 280;
+                doc.setFontSize(8);
+                doc.setTextColor(100, 100, 100);
+                doc.text('Documento gerado digitalmente - Pharmyrus', 20, footerY);
+                doc.text(`Emitido em: ${new Date().toLocaleString('pt-BR')}`, 20, footerY + 5);
+                
+                doc.save(`contrato-${contract.contractId.substring(0, 12)}.pdf`);
                 
             } catch (error) {
-                console.error('Erro ao gerar PDF:', error);
                 alert('Erro ao gerar PDF: ' + error.message);
             } finally {
                 btn.disabled = false;
@@ -889,383 +525,7 @@
             }
         }
 
-        async function generatePDF(contract, user) {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            
-            let y = 20;
-            const lineHeight = 7;
-            const pageWidth = doc.internal.pageSize.width;
-            const margin = 20;
-            const contentWidth = pageWidth - (margin * 2);
-            
-            // Header com fundo verde
-            doc.setFillColor(16, 185, 129);
-            doc.rect(0, 0, pageWidth, 45, 'F');
-            
-            // Título
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(20);
-            doc.setFont(undefined, 'bold');
-            doc.text('PHARMYRUS', margin, 20);
-            
-            doc.setFontSize(14);
-            doc.text('RELATÓRIO DE CONTRATO E USO DA PLATAFORMA', margin, 30);
-            
-            doc.setFontSize(10);
-            doc.setFont(undefined, 'normal');
-            doc.text('Documento com Valor Legal Probatório', margin, 38);
-            
-            y = 55;
-            doc.setTextColor(0, 0, 0);
-            
-            // Emissão
-            doc.setFontSize(9);
-            doc.setTextColor(100, 100, 100);
-            const now = new Date().toLocaleString('pt-BR');
-            doc.text(`Emitido em: ${now}`, margin, y);
-            y += 15;
-            
-            // Seção 1: Dados do Contrato
-            doc.setFontSize(14);
-            doc.setTextColor(5, 150, 105);
-            doc.setFont(undefined, 'bold');
-            doc.text('DADOS DO CONTRATO DIGITAL', margin, y);
-            y += 3;
-            
-            doc.setDrawColor(5, 150, 105);
-            doc.setLineWidth(0.5);
-            doc.line(margin, y, pageWidth - margin, y);
-            y += 10;
-            
-            doc.setFontSize(10);
-            doc.setTextColor(0, 0, 0);
-            doc.setFont(undefined, 'normal');
-            
-            // Contract ID
-            doc.setFont(undefined, 'bold');
-            doc.text('Contract ID (Assinatura Digital):', margin, y);
-            y += lineHeight;
-            doc.setFont(undefined, 'normal');
-            doc.setFontSize(9);
-            doc.text(`  ${contract.contractId}`, margin, y);
-            y += lineHeight + 3;
-            
-            // Data de Aceite
-            doc.setFontSize(10);
-            doc.setFont(undefined, 'bold');
-            doc.text('Data e Hora de Aceite:', margin, y);
-            y += lineHeight;
-            doc.setFont(undefined, 'normal');
-            const acceptDate = contract.acceptedAt ? 
-                new Date(contract.acceptedAt.toDate()).toLocaleString('pt-BR', {
-                    day: '2-digit',
-                    month: 'long',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit'
-                }) : 'N/A';
-            doc.text(`  ${acceptDate} (horário de Brasília)`, margin, y);
-            y += lineHeight;
-            
-            // ISO
-            if (contract.acceptedAtISO) {
-                doc.setFontSize(9);
-                doc.setTextColor(100, 100, 100);
-                doc.text(`  ISO 8601: ${contract.acceptedAtISO}`, margin, y);
-                y += lineHeight;
-                doc.setFontSize(10);
-                doc.setTextColor(0, 0, 0);
-            }
-            y += 3;
-            
-            // IP Address
-            doc.setFont(undefined, 'bold');
-            doc.text('Endereço IP do Aceite:', margin, y);
-            y += lineHeight;
-            doc.setFont(undefined, 'normal');
-            doc.text(`  ${contract.ipAddress || 'N/A'}`, margin, y);
-            y += lineHeight + 3;
-            
-            // User Agent
-            doc.setFont(undefined, 'bold');
-            doc.text('Navegador e Sistema:', margin, y);
-            y += lineHeight;
-            doc.setFont(undefined, 'normal');
-            doc.setFontSize(9);
-            const userAgent = contract.userAgent ? parseUserAgent(contract.userAgent) : 'N/A';
-            doc.text(`  ${userAgent}`, margin, y);
-            y += lineHeight + 3;
-            
-            // Versão dos Termos
-            doc.setFontSize(10);
-            doc.setFont(undefined, 'bold');
-            doc.text('Versão dos Termos Aceita:', margin, y);
-            y += lineHeight;
-            doc.setFont(undefined, 'normal');
-            doc.text(`  v${contract.termsVersion} (Termos e Condições de Uso Pharmyrus)`, margin, y);
-            y += lineHeight + 3;
-            
-            // Status
-            doc.setFont(undefined, 'bold');
-            doc.text('Status:', margin, y);
-            y += lineHeight;
-            doc.setFont(undefined, 'normal');
-            doc.setTextColor(16, 185, 129);
-            doc.text(`  ✓ Contrato Válido e Ativo`, margin, y);
-            y += 15;
-            
-            // Seção 2: Dados Cadastrais
-            doc.setFontSize(14);
-            doc.setTextColor(5, 150, 105);
-            doc.setFont(undefined, 'bold');
-            doc.text('DADOS CADASTRAIS DO USUÁRIO', margin, y);
-            y += 3;
-            
-            doc.setDrawColor(5, 150, 105);
-            doc.line(margin, y, pageWidth - margin, y);
-            y += 10;
-            
-            doc.setFontSize(10);
-            doc.setTextColor(0, 0, 0);
-            
-            // Nome
-            doc.setFont(undefined, 'bold');
-            doc.text('Nome Completo:', margin, y);
-            y += lineHeight;
-            doc.setFont(undefined, 'normal');
-            doc.text(`  ${contract.userName}`, margin, y);
-            y += lineHeight + 3;
-            
-            // Email
-            doc.setFont(undefined, 'bold');
-            doc.text('Email:', margin, y);
-            y += lineHeight;
-            doc.setFont(undefined, 'normal');
-            doc.text(`  ${contract.userEmail}`, margin, y);
-            y += lineHeight + 3;
-            
-            // Empresa
-            doc.setFont(undefined, 'bold');
-            doc.text('Empresa:', margin, y);
-            y += lineHeight;
-            doc.setFont(undefined, 'normal');
-            doc.text(`  ${contract.userCompany}`, margin, y);
-            y += lineHeight + 3;
-            
-            // Data de Cadastro
-            doc.setFont(undefined, 'bold');
-            doc.text('Data de Cadastro:', margin, y);
-            y += lineHeight;
-            doc.setFont(undefined, 'normal');
-            const cadastroDate = contract.acceptedAt ? 
-                new Date(contract.acceptedAt.toDate()).toLocaleDateString('pt-BR', {
-                    day: '2-digit',
-                    month: 'long',
-                    year: 'numeric'
-                }) : 'N/A';
-            doc.text(`  ${cadastroDate}`, margin, y);
-            y += lineHeight + 3;
-            
-            // User ID
-            doc.setFont(undefined, 'bold');
-            doc.text('User ID (Firebase):', margin, y);
-            y += lineHeight;
-            doc.setFont(undefined, 'normal');
-            doc.setFontSize(9);
-            doc.text(`  ${contract.userId}`, margin, y);
-            y += 15;
-            
-            // Check if need new page
-            if (y > 250) {
-                doc.addPage();
-                y = 20;
-            }
-            
-            // Seção 3: Métricas de Uso
-            doc.setFontSize(14);
-            doc.setTextColor(5, 150, 105);
-            doc.setFont(undefined, 'bold');
-            doc.text('MÉTRICAS DE USO DA PLATAFORMA', margin, y);
-            y += 3;
-            
-            doc.setDrawColor(5, 150, 105);
-            doc.line(margin, y, pageWidth - margin, y);
-            y += 10;
-            
-            doc.setFontSize(10);
-            doc.setTextColor(0, 0, 0);
-            
-            const totalConsultations = user.quotaUsed || 0;
-            const weeklyConsultations = contract.weeklyConsultations || 0;
-            const quotaLimit = user.quotaLimit || 50;
-            const percentUsed = Math.round((totalConsultations / quotaLimit) * 100);
-            
-            // Total de Consultas
-            doc.setFont(undefined, 'bold');
-            doc.text('Total de Consultas Realizadas:', margin, y);
-            y += lineHeight;
-            doc.setFont(undefined, 'normal');
-            doc.setFontSize(12);
-            doc.setTextColor(16, 185, 129);
-            doc.text(`  ${totalConsultations} consultas`, margin, y);
-            doc.setFontSize(10);
-            doc.setTextColor(0, 0, 0);
-            y += lineHeight + 3;
-            
-            // Consultas na Última Semana
-            doc.setFont(undefined, 'bold');
-            doc.text('Consultas na Última Semana:', margin, y);
-            y += lineHeight;
-            doc.setFont(undefined, 'normal');
-            doc.text(`  ${weeklyConsultations} consultas`, margin, y);
-            y += lineHeight + 3;
-            
-            // Última Consulta
-            doc.setFont(undefined, 'bold');
-            doc.text('Última Consulta Realizada:', margin, y);
-            y += lineHeight;
-            doc.setFont(undefined, 'normal');
-            const lastConsultation = contract.lastConsultationDate ? 
-                new Date(contract.lastConsultationDate.toDate()).toLocaleString('pt-BR', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                }) : 'Nenhuma consulta realizada';
-            doc.text(`  ${lastConsultation}`, margin, y);
-            y += lineHeight + 3;
-            
-            // Quota de Uso
-            doc.setFont(undefined, 'bold');
-            doc.text('Quota de Uso:', margin, y);
-            y += lineHeight;
-            doc.setFont(undefined, 'normal');
-            doc.text(`  ${totalConsultations} / ${quotaLimit} consultas utilizadas (${percentUsed}%)`, margin, y);
-            y += lineHeight + 3;
-            
-            // Status de Uso
-            doc.setFont(undefined, 'bold');
-            doc.text('Status de Uso:', margin, y);
-            y += lineHeight;
-            doc.setFont(undefined, 'normal');
-            if (totalConsultations > 0) {
-                doc.setTextColor(16, 185, 129);
-                doc.text(`  ✓ USUÁRIO ATIVO - Plataforma utilizada regularmente`, margin, y);
-            } else {
-                doc.setTextColor(156, 163, 175);
-                doc.text(`  ○ USUÁRIO INATIVO - Nenhuma consulta realizada`, margin, y);
-            }
-            y += 20;
-            
-            // Seção 4: Termos Aceitos
-            if (y > 230) {
-                doc.addPage();
-                y = 20;
-            }
-            
-            doc.setFontSize(14);
-            doc.setTextColor(5, 150, 105);
-            doc.setFont(undefined, 'bold');
-            doc.text('TERMOS E CONDIÇÕES ACEITOS', margin, y);
-            y += 3;
-            
-            doc.setDrawColor(5, 150, 105);
-            doc.line(margin, y, pageWidth - margin, y);
-            y += 10;
-            
-            doc.setFontSize(10);
-            doc.setTextColor(0, 0, 0);
-            doc.setFont(undefined, 'normal');
-            
-            doc.text(`O usuário aceitou os seguintes termos em ${acceptDate.split(' ')[0]}:`, margin, y);
-            y += lineHeight + 5;
-            
-            const terms = [
-                '1. Objeto do Contrato',
-                '2. Licença de Uso',
-                '3. Proteção de Dados Pessoais (LGPD)',
-                '4. Propriedade Intelectual',
-                '5. Limitação de Responsabilidade',
-                '6. Prazo e Rescisão',
-                '7. Modificações nos Termos'
-            ];
-            
-            doc.setFontSize(9);
-            terms.forEach(term => {
-                doc.text(`  ${term}`, margin + 5, y);
-                y += lineHeight;
-            });
-            
-            y += 5;
-            doc.setFontSize(10);
-            doc.text('Link para termos completos:', margin, y);
-            y += lineHeight;
-            doc.setTextColor(16, 185, 129);
-            doc.textWithLink('https://pharmyrus.netlify.app/terms.html', margin, y, {
-                url: 'https://pharmyrus.netlify.app/terms.html'
-            });
-            y += 20;
-            
-            // Footer em todas as páginas
-            const totalPages = doc.internal.pages.length - 1;
-            for (let i = 1; i <= totalPages; i++) {
-                doc.setPage(i);
-                
-                // Box do rodapé
-                const footerY = doc.internal.pageSize.height - 35;
-                doc.setDrawColor(200, 200, 200);
-                doc.setLineWidth(0.5);
-                doc.rect(margin, footerY, contentWidth, 25);
-                
-                // Texto do rodapé
-                doc.setFontSize(8);
-                doc.setTextColor(100, 100, 100);
-                doc.setFont(undefined, 'normal');
-                
-                let footerTextY = footerY + 7;
-                doc.text('Este documento foi gerado digitalmente e possui valor legal probatório', margin + 5, footerTextY);
-                footerTextY += 5;
-                doc.text('conforme MP 2.200-2/2001 (ICP-Brasil) e Lei 13.709/2018 (LGPD).', margin + 5, footerTextY);
-                footerTextY += 7;
-                
-                doc.setFontSize(7);
-                doc.setFont(undefined, 'bold');
-                doc.text(`Contract ID: ${contract.contractId}`, margin + 5, footerTextY);
-                
-                // Página
-                doc.setFont(undefined, 'normal');
-                doc.text(`Página ${i}/${totalPages}`, pageWidth - margin - 20, footerTextY);
-            }
-            
-            // Save PDF
-            const filename = `contrato-${contract.contractId.substring(0, 12)}.pdf`;
-            doc.save(filename);
-        }
-
-        function parseUserAgent(ua) {
-            // Simplified user agent parsing
-            let browser = 'Desconhecido';
-            let os = 'Desconhecido';
-            
-            if (ua.includes('Chrome')) browser = 'Chrome';
-            else if (ua.includes('Firefox')) browser = 'Firefox';
-            else if (ua.includes('Safari')) browser = 'Safari';
-            else if (ua.includes('Edge')) browser = 'Edge';
-            
-            if (ua.includes('Windows')) os = 'Windows';
-            else if (ua.includes('Mac')) os = 'macOS';
-            else if (ua.includes('Linux')) os = 'Linux';
-            else if (ua.includes('Android')) os = 'Android';
-            else if (ua.includes('iOS')) os = 'iOS';
-            
-            return `${browser} em ${os}`;
-        }
-
-        // Initialize
-        console.log('Sudo Admin loaded');
+        console.log('Sudo Admin carregado');
     </script>
 </body>
 </html>
