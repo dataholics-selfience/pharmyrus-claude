@@ -8,26 +8,42 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 2rem; }
         
-        /* USER BAR */
+        /* USER BAR - NOVO LAYOUT */
         .user-bar {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 1rem 2rem;
-            border-radius: 1rem;
+            background: white;
+            padding: 1.5rem 3rem;
             margin-bottom: 2rem;
             display: none;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         .user-bar.show { display: flex; }
+        
+        /* Logo à esquerda */
+        .header-logo {
+            display: flex;
+            align-items: center;
+        }
+        .header-logo img {
+            height: 60px;
+            width: auto;
+        }
+        
+        /* User info à direita */
+        .user-info-container {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
         .user-info {
             display: flex;
             align-items: center;
             gap: 1rem;
         }
         .user-avatar {
-            width: 40px;
-            height: 40px;
+            width: 45px;
+            height: 45px;
             border-radius: 50%;
             background: #667eea;
             display: flex;
@@ -35,14 +51,16 @@
             justify-content: center;
             color: white;
             font-weight: 700;
+            font-size: 1.125rem;
         }
         .user-details h3 {
             color: #1f2937;
-            font-size: 0.875rem;
+            font-size: 0.9375rem;
             margin-bottom: 0.25rem;
+            font-weight: 600;
         }
         .quota-info {
-            font-size: 0.75rem;
+            font-size: 0.8125rem;
             color: #6b7280;
         }
         .quota-info.unlimited {
@@ -56,7 +74,7 @@
         .user-actions {
             display: flex;
             align-items: center;
-            gap: 1rem;
+            gap: 0.75rem;
         }
         .btn-sudo-admin {
             padding: 0.5rem 1rem;
@@ -92,11 +110,13 @@
         
         /* ORIGINAL CSS */
         .container { max-width: 800px; margin: 0 auto; }
-        .header { text-align: center; margin-bottom: 2rem; }
-        .logo-container { margin-bottom: 1.5rem; }
-        .logo { max-width: 200px; height: auto; }
-        .title { color: white; font-size: 2.5rem; font-weight: 800; margin-bottom: 0.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-        .subtitle { color: rgba(255,255,255,0.9); font-size: 1.125rem; }
+        .title { 
+            color: #1f2937; 
+            font-size: 1.75rem; 
+            font-weight: 700; 
+            margin-bottom: 2rem;
+            text-align: center;
+        }
         .search-card { background: white; padding: 3rem; border-radius: 1rem; box-shadow: 0 20px 60px rgba(0,0,0,0.3); margin-bottom: 2rem; }
         .form-group { margin-bottom: 1.5rem; }
         .form-label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151; font-size: 0.875rem; }
@@ -134,40 +154,32 @@
         .progress-bar { width: 100%; height: 8px; background: rgba(255,255,255,0.2); border-radius: 999px; overflow: hidden; margin: 1.5rem 0; }
         .progress-fill { height: 100%; background: white; border-radius: 999px; transition: width 0.3s; }
         .status-time { font-size: 0.875rem; opacity: 0.8; }
-        .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-        .feature-card { background: white; padding: 1.5rem; border-radius: 1rem; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .feature-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
-        .feature-card h3 { color: #1f2937; font-size: 1.125rem; margin-bottom: 0.5rem; }
-        .feature-card p { color: #6b7280; font-size: 0.875rem; }
-        .footer { text-align: center; color: white; padding: 2rem; font-size: 0.875rem; }
     </style>
 </head>
 <body>
     <!-- USER BAR -->
     <div class="user-bar" id="userBar">
-        <div class="user-info">
-            <div class="user-avatar" id="userAvatar">U</div>
-            <div class="user-details">
-                <h3 id="userName">Carregando...</h3>
-                <p class="quota-info" id="quotaInfo">Carregando quota...</p>
-            </div>
+        <div class="header-logo">
+            <img src="images/logo.png" alt="Pharmyrus Logo">
         </div>
-        <div class="user-actions">
-            <a href="sudo-admin.html" class="btn-sudo-admin" id="btnSudoAdmin">👑 Sudo Admin</a>
-            <button class="btn-logout" onclick="logout()">Sair</button>
+        <div class="user-info-container">
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">U</div>
+                <div class="user-details">
+                    <h3 id="userName">Carregando...</h3>
+                    <p class="quota-info" id="quotaInfo">Carregando quota...</p>
+                </div>
+            </div>
+            <div class="user-actions">
+                <a href="sudo-admin.html" class="btn-sudo-admin" id="btnSudoAdmin">👑 Sudo Admin</a>
+                <button class="btn-logout" onclick="logout()">Sair</button>
+            </div>
         </div>
     </div>
 
     <div class="container">
-        <header class="header">
-            <div class="logo-container">
-                <img src="images/logo.png" alt="Pharmyrus Logo" class="logo">
-            </div>
-            <h1 class="title">Busca Avançada de Patentes</h1>
-            <p class="subtitle">Análise inteligente de portfólios de patentes farmacêuticas</p>
-        </header>
-
         <div class="search-card">
+            <h1 class="title">Busca Avançada de Patentes</h1>
             <form id="searchForm" class="search-form" autocomplete="off">
                 <div class="form-group">
                     <label for="nomeMolecula" class="form-label">
@@ -248,28 +260,6 @@
                 </div>
             </div>
         </div>
-
-        <div class="features">
-            <div class="feature-card">
-                <div class="feature-icon">📊</div>
-                <h3>Análise Completa</h3>
-                <p>Busca em bases INPI e EPO</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">🎯</div>
-                <h3>Insights Estratégicos</h3>
-                <p>Barreiras e oportunidades</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">⚡</div>
-                <h3>Resultados Rápidos</h3>
-                <p>3-5 minutos</p>
-            </div>
-        </div>
-
-        <footer class="footer">
-            <p>&copy; 2025 Pharmyrus</p>
-        </footer>
     </div>
 
     <script type="module">
