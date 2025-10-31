@@ -3,671 +3,381 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Pharmyrus</title>
+    <title>Termos e Condições de Uso - Pharmyrus</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem; }
-        
-        .login-container { background: white; padding: 3rem; border-radius: 1rem; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); max-width: 450px; width: 100%; }
-        .logo-container { text-align: center; margin-bottom: 2rem; }
-        .logo { max-width: 200px; height: auto; margin-bottom: 1rem; }
-        .logo-text { color: #1f2937; font-size: 0.875rem; margin-top: 0.5rem; }
-        
-        .beta-badge { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color: white; padding: 0.5rem 1rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; text-align: center; margin-bottom: 1.5rem; display: inline-block; width: 100%; }
-        
-        .tabs { display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 2px solid #e5e7eb; }
-        .tab { flex: 1; padding: 1rem; background: none; border: none; font-weight: 600; color: #9ca3af; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.2s; }
-        .tab.active { color: #667eea; border-bottom-color: #667eea; }
-        
-        .form-group { margin-bottom: 1.5rem; }
-        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151; font-size: 0.875rem; }
-        .form-group input { width: 100%; padding: 0.75rem 1rem; border: 2px solid #e5e7eb; border-radius: 0.5rem; font-size: 1rem; transition: border-color 0.2s; }
-        .form-group input:focus { outline: none; border-color: #667eea; }
-        
-        .invite-code-input { text-transform: uppercase; letter-spacing: 0.25rem; font-weight: 700; text-align: center; font-size: 1.25rem; }
-        
-        .btn { width: 100%; padding: 0.875rem; background: #667eea; color: white; border: none; border-radius: 0.5rem; font-weight: 600; font-size: 1rem; cursor: pointer; transition: all 0.2s; margin-bottom: 1rem; }
-        .btn:hover { background: #5568d3; transform: translateY(-1px); }
-        .btn:disabled { background: #9ca3af; cursor: not-allowed; transform: none; }
-        
-        .error { background: #fee2e2; color: #991b1b; padding: 0.75rem; border-radius: 0.5rem; margin-bottom: 1rem; font-size: 0.875rem; display: none; }
-        .error.show { display: block; }
-        
-        .success { background: #dcfce7; color: #166534; padding: 0.75rem; border-radius: 0.5rem; margin-bottom: 1rem; font-size: 0.875rem; display: none; }
-        .success.show { display: block; }
-        
-        .forgot-password { text-align: center; margin-top: 1rem; }
-        .forgot-password a { color: #667eea; text-decoration: none; font-size: 0.875rem; }
-        .forgot-password a:hover { text-decoration: underline; }
-        
-        .hidden { display: none; }
-        
-        .info-box { background: #eff6ff; border: 1px solid #3b82f6; color: #1e40af; padding: 1rem; border-radius: 0.5rem; font-size: 0.875rem; margin-bottom: 1.5rem; }
-        .info-box strong { color: #1e3a8a; }
-        
-        /* Autocomplete */
-        .autocomplete-container { position: relative; }
-        .autocomplete-list {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border: 2px solid #667eea;
-            border-top: none;
-            border-radius: 0 0 0.5rem 0.5rem;
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 1000;
-            display: none;
+        body { 
+            font-family: Georgia, 'Times New Roman', serif; 
+            background: #f9fafb; 
+            padding: 2rem; 
+            line-height: 1.8;
+            color: #1f2937;
         }
-        .autocomplete-list.show { display: block; }
-        .autocomplete-item {
-            padding: 0.75rem 1rem;
-            cursor: pointer;
-            border-bottom: 1px solid #e5e7eb;
-            transition: background 0.2s;
-        }
-        .autocomplete-item:hover {
-            background: #f3f4f6;
-        }
-        .autocomplete-item:last-child {
-            border-bottom: none;
-        }
-        .autocomplete-empty {
-            padding: 0.75rem 1rem;
-            color: #6b7280;
-            font-size: 0.875rem;
-            text-align: center;
-        }
-        
-        /* Checkbox Termos */
-        .terms-checkbox {
-            display: flex;
-            align-items: flex-start;
-            gap: 0.75rem;
-            margin-bottom: 1.5rem;
-            padding: 1rem;
-            background: #f9fafb;
+        .container { 
+            max-width: 900px; 
+            margin: 0 auto; 
+            background: white; 
+            padding: 3rem; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             border-radius: 0.5rem;
-            border: 2px solid #e5e7eb;
         }
-        .terms-checkbox input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            margin-top: 0.125rem;
-            cursor: pointer;
-            flex-shrink: 0;
+        .header { 
+            text-align: center; 
+            margin-bottom: 3rem; 
+            padding-bottom: 2rem; 
+            border-bottom: 2px solid #e5e7eb;
         }
-        .terms-checkbox label {
+        .logo { margin-bottom: 1.5rem; }
+        .logo img { height: 80px; }
+        h1 { 
+            font-size: 2rem; 
+            color: #111827; 
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+        .subtitle { 
+            color: #6b7280; 
             font-size: 0.875rem;
-            color: #374151;
-            cursor: pointer;
-            line-height: 1.6;
+            font-style: italic;
         }
-        .terms-checkbox a {
-            color: #667eea;
-            text-decoration: none;
+        h2 { 
+            font-size: 1.5rem; 
+            color: #374151; 
+            margin: 2.5rem 0 1rem 0;
             font-weight: 600;
         }
-        .terms-checkbox a:hover {
-            text-decoration: underline;
+        h3 { 
+            font-size: 1.25rem; 
+            color: #4b5563; 
+            margin: 2rem 0 1rem 0;
+            font-weight: 600;
         }
-        .terms-checkbox.error {
-            border-color: #ef4444;
-            background: #fef2f2;
+        p { 
+            margin-bottom: 1rem; 
+            text-align: justify;
+            font-size: 1rem;
+        }
+        ul, ol { 
+            margin-left: 2rem; 
+            margin-bottom: 1rem; 
+        }
+        li { 
+            margin-bottom: 0.5rem; 
+        }
+        .clause { 
+            margin-bottom: 2rem; 
+            padding-left: 1.5rem;
+            border-left: 3px solid #667eea;
+        }
+        .highlight { 
+            background: #fef3c7; 
+            padding: 0.125rem 0.25rem;
+            font-weight: 600;
+        }
+        .legal-ref { 
+            font-size: 0.875rem; 
+            color: #6b7280;
+            font-style: italic;
+            margin-top: 0.5rem;
+        }
+        .footer { 
+            margin-top: 3rem; 
+            padding-top: 2rem; 
+            border-top: 2px solid #e5e7eb;
+            text-align: center;
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+        .btn-back {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            margin-top: 2rem;
+        }
+        .btn-back:hover {
+            background: #5568d3;
         }
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <div class="logo-container">
-            <img src="images/logo.png" alt="Pharmyrus Logo" class="logo">
-            <div class="beta-badge">🎯 BETA PRIVADO - ACESSO POR CONVITE</div>
-            <p class="logo-text">Inteligência de Patentes Farmacêuticas</p>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <img src="images/logo.png" alt="Pharmyrus">
+            </div>
+            <h1>Termos e Condições de Uso</h1>
+            <p class="subtitle">Contrato de Prova de Conceito (POC) - Plataforma Pharmyrus</p>
+            <p class="subtitle">Versão 1.0 | Vigência a partir de 31 de outubro de 2025</p>
         </div>
 
-        <div id="errorMessage" class="error"></div>
-        <div id="successMessage" class="success"></div>
-
-        <div class="tabs">
-            <button class="tab active" onclick="switchTab('login')">Entrar</button>
-            <button class="tab" onclick="switchTab('register')">Cadastrar</button>
+        <h2>PREÂMBULO</h2>
+        <div class="clause">
+            <p>O presente instrumento particular regula os termos e condições de uso da plataforma <span class="highlight">Pharmyrus</span>, doravante denominada "PLATAFORMA", desenvolvida e operada pela empresa responsável, doravante denominada "CONTRATADA", para fornecimento de serviços de busca e análise de patentes farmacêuticas no âmbito de uma Prova de Conceito (POC).</p>
+            
+            <p>O USUÁRIO, pessoa física ou jurídica identificada no momento do cadastro, ao aceitar eletronicamente estes Termos e Condições, declara ter lido, compreendido e concordado integralmente com todas as cláusulas aqui dispostas, constituindo este aceite um contrato válido e vinculante entre as partes.</p>
+            
+            <p class="legal-ref">Base legal: Art. 107 do Código Civil Brasileiro (Lei 10.406/2002) - "A validade da declaração de vontade não dependerá de forma especial, senão quando a lei expressamente a exigir."</p>
         </div>
 
-        <!-- LOGIN FORM -->
-        <form id="loginForm">
-            <div class="form-group">
-                <label for="loginEmail">E-mail</label>
-                <input type="email" id="loginEmail" placeholder="seu@email.com" required>
-            </div>
+        <h2>CLÁUSULA 1 - OBJETO DO CONTRATO</h2>
+        <div class="clause">
+            <p><strong>1.1.</strong> O objeto deste contrato é o fornecimento de acesso, em caráter de prova de conceito, à PLATAFORMA Pharmyrus, que oferece serviços de:</p>
+            <ul>
+                <li>Busca automatizada de patentes em bases de dados públicas (INPI, USPTO, EPO);</li>
+                <li>Análise computacional de portfólios de patentes farmacêuticas;</li>
+                <li>Geração de relatórios sobre status de proteção patentária;</li>
+                <li>Identificação de barreiras e oportunidades no mercado farmacêutico.</li>
+            </ul>
 
-            <div class="form-group">
-                <label for="loginPassword">Senha</label>
-                <input type="password" id="loginPassword" placeholder="••••••••" required>
-            </div>
+            <p><strong>1.2.</strong> A PLATAFORMA é fornecida "no estado em que se encontra" (<em>as is</em>), em regime de POC, com funcionalidades limitadas e sem garantias de disponibilidade ininterrupta.</p>
+            
+            <p class="legal-ref">Base legal: Art. 422 do Código Civil - "Os contratantes são obrigados a guardar, assim na conclusão do contrato, como em sua execução, os princípios de probidade e boa-fé."</p>
+        </div>
 
-            <button type="submit" class="btn" id="loginBtn">Entrar</button>
-        </form>
+        <h2>CLÁUSULA 2 - CADASTRO E IDENTIFICAÇÃO DO USUÁRIO</h2>
+        <div class="clause">
+            <p><strong>2.1.</strong> Para utilizar a PLATAFORMA, o USUÁRIO deverá realizar cadastro fornecendo informações verídicas e completas, incluindo:</p>
+            <ul>
+                <li>Nome completo;</li>
+                <li>Endereço de e-mail válido;</li>
+                <li>Nome da empresa ou instituição (quando aplicável);</li>
+                <li>Código de convite válido fornecido pela CONTRATADA.</li>
+            </ul>
 
-        <!-- REGISTER FORM -->
-        <form id="registerForm" class="hidden">
-            <div class="info-box">
-                ℹ️ <strong>Acesso por convite:</strong> Você precisa de um código de convite para se cadastrar. Entre em contato com nossa equipe.
-            </div>
+            <p><strong>2.2.</strong> O USUÁRIO declara e garante que todas as informações fornecidas são verdadeiras, atuais e completas, responsabilizando-se civil e criminalmente pela veracidade das mesmas.</p>
 
-            <div class="form-group">
-                <label for="inviteCode">Código de Convite</label>
-                <input 
-                    type="text" 
-                    id="inviteCode" 
-                    class="invite-code-input"
-                    placeholder="A3X9K2" 
-                    maxlength="6"
-                    required
-                    autocomplete="off"
-                >
-            </div>
+            <p><strong>2.3.</strong> O USUÁRIO é exclusivamente responsável pela confidencialidade de suas credenciais de acesso (e-mail e senha), comprometendo-se a não compartilhá-las com terceiros.</p>
 
-            <div class="form-group">
-                <label for="registerEmail">E-mail</label>
-                <input type="email" id="registerEmail" placeholder="seu@email.com" required>
-            </div>
+            <p class="legal-ref">Base legal: Art. 186 do Código Civil - "Aquele que, por ação ou omissão voluntária, negligência ou imprudência, violar direito e causar dano a outrem, ainda que exclusivamente moral, comete ato ilícito."</p>
+        </div>
 
-            <div class="form-group">
-                <label for="registerName">Nome Completo</label>
-                <input type="text" id="registerName" placeholder="Seu nome completo" required>
-            </div>
+        <h2>CLÁUSULA 3 - PROPRIEDADE INTELECTUAL</h2>
+        <div class="clause">
+            <p><strong>3.1.</strong> Todos os direitos de propriedade intelectual sobre a PLATAFORMA, incluindo mas não limitado a códigos-fonte, algoritmos, bases de dados proprietárias, interface visual, marcas e logotipos, são de titularidade exclusiva da CONTRATADA.</p>
 
-            <div class="form-group autocomplete-container">
-                <label for="registerCompany">Nome da Empresa</label>
-                <input 
-                    type="text" 
-                    id="registerCompany" 
-                    placeholder="Digite o nome da empresa" 
-                    required
-                    autocomplete="off"
-                >
-                <div id="autocompleteList" class="autocomplete-list"></div>
-            </div>
+            <p><strong>3.2.</strong> É expressamente <span class="highlight">PROIBIDO</span> ao USUÁRIO:</p>
+            <ul>
+                <li>Realizar engenharia reversa, descompilação ou desmontagem da PLATAFORMA;</li>
+                <li>Copiar, reproduzir ou distribuir qualquer parte da PLATAFORMA;</li>
+                <li>Criar obras derivadas baseadas na PLATAFORMA;</li>
+                <li>Remover, alterar ou ocultar avisos de direitos autorais;</li>
+                <li>Utilizar a PLATAFORMA para fins comerciais sem autorização expressa.</li>
+            </ul>
 
-            <div class="form-group">
-                <label for="registerPassword">Senha</label>
-                <input type="password" id="registerPassword" placeholder="Mínimo 6 caracteres" required minlength="6">
-            </div>
+            <p><strong>3.3.</strong> Os resultados gerados pela PLATAFORMA (relatórios, análises) são fornecidos ao USUÁRIO para uso interno e não comercial, sendo vedada sua redistribuição sem autorização.</p>
 
-            <div class="form-group">
-                <label for="registerPasswordConfirm">Confirmar Senha</label>
-                <input type="password" id="registerPasswordConfirm" placeholder="Repita a senha" required>
-            </div>
+            <p class="legal-ref">Base legal: Lei 9.609/98 (Lei do Software), Art. 2º - "O regime de proteção à propriedade intelectual de programa de computador é o conferido às obras literárias pela legislação de direitos autorais."</p>
+        </div>
 
-            <div class="terms-checkbox" id="termsContainer">
-                <input type="checkbox" id="acceptTerms" required>
-                <label for="acceptTerms">
-                    Li e aceito os <a href="terms.html" target="_blank">Termos e Condições de Uso</a> da plataforma Pharmyrus. Estou ciente de que o aceite possui valor legal de contrato.
-                </label>
-            </div>
+        <h2>CLÁUSULA 4 - LICENÇA DE USO LIMITADA</h2>
+        <div class="clause">
+            <p><strong>4.1.</strong> A CONTRATADA concede ao USUÁRIO, durante o período de POC, uma licença:</p>
+            <ul>
+                <li><strong>Não exclusiva:</strong> outros usuários podem acessar a PLATAFORMA;</li>
+                <li><strong>Não transferível:</strong> o USUÁRIO não pode ceder ou sublicenciar o acesso;</li>
+                <li><strong>Revogável:</strong> a CONTRATADA pode suspender o acesso a qualquer momento;</li>
+                <li><strong>Limitada:</strong> sujeita a quotas mensais de consultas conforme plano do usuário.</li>
+            </ul>
 
-            <button type="submit" class="btn" id="registerBtn">Criar Conta</button>
-        </form>
+            <p><strong>4.2.</strong> Esta licença não implica em transferência de propriedade ou direitos sobre a PLATAFORMA.</p>
+        </div>
 
-        <div class="forgot-password">
-            <a href="#" onclick="resetPassword(); return false;">Esqueci minha senha</a>
+        <h2>CLÁUSULA 5 - LIMITAÇÕES E QUOTAS DE USO</h2>
+        <div class="clause">
+            <p><strong>5.1.</strong> O uso da PLATAFORMA está sujeito a limitações técnicas e quotas estabelecidas pela CONTRATADA, incluindo:</p>
+            <ul>
+                <li>Número máximo de consultas mensais (padrão: 10 consultas/mês);</li>
+                <li>Tempo máximo de processamento por consulta;</li>
+                <li>Tamanho máximo de relatórios gerados.</li>
+            </ul>
+
+            <p><strong>5.2.</strong> A CONTRATADA reserva-se o direito de modificar as quotas a qualquer momento, mediante comunicação prévia ao USUÁRIO.</p>
+
+            <p><strong>5.3.</strong> O USUÁRIO reconhece que o excesso de uso ou uso abusivo da PLATAFORMA pode resultar em suspensão temporária ou permanente de sua conta.</p>
+        </div>
+
+        <h2>CLÁUSULA 6 - PRIVACIDADE E PROTEÇÃO DE DADOS</h2>
+        <div class="clause">
+            <p><strong>6.1.</strong> A CONTRATADA compromete-se a tratar os dados pessoais do USUÁRIO em conformidade com a Lei Geral de Proteção de Dados (Lei 13.709/2018 - LGPD) e demais legislações aplicáveis.</p>
+
+            <p><strong>6.2.</strong> Os seguintes dados são coletados e armazenados:</p>
+            <ul>
+                <li>Dados cadastrais (nome, e-mail, empresa);</li>
+                <li>Dados de acesso (IP, data/hora de login);</li>
+                <li>Dados de uso (consultas realizadas, relatórios gerados);</li>
+                <li>Dados de aceite contratual (timestamp, IP, termo aceito).</li>
+            </ul>
+
+            <p><strong>6.3.</strong> Os dados coletados serão utilizados exclusivamente para:</p>
+            <ul>
+                <li>Prestação dos serviços da PLATAFORMA;</li>
+                <li>Melhoria e desenvolvimento de funcionalidades;</li>
+                <li>Análise estatística agregada e anonimizada;</li>
+                <li>Cumprimento de obrigações legais e regulatórias.</li>
+            </ul>
+
+            <p><strong>6.4.</strong> O USUÁRIO tem direito a:</p>
+            <ul>
+                <li>Acessar seus dados pessoais armazenados;</li>
+                <li>Solicitar correção de dados incorretos;</li>
+                <li>Solicitar exclusão de dados (direito ao esquecimento);</li>
+                <li>Revogar consentimento para tratamento de dados não obrigatórios;</li>
+                <li>Portabilidade de dados para outro fornecedor.</li>
+            </ul>
+
+            <p class="legal-ref">Base legal: Lei 13.709/2018 (LGPD), Art. 7º, I - "O tratamento de dados pessoais somente poderá ser realizado mediante o fornecimento de consentimento pelo titular."</p>
+        </div>
+
+        <h2>CLÁUSULA 7 - RESPONSABILIDADES E LIMITAÇÕES DE GARANTIA</h2>
+        <div class="clause">
+            <p><strong>7.1.</strong> A PLATAFORMA é fornecida em regime de POC, <span class="highlight">SEM GARANTIAS</span> expressas ou implícitas de:</p>
+            <ul>
+                <li>Disponibilidade ininterrupta ou livre de erros;</li>
+                <li>Adequação a finalidades específicas;</li>
+                <li>Precisão, completude ou atualidade dos dados fornecidos;</li>
+                <li>Não violação de direitos de terceiros.</li>
+            </ul>
+
+            <p><strong>7.2.</strong> O USUÁRIO reconhece e aceita que:</p>
+            <ul>
+                <li>Os resultados gerados pela PLATAFORMA são <strong>informativos</strong> e não constituem aconselhamento jurídico, técnico ou comercial;</li>
+                <li>As informações sobre patentes são obtidas de bases públicas (INPI, USPTO, EPO) e podem conter imprecisões ou estar desatualizadas;</li>
+                <li>Decisões estratégicas ou comerciais baseadas nos resultados da PLATAFORMA são de <strong>exclusiva responsabilidade do USUÁRIO</strong>.</li>
+            </ul>
+
+            <p><strong>7.3.</strong> A CONTRATADA não se responsabiliza por:</p>
+            <ul>
+                <li>Danos diretos, indiretos, incidentais ou consequenciais decorrentes do uso da PLATAFORMA;</li>
+                <li>Perda de lucros, receitas, dados ou oportunidades de negócio;</li>
+                <li>Interrupções de serviço causadas por manutenções, falhas técnicas ou caso fortuito;</li>
+                <li>Ações de terceiros, incluindo ataques cibernéticos ou violações de segurança.</li>
+            </ul>
+
+            <p><strong>7.4.</strong> A responsabilidade total da CONTRATADA, em qualquer hipótese, fica limitada ao valor pago pelo USUÁRIO nos 3 (três) meses anteriores ao evento gerador da responsabilidade. No caso de POC gratuita, a responsabilidade limita-se a R$ 100,00 (cem reais).</p>
+
+            <p class="legal-ref">Base legal: Art. 927 do Código Civil - "Aquele que, por ato ilícito (arts. 186 e 187), causar dano a outrem, fica obrigado a repará-lo."</p>
+        </div>
+
+        <h2>CLÁUSULA 8 - USO ACEITÁVEL E PROIBIÇÕES</h2>
+        <div class="clause">
+            <p><strong>8.1.</strong> O USUÁRIO compromete-se a utilizar a PLATAFORMA apenas para fins lícitos e de acordo com estes Termos.</p>
+
+            <p><strong>8.2.</strong> É <span class="highlight">EXPRESSAMENTE PROIBIDO</span>:</p>
+            <ul>
+                <li>Utilizar a PLATAFORMA para atividades ilegais, fraudulentas ou antiéticas;</li>
+                <li>Tentar acessar áreas restritas ou dados de outros usuários;</li>
+                <li>Transmitir vírus, malware ou códigos maliciosos;</li>
+                <li>Realizar ataques de negação de serviço (DDoS) ou sobrecarregar a infraestrutura;</li>
+                <li>Extrair dados em massa (scraping) sem autorização;</li>
+                <li>Criar contas falsas ou utilizar identidades de terceiros;</li>
+                <li>Comercializar, revender ou sublicenciar o acesso à PLATAFORMA;</li>
+                <li>Utilizar a PLATAFORMA para espionagem industrial ou concorrência desleal.</li>
+            </ul>
+
+            <p><strong>8.3.</strong> A violação de qualquer proibição acima resultará em suspensão imediata da conta, sem prejuízo de medidas legais cabíveis.</p>
+        </div>
+
+        <h2>CLÁUSULA 9 - VIGÊNCIA E RESCISÃO</h2>
+        <div class="clause">
+            <p><strong>9.1.</strong> Este contrato entra em vigor na data de aceite eletrônico pelo USUÁRIO e permanece válido enquanto o USUÁRIO mantiver acesso ativo à PLATAFORMA.</p>
+
+            <p><strong>9.2.</strong> Qualquer das partes pode rescindir este contrato a qualquer momento, sem necessidade de justificativa:</p>
+            <ul>
+                <li>O USUÁRIO pode encerrar sua conta através das configurações da PLATAFORMA;</li>
+                <li>A CONTRATADA pode suspender ou encerrar o acesso do USUÁRIO mediante notificação.</li>
+            </ul>
+
+            <p><strong>9.3.</strong> Após a rescisão:</p>
+            <ul>
+                <li>O USUÁRIO perde imediatamente o direito de acessar a PLATAFORMA;</li>
+                <li>Os dados do USUÁRIO serão mantidos por até 5 (cinco) anos para fins de compliance;</li>
+                <li>As obrigações de confidencialidade e propriedade intelectual permanecem vigentes.</li>
+            </ul>
+        </div>
+
+        <h2>CLÁUSULA 10 - MODIFICAÇÕES DOS TERMOS</h2>
+        <div class="clause">
+            <p><strong>10.1.</strong> A CONTRATADA reserva-se o direito de modificar estes Termos e Condições a qualquer momento.</p>
+
+            <p><strong>10.2.</strong> Modificações materiais serão comunicadas ao USUÁRIO através do e-mail cadastrado, com antecedência mínima de 15 (quinze) dias.</p>
+
+            <p><strong>10.3.</strong> O uso continuado da PLATAFORMA após a entrada em vigor das modificações constitui aceitação tácita dos novos termos.</p>
+
+            <p><strong>10.4.</strong> Caso o USUÁRIO não concorde com as modificações, deverá cessar imediatamente o uso da PLATAFORMA e solicitar o encerramento de sua conta.</p>
+        </div>
+
+        <h2>CLÁUSULA 11 - CONFIDENCIALIDADE</h2>
+        <div class="clause">
+            <p><strong>11.1.</strong> O USUÁRIO reconhece que pode ter acesso a informações confidenciais da CONTRATADA, incluindo funcionalidades, metodologias e algoritmos da PLATAFORMA.</p>
+
+            <p><strong>11.2.</strong> O USUÁRIO compromete-se a:</p>
+            <ul>
+                <li>Manter a confidencialidade de todas as informações não públicas;</li>
+                <li>Não divulgar, reproduzir ou utilizar tais informações para fins não autorizados;</li>
+                <li>Proteger tais informações com o mesmo grau de cuidado aplicado às suas próprias informações confidenciais.</li>
+            </ul>
+
+            <p><strong>11.3.</strong> Esta obrigação de confidencialidade permanece válida por 5 (cinco) anos após o término do contrato.</p>
+        </div>
+
+        <h2>CLÁUSULA 12 - LEI APLICÁVEL E FORO</h2>
+        <div class="clause">
+            <p><strong>12.1.</strong> Este contrato é regido pelas leis da República Federativa do Brasil.</p>
+
+            <p><strong>12.2.</strong> Fica eleito o foro da Comarca de <strong>[CIDADE DA EMPRESA]</strong> para dirimir quaisquer controvérsias decorrentes deste contrato, com renúncia expressa a qualquer outro, por mais privilegiado que seja.</p>
+
+            <p class="legal-ref">Base legal: Art. 78 do Código de Processo Civil - "É lícito às partes modificar a competência em razão do valor e do território, elegendo foro onde serão propostas as ações oriundas de direitos e obrigações."</p>
+        </div>
+
+        <h2>CLÁUSULA 13 - DISPOSIÇÕES GERAIS</h2>
+        <div class="clause">
+            <p><strong>13.1.</strong> A tolerância de qualquer das partes quanto ao descumprimento de qualquer obrigação não constituirá novação ou renúncia de direitos.</p>
+
+            <p><strong>13.2.</strong> Se qualquer disposição destes Termos for considerada inválida ou inexequível, as demais disposições permanecerão em pleno vigor.</p>
+
+            <p><strong>13.3.</strong> Este contrato constitui o acordo integral entre as partes, substituindo quaisquer negociações, entendimentos ou acordos anteriores.</p>
+
+            <p><strong>13.4.</strong> O USUÁRIO não pode ceder ou transferir seus direitos e obrigações sob este contrato sem consentimento prévio e por escrito da CONTRATADA.</p>
+
+            <p><strong>13.5.</strong> Os títulos das cláusulas são meramente indicativos e não afetam a interpretação das disposições.</p>
+        </div>
+
+        <h2>CLÁUSULA 14 - ACEITE ELETRÔNICO</h2>
+        <div class="clause">
+            <p><strong>14.1.</strong> O USUÁRIO declara ter lido, compreendido e concordado integralmente com todos os termos e condições aqui estabelecidos.</p>
+
+            <p><strong>14.2.</strong> O aceite eletrônico destes Termos, mediante clique no checkbox "Aceito os Termos e Condições", constitui manifestação de vontade válida e vinculante, equivalente a uma assinatura manuscrita.</p>
+
+            <p><strong>14.3.</strong> A CONTRATADA registrará eletronicamente os seguintes dados do aceite:</p>
+            <ul>
+                <li>Data e hora exatas do aceite (timestamp);</li>
+                <li>Endereço IP do USUÁRIO;</li>
+                <li>Identificação completa do USUÁRIO (nome, e-mail, empresa);</li>
+                <li>Versão dos Termos aceita;</li>
+                <li>Identificador único do aceite (contract ID).</li>
+            </ul>
+
+            <p><strong>14.4.</strong> Esses registros terão valor probatório e serão mantidos pela CONTRATADA por prazo indeterminado para fins de auditoria e compliance.</p>
+
+            <p class="legal-ref">Base legal: Medida Provisória 2.200-2/2001 (ICP-Brasil), Art. 10 - "Consideram-se documentos públicos ou particulares, para todos os fins legais, os documentos eletrônicos de que trata esta Medida Provisória."</p>
+        </div>
+
+        <h2>CONTATO</h2>
+        <div class="clause">
+            <p>Para dúvidas, solicitações ou exercício de direitos relacionados a estes Termos e Condições, o USUÁRIO pode entrar em contato através do e-mail: <strong>legal@pharmyrus.com</strong></p>
+        </div>
+
+        <div class="footer">
+            <p><strong>Pharmyrus - Plataforma de Análise de Patentes Farmacêuticas</strong></p>
+            <p>Versão 1.0 dos Termos e Condições | Última atualização: 31 de outubro de 2025</p>
+            <p>© 2025 Pharmyrus. Todos os direitos reservados.</p>
+            
+            <a href="login.html" class="btn-back">← Voltar para o Cadastro</a>
         </div>
     </div>
-
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { 
-            getAuth, 
-            signInWithEmailAndPassword, 
-            createUserWithEmailAndPassword,
-            sendPasswordResetEmail,
-            updateProfile,
-            setPersistence,
-            browserLocalPersistence
-        } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-        import { 
-            getFirestore, 
-            doc, 
-            setDoc, 
-            getDoc,
-            getDocs,
-            collection,
-            query,
-            where,
-            updateDoc,
-            serverTimestamp 
-        } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyAHq5Tvn3qZvbj1D2GJdUW-BhPWiAURBJI",
-            authDomain: "patentes-51d85.firebaseapp.com",
-            projectId: "patentes-51d85",
-            storageBucket: "patentes-51d85.firebasestorage.app",
-            messagingSenderId: "278792677855",
-            appId: "1:278792677855:web:a801a4894efe7aa1bbbc6a"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        // FORÇAR persistência local
-        setPersistence(auth, browserLocalPersistence);
-
-        console.log('🔥 Firebase inicializado');
-
-        // AUTOCOMPLETE DE EMPRESAS
-        let companiesList = [];
-        
-        async function loadCompanies() {
-            try {
-                const usersRef = collection(db, 'users');
-                const snapshot = await getDocs(usersRef);
-                const companies = new Set();
-                
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    if (data.company) {
-                        companies.add(data.company);
-                    }
-                });
-                
-                companiesList = Array.from(companies).sort();
-                console.log('📊 Empresas carregadas:', companiesList.length);
-            } catch (error) {
-                console.error('❌ Erro ao carregar empresas:', error);
-            }
-        }
-
-        function setupAutocomplete() {
-            const companyInput = document.getElementById('registerCompany');
-            const autocompleteList = document.getElementById('autocompleteList');
-            
-            if (!companyInput) return;
-            
-            companyInput.addEventListener('input', function() {
-                const value = this.value.trim().toLowerCase();
-                autocompleteList.innerHTML = '';
-                
-                if (value.length < 2) {
-                    autocompleteList.classList.remove('show');
-                    return;
-                }
-                
-                const filtered = companiesList.filter(company => 
-                    company.toLowerCase().includes(value)
-                );
-                
-                if (filtered.length === 0) {
-                    autocompleteList.innerHTML = '<div class="autocomplete-empty">Nenhuma empresa encontrada. Digite o nome completo.</div>';
-                    autocompleteList.classList.add('show');
-                    return;
-                }
-                
-                filtered.slice(0, 5).forEach(company => {
-                    const div = document.createElement('div');
-                    div.className = 'autocomplete-item';
-                    div.textContent = company;
-                    div.onclick = function() {
-                        companyInput.value = company;
-                        autocompleteList.classList.remove('show');
-                    };
-                    autocompleteList.appendChild(div);
-                });
-                
-                autocompleteList.classList.add('show');
-            });
-            
-            // Fechar lista ao clicar fora
-            document.addEventListener('click', function(e) {
-                if (!e.target.closest('.autocomplete-container')) {
-                    autocompleteList.classList.remove('show');
-                }
-            });
-        }
-
-        // GERAR ID ÚNICO DE CONTRATO (24 caracteres alfanuméricos)
-        function generateContractId() {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            let id = '';
-            for (let i = 0; i < 24; i++) {
-                id += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            return id;
-        }
-
-        // OBTER IP DO USUÁRIO
-        async function getUserIP() {
-            try {
-                const response = await fetch('https://api.ipify.org?format=json');
-                const data = await response.json();
-                return data.ip;
-            } catch (error) {
-                console.error('❌ Erro ao obter IP:', error);
-                return 'IP_UNAVAILABLE';
-            }
-        }
-
-        // CRIAR REGISTRO DE CONTRATO
-        async function createContractRecord(userId, userData) {
-            try {
-                const contractId = generateContractId();
-                const userIP = await getUserIP();
-                const timestamp = new Date();
-                
-                const contractData = {
-                    contractId: contractId,
-                    userId: userId,
-                    userEmail: userData.email,
-                    userName: userData.displayName,
-                    userCompany: userData.company,
-                    acceptedAt: timestamp,
-                    acceptedAtISO: timestamp.toISOString(),
-                    ipAddress: userIP,
-                    termsVersion: '1.0',
-                    termsAccepted: true,
-                    userAgent: navigator.userAgent,
-                    weeklyConsultations: 0,
-                    totalConsultations: 0,
-                    lastConsultationDate: null
-                };
-                
-                const contractRef = doc(db, 'contracts', contractId);
-                await setDoc(contractRef, contractData);
-                
-                console.log('📜 Contrato registrado:', contractId);
-                return contractId;
-            } catch (error) {
-                console.error('❌ Erro ao criar contrato:', error);
-                throw error;
-            }
-        }
-
-        function showError(message) {
-            console.log('❌ ERRO:', message);
-            const el = document.getElementById('errorMessage');
-            el.textContent = message;
-            el.classList.add('show');
-            setTimeout(() => el.classList.remove('show'), 5000);
-        }
-
-        function showSuccess(message) {
-            console.log('✅ SUCESSO:', message);
-            const el = document.getElementById('successMessage');
-            el.textContent = message;
-            el.classList.add('show');
-        }
-
-        function clearAllFields() {
-            document.getElementById('loginEmail').value = '';
-            document.getElementById('loginPassword').value = '';
-            document.getElementById('inviteCode').value = '';
-            document.getElementById('registerEmail').value = '';
-            document.getElementById('registerName').value = '';
-            document.getElementById('registerPassword').value = '';
-            document.getElementById('registerPasswordConfirm').value = '';
-        }
-
-        window.switchTab = function(tab) {
-            const tabs = document.querySelectorAll('.tab');
-            tabs.forEach(t => t.classList.remove('active'));
-            clearAllFields();
-            
-            if (tab === 'login') {
-                tabs[0].classList.add('active');
-                document.getElementById('loginForm').classList.remove('hidden');
-                document.getElementById('registerForm').classList.add('hidden');
-            } else {
-                tabs[1].classList.add('active');
-                document.getElementById('loginForm').classList.add('hidden');
-                document.getElementById('registerForm').classList.remove('hidden');
-            }
-        };
-
-        async function validateInviteCode(code, email) {
-            const invitesQuery = query(
-                collection(db, 'invites'),
-                where('code', '==', code.toUpperCase())
-            );
-
-            const snapshot = await getDocs(invitesQuery);
-
-            if (snapshot.empty) {
-                throw new Error('Código de convite inválido');
-            }
-
-            const inviteDoc = snapshot.docs[0];
-            const invite = inviteDoc.data();
-
-            if (invite.status === 'used') {
-                throw new Error('Este código de convite já foi utilizado');
-            }
-
-            if (invite.expiresAt && invite.expiresAt.toDate() < new Date()) {
-                throw new Error('Este código de convite expirou');
-            }
-
-            if (invite.email.toLowerCase() !== email.toLowerCase()) {
-                throw new Error('Este convite foi criado para outro e-mail');
-            }
-
-            return { inviteRef: inviteDoc.ref, invite };
-        }
-
-        async function createUserDocument(user, displayName, company, inviteCode, contractId) {
-            console.log('📝 Criando documento:', user.email);
-            const userRef = doc(db, 'users', user.uid);
-            const userSnap = await getDoc(userRef);
-
-            if (!userSnap.exists()) {
-                const isAdmin = user.email === 'daniel.mendes@dataholics.io';
-                
-                // CORREÇÃO: Usar displayName passado como parâmetro OU email (NUNCA user.displayName)
-                const finalDisplayName = displayName || user.email;
-                
-                console.log('👤 DisplayName a salvar:', finalDisplayName);
-                console.log('🏢 Company a salvar:', company);
-                console.log('📜 Contract ID:', contractId);
-                
-                await setDoc(userRef, {
-                    email: user.email,
-                    displayName: finalDisplayName,
-                    company: company,
-                    contractId: contractId,
-                    termsAccepted: true,
-                    termsVersion: '1.0',
-                    createdAt: serverTimestamp(),
-                    inviteCode: inviteCode || null,
-                    quotaLimit: isAdmin ? -1 : 10,
-                    quotaUsed: 0,
-                    quotaResetDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1),
-                    isAdmin: isAdmin
-                });
-                console.log('✅ Documento criado com displayName:', finalDisplayName);
-            } else {
-                console.log('✅ Documento já existe');
-            }
-        }
-
-        // LOGIN COM SALVAMENTO FORÇADO NO LOCALSTORAGE
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            console.log('🔐 Iniciando login...');
-            
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            const btn = document.getElementById('loginBtn');
-
-            btn.disabled = true;
-            btn.textContent = 'Entrando...';
-
-            try {
-                console.log('🔐 Autenticando:', email);
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                console.log('✅ Autenticado:', userCredential.user.uid);
-                
-                // CORREÇÃO: Atualizar displayName no Firebase Auth para usar o email
-                console.log('🔧 Atualizando displayName no Firebase Auth...');
-                await updateProfile(userCredential.user, { 
-                    displayName: email 
-                });
-                console.log('✅ DisplayName atualizado no Firebase Auth:', email);
-                
-                console.log('📝 Criando/verificando documento...');
-                await createUserDocument(userCredential.user, email); // Passar email como displayName
-                
-                console.log('💾 Salvando no localStorage...');
-                localStorage.setItem('pharmyrus_logged_in', 'true');
-                localStorage.setItem('pharmyrus_user_email', email);
-                localStorage.setItem('pharmyrus_user_uid', userCredential.user.uid);
-                
-                console.log('✅ Tudo pronto, redirecionando...');
-                showSuccess('Login realizado! Redirecionando...');
-                
-                // Aguardar 2 segundos para garantir propagação
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                
-                console.log('🚀 REDIRECIONANDO AGORA');
-                window.location.href = 'index.html';
-                
-            } catch (error) {
-                console.error('❌ Erro completo:', error);
-                let message = 'Erro ao fazer login: ' + error.message;
-                
-                if (error.code === 'auth/user-not-found') {
-                    message = 'Usuário não encontrado';
-                } else if (error.code === 'auth/wrong-password') {
-                    message = 'Senha incorreta';
-                } else if (error.code === 'auth/invalid-email') {
-                    message = 'E-mail inválido';
-                } else if (error.code === 'auth/invalid-credential') {
-                    message = 'E-mail ou senha incorretos';
-                }
-                
-                showError(message);
-                btn.disabled = false;
-                btn.textContent = 'Entrar';
-            }
-        });
-
-        // REGISTER
-        document.getElementById('registerForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            console.log('📝 Iniciando cadastro...');
-            
-            const inviteCode = document.getElementById('inviteCode').value.trim().toUpperCase();
-            const email = document.getElementById('registerEmail').value.trim();
-            const name = document.getElementById('registerName').value.trim();
-            const company = document.getElementById('registerCompany').value.trim();
-            const password = document.getElementById('registerPassword').value;
-            const passwordConfirm = document.getElementById('registerPasswordConfirm').value;
-            const acceptTerms = document.getElementById('acceptTerms').checked;
-            const btn = document.getElementById('registerBtn');
-            const termsContainer = document.getElementById('termsContainer');
-
-            // Validar termos
-            if (!acceptTerms) {
-                termsContainer.classList.add('error');
-                showError('Você precisa aceitar os Termos e Condições para continuar');
-                setTimeout(() => termsContainer.classList.remove('error'), 3000);
-                return;
-            }
-
-            if (password !== passwordConfirm) {
-                showError('As senhas não coincidem');
-                return;
-            }
-
-            btn.disabled = true;
-            btn.textContent = 'Validando convite...';
-
-            try {
-                console.log('🎟️ Validando convite:', inviteCode);
-                const { inviteRef, invite } = await validateInviteCode(inviteCode, email);
-
-                btn.textContent = 'Criando conta...';
-                console.log('👤 Criando usuário:', email);
-
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                
-                btn.textContent = 'Registrando aceite de termos...';
-                console.log('📜 Criando registro de contrato...');
-                
-                // Criar registro de contrato ANTES de criar o documento do usuário
-                const userData = {
-                    email: email,
-                    displayName: name,
-                    company: company
-                };
-                const contractId = await createContractRecord(userCredential.user.uid, userData);
-                
-                btn.textContent = 'Finalizando cadastro...';
-                await updateProfile(userCredential.user, { displayName: name });
-                await createUserDocument(userCredential.user, name, company, inviteCode, contractId);
-
-                btn.textContent = 'Marcando convite...';
-                console.log('✅ Marcando convite como usado');
-
-                await updateDoc(inviteRef, {
-                    status: 'used',
-                    usedAt: serverTimestamp(),
-                    usedBy: userCredential.user.uid
-                });
-
-                console.log('💾 Salvando no localStorage...');
-                localStorage.setItem('pharmyrus_logged_in', 'true');
-                localStorage.setItem('pharmyrus_user_email', email);
-                localStorage.setItem('pharmyrus_user_uid', userCredential.user.uid);
-
-                showSuccess('Conta criada! Redirecionando...');
-                
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                
-                console.log('🚀 REDIRECIONANDO AGORA');
-                window.location.href = 'index.html';
-
-            } catch (error) {
-                console.error('❌ Erro completo:', error);
-                let message = 'Erro ao criar conta: ' + error.message;
-                
-                if (error.message.includes('convite')) {
-                    message = error.message;
-                } else if (error.code === 'auth/email-already-in-use') {
-                    message = 'Este e-mail já está cadastrado';
-                } else if (error.code === 'auth/weak-password') {
-                    message = 'Senha muito fraca (mínimo 6 caracteres)';
-                } else if (error.code === 'auth/invalid-email') {
-                    message = 'E-mail inválido';
-                }
-                
-                showError(message);
-                btn.disabled = false;
-                btn.textContent = 'Criar Conta';
-            }
-        });
-
-        window.resetPassword = async function() {
-            const email = prompt('Digite seu e-mail:');
-            if (!email) return;
-
-            try {
-                await sendPasswordResetEmail(auth, email);
-                showSuccess('E-mail de recuperação enviado!');
-            } catch (error) {
-                console.error('Erro ao enviar e-mail:', error);
-                showError('Erro ao enviar e-mail de recuperação');
-            }
-        };
-
-        // INICIALIZAR AUTOCOMPLETE E CARREGAR EMPRESAS
-        loadCompanies();
-        setupAutocomplete();
-
-        console.log('✅ Script carregado completamente');
-    </script>
 </body>
 </html>
