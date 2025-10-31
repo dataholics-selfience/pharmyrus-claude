@@ -517,12 +517,18 @@
                 // Buscar todas as buscas do usuário
                 const searchesQuery = query(
                     collection(db, 'searches'),
-                    where('userId', '==', contract.userId),
-                    orderBy('timestamp', 'desc')
+                    where('userId', '==', contract.userId)
                 );
                 const searchesSnap = await getDocs(searchesQuery);
                 const searches = [];
                 searchesSnap.forEach(doc => searches.push(doc.data()));
+                
+                // Ordenar localmente por timestamp
+                searches.sort((a, b) => {
+                    if (!a.timestamp) return 1;
+                    if (!b.timestamp) return -1;
+                    return b.timestamp.toMillis() - a.timestamp.toMillis();
+                });
                 
                 // Gerar PDF
                 const { jsPDF } = window.jspdf;
