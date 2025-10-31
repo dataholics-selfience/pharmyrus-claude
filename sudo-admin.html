@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sudo Admin - Pharmyrus</title>
+    
+    <!-- jsPDF para PDFs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); min-height: 100vh; padding: 2rem; color: white; }
@@ -17,6 +21,14 @@
         .btn-back { padding: 0.5rem 1rem; background: #667eea; border: none; border-radius: 0.5rem; color: white; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; }
         .btn-back:hover { background: #5568d3; }
         .header-actions { display: flex; align-items: center; gap: 0.5rem; }
+        
+        /* Tabs */
+        .tabs { display: flex; gap: 0.5rem; margin-bottom: 2rem; border-bottom: 2px solid rgba(255,255,255,0.1); }
+        .tab { padding: 1rem 2rem; background: transparent; border: none; color: rgba(255,255,255,0.6); font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; }
+        .tab:hover { color: rgba(255,255,255,0.9); }
+        .tab.active { color: #10b981; border-bottom-color: #10b981; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
         
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem; }
         
@@ -59,9 +71,21 @@
         
         .loading { text-align: center; padding: 2rem; color: rgba(255,255,255,0.5); }
         
+        /* Contratos */
+        table { width: 100%; border-collapse: collapse; background: rgba(255,255,255,0.05); }
+        thead { background: rgba(255,255,255,0.1); position: sticky; top: 0; }
+        th { padding: 1rem; text-align: left; color: #10b981; border-bottom: 2px solid rgba(255,255,255,0.1); font-weight: 600; }
+        td { padding: 1rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        tr:hover { background: rgba(255,255,255,0.03); }
+        .btn-pdf { padding: 0.5rem 1rem; background: #10b981; border: none; border-radius: 0.5rem; color: white; font-weight: 600; cursor: pointer; font-size: 0.875rem; }
+        .btn-pdf:hover { background: #059669; }
+        .btn-pdf:disabled { background: #6b7280; cursor: not-allowed; }
+        .contract-id { font-family: 'Courier New', monospace; font-size: 0.75rem; color: #10b981; }
+        
         @media (max-width: 768px) {
             .grid { grid-template-columns: 1fr; }
             .invite-item { grid-template-columns: 1fr; }
+            .stats { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -79,73 +103,109 @@
             </div>
         </div>
 
-        <div class="stats">
-            <div class="stat-card">
-                <div class="stat-number" id="totalInvites">0</div>
-                <div class="stat-label">Total de Convites</div>
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('convites')">🎟️ Convites</button>
+            <button class="tab" onclick="showTab('contratos')">📜 Contratos</button>
+        </div>
+
+        <!-- Tab: Convites -->
+        <div id="tab-convites" class="tab-content active">
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalInvites">0</div>
+                    <div class="stat-label">Total de Convites</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="pendingInvites">0</div>
+                    <div class="stat-label">Pendentes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="usedInvites">0</div>
+                    <div class="stat-label">Utilizados</div>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-number" id="pendingInvites">0</div>
-                <div class="stat-label">Pendentes</div>
+
+            <div class="grid">
+                <div class="card">
+                    <h2>🎟️ Criar Convite</h2>
+                    
+                    <form id="inviteForm">
+                        <div class="form-group">
+                            <label for="inviteEmail">E-mail do Convidado</label>
+                            <input type="email" id="inviteEmail" placeholder="usuario@exemplo.com" required>
+                        </div>
+
+                        <button type="submit" class="btn-primary" id="btnCreateInvite">
+                            Gerar Código de Convite
+                        </button>
+                    </form>
+
+                    <div id="successMessage" class="success">
+                        <p style="text-align: center; margin-bottom: 0.5rem;">✅ Convite criado com sucesso!</p>
+                        <div class="success-code" id="generatedCode">------</div>
+                        <p style="text-align: center; font-size: 0.875rem; color: rgba(255,255,255,0.7);">
+                            Envie este código para <strong id="invitedEmail"></strong>
+                        </p>
+                        <button class="btn-primary" onclick="copyCode()" style="margin-top: 1rem;">
+                            📋 Copiar Código
+                        </button>
+                    </div>
+
+                    <div id="errorMessage" class="error"></div>
+                </div>
+
+                <div class="card">
+                    <h2>📊 Estatísticas</h2>
+                    <div style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 0.5rem;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                            <span>Taxa de conversão:</span>
+                            <strong id="conversionRate">0%</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                            <span>Convites hoje:</span>
+                            <strong id="todayInvites">0</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Usuários ativos:</span>
+                            <strong id="activeUsers">0</strong>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-number" id="usedInvites">0</div>
-                <div class="stat-label">Utilizados</div>
+
+            <div class="card">
+                <h2>📋 Convites Criados</h2>
+                <div id="invitesList" class="invites-list">
+                    <div class="loading">Carregando convites...</div>
+                </div>
             </div>
         </div>
 
-        <div class="grid">
+        <!-- Tab: Contratos -->
+        <div id="tab-contratos" class="tab-content">
             <div class="card">
-                <h2>🎟️ Criar Convite</h2>
-                
-                <form id="inviteForm">
-                    <div class="form-group">
-                        <label for="inviteEmail">E-mail do Convidado</label>
-                        <input type="email" id="inviteEmail" placeholder="usuario@exemplo.com" required>
-                    </div>
-
-                    <button type="submit" class="btn-primary" id="btnCreateInvite">
-                        Gerar Código de Convite
-                    </button>
-                </form>
-
-                <div id="successMessage" class="success">
-                    <p style="text-align: center; margin-bottom: 0.5rem;">✅ Convite criado com sucesso!</p>
-                    <div class="success-code" id="generatedCode">------</div>
-                    <p style="text-align: center; font-size: 0.875rem; color: rgba(255,255,255,0.7);">
-                        Envie este código para <strong id="invitedEmail"></strong>
-                    </p>
-                    <button class="btn-primary" onclick="copyCode()" style="margin-top: 1rem;">
-                        📋 Copiar Código
-                    </button>
+                <h2>📜 Contratos Assinados</h2>
+                <div style="overflow-x: auto; max-height: 600px; overflow-y: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Contract ID</th>
+                                <th>Nome</th>
+                                <th>Email</th>
+                                <th>Empresa</th>
+                                <th>Data</th>
+                                <th>Ações</th>
+                                <th>PDF</th>
+                            </tr>
+                        </thead>
+                        <tbody id="contractsTable">
+                            <tr>
+                                <td colspan="7"><div class="loading">Carregando contratos...</div></td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
-
-                <div id="errorMessage" class="error"></div>
-            </div>
-
-            <div class="card">
-                <h2>📊 Estatísticas</h2>
-                <div style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 0.5rem;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
-                        <span>Taxa de conversão:</span>
-                        <strong id="conversionRate">0%</strong>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
-                        <span>Convites hoje:</span>
-                        <strong id="todayInvites">0</strong>
-                    </div>
-                    <div style="display: flex; justify-content: space-between;">
-                        <span>Usuários ativos:</span>
-                        <strong id="activeUsers">0</strong>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card">
-            <h2>📋 Convites Criados</h2>
-            <div id="invitesList" class="invites-list">
-                <div class="loading">Carregando convites...</div>
             </div>
         </div>
     </div>
@@ -153,7 +213,7 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-        import { getFirestore, collection, addDoc, getDocs, query, orderBy, where, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getFirestore, collection, addDoc, getDocs, getDoc, doc, query, orderBy, where, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
         const firebaseConfig = {
             apiKey: "AIzaSyAHq5Tvn3qZvbj1D2GJdUW-BhPWiAURBJI",
@@ -192,7 +252,7 @@
 
         // Generate Code
         function generateCode() {
-            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Sem I, O, 0, 1
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
             let code = '';
             for (let i = 0; i < 6; i++) {
                 code += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -216,7 +276,6 @@
             btn.textContent = 'Gerando...';
 
             try {
-                // Check if email already has pending invite
                 const existingQuery = query(
                     collection(db, 'invites'),
                     where('email', '==', email),
@@ -228,7 +287,6 @@
                     throw new Error('Este e-mail já possui um convite pendente');
                 }
 
-                // Generate unique code
                 let code = generateCode();
                 let attempts = 0;
                 while (attempts < 10) {
@@ -248,7 +306,6 @@
                     throw new Error('Erro ao gerar código único');
                 }
 
-                // Create invite
                 await addDoc(collection(db, 'invites'), {
                     code: code,
                     email: email,
@@ -257,7 +314,7 @@
                     usedAt: null,
                     usedBy: null,
                     status: 'pending',
-                    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 dias
+                    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
                 });
 
                 lastGeneratedCode = code;
@@ -373,6 +430,365 @@
             setTimeout(() => {
                 btn.textContent = originalText;
             }, 1500);
+        };
+
+        // Show Tab
+        window.showTab = async function(tabName) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab-' + tabName).classList.add('active');
+            event.target.classList.add('active');
+            
+            if (tabName === 'contratos') {
+                await loadContracts();
+            }
+        };
+
+        // Load Contracts
+        async function loadContracts() {
+            const tbody = document.getElementById('contractsTable');
+            tbody.innerHTML = '<tr><td colspan="7"><div class="loading">Carregando contratos...</div></td></tr>';
+            
+            try {
+                const contractsSnap = await getDocs(collection(db, 'contracts'));
+                
+                if (contractsSnap.empty) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:rgba(255,255,255,0.5)">Nenhum contrato encontrado</td></tr>';
+                    return;
+                }
+
+                let html = '';
+                
+                for (const contractDoc of contractsSnap.docs) {
+                    const contract = contractDoc.data();
+                    
+                    // Buscar searches do usuário
+                    const searchesQuery = query(
+                        collection(db, 'searches'),
+                        where('userId', '==', contract.userId)
+                    );
+                    const searchesSnap = await getDocs(searchesQuery);
+                    const totalSearches = searchesSnap.size;
+                    
+                    const date = contract.acceptedAt ? 
+                        new Date(contract.acceptedAt.toMillis()).toLocaleDateString('pt-BR') : 
+                        'N/A';
+                    
+                    html += `
+                        <tr>
+                            <td><span class="contract-id">${contract.contractId}</span></td>
+                            <td>${contract.userName}</td>
+                            <td>${contract.userEmail}</td>
+                            <td>${contract.userCompany}</td>
+                            <td>${date}</td>
+                            <td><strong>${totalSearches}</strong> buscas</td>
+                            <td>
+                                <button class="btn-pdf" onclick="generateContractPDF('${contractDoc.id}')">
+                                    📄 PDF
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }
+                
+                tbody.innerHTML = html;
+                
+            } catch (error) {
+                console.error('Erro ao carregar contratos:', error);
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:#ef4444">Erro ao carregar contratos</td></tr>';
+            }
+        }
+
+        // Generate Contract PDF
+        window.generateContractPDF = async function(contractId) {
+            const btn = event.target;
+            btn.disabled = true;
+            btn.textContent = '⏳ Gerando...';
+            
+            try {
+                // Buscar dados do contrato
+                const contractDoc = await getDoc(doc(db, 'contracts', contractId));
+                const contract = contractDoc.data();
+                
+                // Buscar dados do usuário
+                const userDoc = await getDoc(doc(db, 'users', contract.userId));
+                const user = userDoc.exists() ? userDoc.data() : {};
+                
+                // Buscar todas as buscas do usuário
+                const searchesQuery = query(
+                    collection(db, 'searches'),
+                    where('userId', '==', contract.userId),
+                    orderBy('timestamp', 'desc')
+                );
+                const searchesSnap = await getDocs(searchesQuery);
+                const searches = [];
+                searchesSnap.forEach(doc => searches.push(doc.data()));
+                
+                // Gerar PDF
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF();
+                
+                let y = 20;
+                const pageWidth = pdf.internal.pageSize.width;
+                const margin = 20;
+                
+                // Header verde
+                pdf.setFillColor(16, 185, 129);
+                pdf.rect(0, 0, pageWidth, 45, 'F');
+                
+                pdf.setTextColor(255, 255, 255);
+                pdf.setFontSize(20);
+                pdf.setFont(undefined, 'bold');
+                pdf.text('PHARMYRUS', margin, 20);
+                
+                pdf.setFontSize(14);
+                pdf.text('CONTRATO OFICIAL DE USO DA PLATAFORMA', margin, 30);
+                
+                pdf.setFontSize(10);
+                pdf.setFont(undefined, 'normal');
+                pdf.text('Documento com Valor Legal Probatório', margin, 38);
+                
+                y = 55;
+                pdf.setTextColor(0, 0, 0);
+                
+                // Emissão
+                pdf.setFontSize(9);
+                pdf.setTextColor(100, 100, 100);
+                pdf.text(`Emitido em: ${new Date().toLocaleString('pt-BR')}`, margin, y);
+                y += 15;
+                
+                // Seção 1: Dados do Contrato
+                pdf.setFontSize(14);
+                pdf.setTextColor(5, 150, 105);
+                pdf.setFont(undefined, 'bold');
+                pdf.text('1. DADOS DO CONTRATO DIGITAL', margin, y);
+                y += 3;
+                pdf.setDrawColor(5, 150, 105);
+                pdf.setLineWidth(0.5);
+                pdf.line(margin, y, pageWidth - margin, y);
+                y += 10;
+                
+                pdf.setFontSize(10);
+                pdf.setTextColor(0, 0, 0);
+                pdf.setFont(undefined, 'bold');
+                pdf.text('Transaction ID (Contract ID):', margin, y);
+                y += 7;
+                pdf.setFont(undefined, 'normal');
+                pdf.setFontSize(9);
+                pdf.text(`  ${contract.contractId}`, margin, y);
+                y += 10;
+                
+                pdf.setFontSize(10);
+                pdf.setFont(undefined, 'bold');
+                pdf.text('Data e Hora de Aceite:', margin, y);
+                y += 7;
+                pdf.setFont(undefined, 'normal');
+                const acceptDate = contract.acceptedAt ? 
+                    new Date(contract.acceptedAt.toMillis()).toLocaleString('pt-BR') : 
+                    'N/A';
+                pdf.text(`  ${acceptDate} (horário de Brasília)`, margin, y);
+                y += 7;
+                if (contract.acceptedAtISO) {
+                    pdf.setFontSize(9);
+                    pdf.setTextColor(100, 100, 100);
+                    pdf.text(`  ISO 8601: ${contract.acceptedAtISO}`, margin, y);
+                    y += 7;
+                    pdf.setTextColor(0, 0, 0);
+                }
+                y += 3;
+                
+                pdf.setFontSize(10);
+                pdf.setFont(undefined, 'bold');
+                pdf.text('Endereço IP do Aceite:', margin, y);
+                y += 7;
+                pdf.setFont(undefined, 'normal');
+                pdf.text(`  ${contract.ipAddress || 'N/A'}`, margin, y);
+                y += 10;
+                
+                pdf.setFont(undefined, 'bold');
+                pdf.text('Navegador e Sistema:', margin, y);
+                y += 7;
+                pdf.setFont(undefined, 'normal');
+                pdf.setFontSize(9);
+                pdf.text(`  ${contract.userAgent ? contract.userAgent.substring(0, 80) : 'N/A'}`, margin, y);
+                y += 10;
+                
+                pdf.setFontSize(10);
+                pdf.setFont(undefined, 'bold');
+                pdf.text('Versão dos Termos Aceita:', margin, y);
+                y += 7;
+                pdf.setFont(undefined, 'normal');
+                pdf.text(`  v${contract.termsVersion}`, margin, y);
+                y += 15;
+                
+                // Seção 2: Dados Cadastrais
+                if (y > 240) {
+                    pdf.addPage();
+                    y = 20;
+                }
+                
+                pdf.setFontSize(14);
+                pdf.setTextColor(5, 150, 105);
+                pdf.setFont(undefined, 'bold');
+                pdf.text('2. DADOS CADASTRAIS', margin, y);
+                y += 3;
+                pdf.setDrawColor(5, 150, 105);
+                pdf.line(margin, y, pageWidth - margin, y);
+                y += 10;
+                
+                pdf.setFontSize(10);
+                pdf.setTextColor(0, 0, 0);
+                pdf.setFont(undefined, 'bold');
+                pdf.text('Nome Completo:', margin, y);
+                y += 7;
+                pdf.setFont(undefined, 'normal');
+                pdf.text(`  ${contract.userName}`, margin, y);
+                y += 10;
+                
+                pdf.setFont(undefined, 'bold');
+                pdf.text('Email:', margin, y);
+                y += 7;
+                pdf.setFont(undefined, 'normal');
+                pdf.text(`  ${contract.userEmail}`, margin, y);
+                y += 10;
+                
+                pdf.setFont(undefined, 'bold');
+                pdf.text('Empresa:', margin, y);
+                y += 7;
+                pdf.setFont(undefined, 'normal');
+                pdf.text(`  ${contract.userCompany}`, margin, y);
+                y += 10;
+                
+                pdf.setFont(undefined, 'bold');
+                pdf.text('User ID (Firebase):', margin, y);
+                y += 7;
+                pdf.setFont(undefined, 'normal');
+                pdf.setFontSize(9);
+                pdf.text(`  ${contract.userId}`, margin, y);
+                y += 15;
+                
+                // Seção 3: Registro de Atividades
+                if (y > 220) {
+                    pdf.addPage();
+                    y = 20;
+                }
+                
+                pdf.setFontSize(14);
+                pdf.setTextColor(5, 150, 105);
+                pdf.setFont(undefined, 'bold');
+                pdf.text('3. REGISTRO DE ATIVIDADES NA PLATAFORMA', margin, y);
+                y += 3;
+                pdf.setDrawColor(5, 150, 105);
+                pdf.line(margin, y, pageWidth - margin, y);
+                y += 10;
+                
+                pdf.setFontSize(10);
+                pdf.setTextColor(0, 0, 0);
+                pdf.setFont(undefined, 'bold');
+                pdf.text('Total de Buscas Realizadas:', margin, y);
+                y += 7;
+                pdf.setFont(undefined, 'normal');
+                pdf.setFontSize(12);
+                pdf.setTextColor(16, 185, 129);
+                pdf.text(`  ${searches.length} buscas`, margin, y);
+                pdf.setTextColor(0, 0, 0);
+                pdf.setFontSize(10);
+                y += 12;
+                
+                if (searches.length > 0) {
+                    pdf.setFont(undefined, 'bold');
+                    pdf.text('Últimas 10 Buscas (com Transaction IDs):', margin, y);
+                    y += 10;
+                    
+                    pdf.setFont(undefined, 'normal');
+                    pdf.setFontSize(9);
+                    
+                    searches.slice(0, 10).forEach((search, idx) => {
+                        if (y > 270) {
+                            pdf.addPage();
+                            y = 20;
+                        }
+                        
+                        const searchDate = search.timestamp ? 
+                            new Date(search.timestamp.toMillis()).toLocaleString('pt-BR') : 
+                            'N/A';
+                        
+                        pdf.text(`${idx + 1}. ${searchDate}`, margin + 5, y);
+                        y += 5;
+                        pdf.text(`   Busca: "${search.query}"`, margin + 5, y);
+                        y += 5;
+                        pdf.text(`   Transaction ID: ${search.searchId || 'N/A'}`, margin + 5, y);
+                        y += 8;
+                    });
+                } else {
+                    pdf.setFont(undefined, 'normal');
+                    pdf.setTextColor(156, 163, 175);
+                    pdf.text('  Nenhuma busca realizada ainda', margin, y);
+                    y += 10;
+                }
+                
+                // Seção 4: Comprovação Legal
+                pdf.addPage();
+                y = 20;
+                
+                pdf.setFontSize(14);
+                pdf.setTextColor(5, 150, 105);
+                pdf.setFont(undefined, 'bold');
+                pdf.text('4. COMPROVAÇÃO LEGAL', margin, y);
+                y += 3;
+                pdf.setDrawColor(5, 150, 105);
+                pdf.line(margin, y, pageWidth - margin, y);
+                y += 15;
+                
+                pdf.setFontSize(10);
+                pdf.setTextColor(0, 0, 0);
+                pdf.setFont(undefined, 'normal');
+                
+                const legalText = [
+                    'Este documento foi gerado digitalmente e possui valor legal probatório',
+                    'conforme MP 2.200-2/2001 (ICP-Brasil) e Lei 13.709/2018 (LGPD).',
+                    '',
+                    'O Transaction ID (Contract ID) é único e irrepetível, garantindo a',
+                    'autenticidade e rastreabilidade de todas as ações registradas.',
+                    '',
+                    'Todos os registros de atividade possuem Transaction IDs únicos,',
+                    'permitindo auditoria completa e verificação de integridade.'
+                ];
+                
+                legalText.forEach(line => {
+                    pdf.text(line, margin, y);
+                    y += 7;
+                });
+                
+                // Footer em todas as páginas
+                const totalPages = pdf.internal.pages.length - 1;
+                for (let i = 1; i <= totalPages; i++) {
+                    pdf.setPage(i);
+                    
+                    const footerY = pdf.internal.pageSize.height - 30;
+                    pdf.setDrawColor(200, 200, 200);
+                    pdf.setLineWidth(0.5);
+                    pdf.rect(margin, footerY, pageWidth - (margin * 2), 20);
+                    
+                    pdf.setFontSize(8);
+                    pdf.setTextColor(100, 100, 100);
+                    pdf.setFont(undefined, 'normal');
+                    
+                    pdf.text('Pharmyrus - Plataforma de Busca de Patentes', margin + 5, footerY + 7);
+                    pdf.text(`Contract ID: ${contract.contractId}`, margin + 5, footerY + 13);
+                    pdf.text(`Página ${i}/${totalPages}`, pageWidth - margin - 20, footerY + 13);
+                }
+                
+                // Salvar PDF
+                pdf.save(`contrato-${contract.contractId.substring(0, 12)}.pdf`);
+                
+            } catch (error) {
+                console.error('Erro ao gerar PDF:', error);
+                alert('Erro ao gerar PDF: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '📄 PDF';
+            }
         };
 
         // Logout
