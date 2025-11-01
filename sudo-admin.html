@@ -4,14 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sudo Admin - Pharmyrus</title>
-    
-    <!-- jsPDF para PDFs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); min-height: 100vh; padding: 2rem; color: white; }
-        
         .container { max-width: 1200px; margin: 0 auto; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; padding-bottom: 1.5rem; border-bottom: 2px solid rgba(255,255,255,0.1); }
         .logo { font-size: 1.5rem; font-weight: 800; color: #10b981; }
@@ -21,36 +17,27 @@
         .btn-back { padding: 0.5rem 1rem; background: #667eea; border: none; border-radius: 0.5rem; color: white; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; }
         .btn-back:hover { background: #5568d3; }
         .header-actions { display: flex; align-items: center; gap: 0.5rem; }
-        
-        /* Tabs */
         .tabs { display: flex; gap: 0.5rem; margin-bottom: 2rem; border-bottom: 2px solid rgba(255,255,255,0.1); }
-        .tab { padding: 1rem 2rem; background: transparent; border: none; color: rgba(255,255,255,0.6); font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; }
+        .tab { padding: 1rem 2rem; background: transparent; border: none; color: rgba(255,255,255,0.6); font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; }
         .tab:hover { color: rgba(255,255,255,0.9); }
         .tab.active { color: #10b981; border-bottom-color: #10b981; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem; }
-        
         .card { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 1rem; padding: 2rem; }
         .card h2 { font-size: 1.5rem; margin-bottom: 1.5rem; color: #10b981; }
-        
         .form-group { margin-bottom: 1.5rem; }
         .form-group label { display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: rgba(255,255,255,0.7); }
         .form-group input { width: 100%; padding: 0.75rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 0.5rem; color: white; font-size: 1rem; }
         .form-group input:focus { outline: none; border-color: #10b981; background: rgba(255,255,255,0.15); }
-        
         .btn-primary { width: 100%; padding: 1rem; background: #10b981; border: none; border-radius: 0.5rem; color: white; font-weight: 600; font-size: 1rem; cursor: pointer; transition: all 0.2s; }
         .btn-primary:hover { background: #059669; transform: translateY(-1px); }
         .btn-primary:disabled { background: #6b7280; cursor: not-allowed; transform: none; }
-        
         .success { background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; padding: 1rem; border-radius: 0.5rem; margin-top: 1rem; display: none; }
         .success.show { display: block; }
         .success-code { font-size: 2rem; font-weight: 800; text-align: center; margin: 1rem 0; color: #10b981; letter-spacing: 0.5rem; }
-        
         .error { background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #fca5a5; padding: 1rem; border-radius: 0.5rem; margin-top: 1rem; display: none; }
         .error.show { display: block; }
-        
         .invites-list { background: rgba(255,255,255,0.05); border-radius: 0.5rem; max-height: 500px; overflow-y: auto; }
         .invite-item { padding: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); display: grid; grid-template-columns: 120px 1fr 150px 100px; gap: 1rem; align-items: center; }
         .invite-item:last-child { border-bottom: none; }
@@ -60,18 +47,13 @@
         .status-pending { background: rgba(234, 179, 8, 0.2); color: #fbbf24; border: 1px solid #fbbf24; }
         .status-used { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid #4ade80; }
         .status-expired { background: rgba(107, 114, 128, 0.2); color: #9ca3af; border: 1px solid #9ca3af; }
-        
         .btn-copy { padding: 0.5rem 1rem; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; border-radius: 0.5rem; color: #10b981; font-size: 0.875rem; cursor: pointer; }
         .btn-copy:hover { background: rgba(16, 185, 129, 0.3); }
-        
         .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem; }
         .stat-card { background: rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 0.5rem; text-align: center; }
         .stat-number { font-size: 2.5rem; font-weight: 800; color: #10b981; }
         .stat-label { font-size: 0.875rem; color: rgba(255,255,255,0.6); margin-top: 0.5rem; }
-        
         .loading { text-align: center; padding: 2rem; color: rgba(255,255,255,0.5); }
-        
-        /* Contratos */
         table { width: 100%; border-collapse: collapse; background: rgba(255,255,255,0.05); }
         thead { background: rgba(255,255,255,0.1); position: sticky; top: 0; }
         th { padding: 1rem; text-align: left; color: #10b981; border-bottom: 2px solid rgba(255,255,255,0.1); font-weight: 600; }
@@ -81,12 +63,7 @@
         .btn-pdf:hover { background: #059669; }
         .btn-pdf:disabled { background: #6b7280; cursor: not-allowed; }
         .contract-id { font-family: 'Courier New', monospace; font-size: 0.75rem; color: #10b981; }
-        
-        @media (max-width: 768px) {
-            .grid { grid-template-columns: 1fr; }
-            .invite-item { grid-template-columns: 1fr; }
-            .stats { grid-template-columns: 1fr; }
-        }
+        @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } .invite-item { grid-template-columns: 1fr; } .stats { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -95,557 +72,349 @@
             <div class="logo">⚡ SUDO ADMIN - PHARMYRUS</div>
             <div class="user-info">
                 <span class="badge">ADMIN</span>
-                <span id="adminEmail">daniel.mendes@dataholics.io</span>
+                <span id="adminEmail">admin@pharmyrus.com</span>
                 <div class="header-actions">
-                    <a href="index.html" class="btn-back">← Voltar para Consultas</a>
+                    <a href="index.html" class="btn-back">← Voltar</a>
                     <button class="btn-logout" onclick="logout()">Sair</button>
                 </div>
             </div>
         </div>
-
-        <!-- Tabs -->
         <div class="tabs">
             <button class="tab active" onclick="showTab('convites')">🎟️ Convites</button>
             <button class="tab" onclick="showTab('contratos')">📜 Contratos</button>
         </div>
-
-        <!-- Tab: Convites -->
         <div id="tab-convites" class="tab-content active">
             <div class="stats">
-                <div class="stat-card">
-                    <div class="stat-number" id="totalInvites">0</div>
-                    <div class="stat-label">Total de Convites</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="pendingInvites">0</div>
-                    <div class="stat-label">Pendentes</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="usedInvites">0</div>
-                    <div class="stat-label">Utilizados</div>
-                </div>
+                <div class="stat-card"><div class="stat-number" id="totalInvites">0</div><div class="stat-label">Total</div></div>
+                <div class="stat-card"><div class="stat-number" id="pendingInvites">0</div><div class="stat-label">Pendentes</div></div>
+                <div class="stat-card"><div class="stat-number" id="usedInvites">0</div><div class="stat-label">Utilizados</div></div>
             </div>
-
             <div class="grid">
                 <div class="card">
                     <h2>🎟️ Criar Convite</h2>
-                    
                     <form id="inviteForm">
-                        <div class="form-group">
-                            <label for="inviteEmail">E-mail do Convidado</label>
-                            <input type="email" id="inviteEmail" placeholder="usuario@exemplo.com" required>
-                        </div>
-
-                        <button type="submit" class="btn-primary" id="btnCreateInvite">
-                            Gerar Código de Convite
-                        </button>
+                        <div class="form-group"><label>E-mail</label><input type="email" id="inviteEmail" required></div>
+                        <button type="submit" class="btn-primary" id="btnCreateInvite">Gerar Código</button>
                     </form>
-
                     <div id="successMessage" class="success">
-                        <p style="text-align: center; margin-bottom: 0.5rem;">✅ Convite criado com sucesso!</p>
+                        <p style="text-align:center">✅ Convite criado!</p>
                         <div class="success-code" id="generatedCode">------</div>
-                        <p style="text-align: center; font-size: 0.875rem; color: rgba(255,255,255,0.7);">
-                            Envie este código para <strong id="invitedEmail"></strong>
-                        </p>
-                        <button class="btn-primary" onclick="copyCode()" style="margin-top: 1rem;">
-                            📋 Copiar Código
-                        </button>
+                        <button class="btn-primary" onclick="copyCode()" style="margin-top:1rem">📋 Copiar</button>
                     </div>
-
                     <div id="errorMessage" class="error"></div>
                 </div>
-
                 <div class="card">
                     <h2>📊 Estatísticas</h2>
-                    <div style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 0.5rem;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
-                            <span>Taxa de conversão:</span>
-                            <strong id="conversionRate">0%</strong>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
-                            <span>Convites hoje:</span>
-                            <strong id="todayInvites">0</strong>
-                        </div>
-                        <div style="display: flex; justify-content: space-between;">
-                            <span>Usuários ativos:</span>
-                            <strong id="activeUsers">0</strong>
-                        </div>
+                    <div style="padding:1rem;background:rgba(255,255,255,0.05);border-radius:0.5rem">
+                        <div style="display:flex;justify-content:space-between;margin-bottom:1rem"><span>Taxa:</span><strong id="conversionRate">0%</strong></div>
+                        <div style="display:flex;justify-content:space-between;margin-bottom:1rem"><span>Hoje:</span><strong id="todayInvites">0</strong></div>
+                        <div style="display:flex;justify-content:space-between"><span>Usuários:</span><strong id="activeUsers">0</strong></div>
                     </div>
                 </div>
             </div>
-
             <div class="card">
-                <h2>📋 Convites Criados</h2>
-                <div id="invitesList" class="invites-list">
-                    <div class="loading">Carregando convites...</div>
-                </div>
+                <h2>📋 Convites</h2>
+                <div id="invitesList" class="invites-list"><div class="loading">Carregando...</div></div>
             </div>
         </div>
-
-        <!-- Tab: Contratos -->
         <div id="tab-contratos" class="tab-content">
             <div class="card">
                 <h2>📜 Contratos Assinados</h2>
-                <div style="overflow-x: auto; max-height: 600px; overflow-y: auto;">
+                <div style="overflow-x:auto;max-height:600px;overflow-y:auto">
                     <table>
-                        <thead>
-                            <tr>
-                                <th>Contract ID</th>
-                                <th>Nome</th>
-                                <th>Email</th>
-                                <th>Empresa</th>
-                                <th>Data</th>
-                                <th>Ações</th>
-                                <th>PDF</th>
-                            </tr>
-                        </thead>
-                        <tbody id="contractsTable">
-                            <tr>
-                                <td colspan="7"><div class="loading">Carregando contratos...</div></td>
-                            </tr>
-                        </tbody>
+                        <thead><tr><th>Contract ID</th><th>Nome</th><th>Email</th><th>Empresa</th><th>Data</th><th>Buscas</th><th>PDF</th></tr></thead>
+                        <tbody id="contractsTable"><tr><td colspan="7"><div class="loading">Carregando...</div></td></tr></tbody>
                     </table>
                 </div>
             </div>
         </div>
     </div>
-
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
         import { getFirestore, collection, addDoc, getDocs, getDoc, doc, query, orderBy, where, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyAHq5Tvn3qZvbj1D2GJdUW-BhPWiAURBJI",
-            authDomain: "patentes-51d85.firebaseapp.com",
-            projectId: "patentes-51d85",
-            storageBucket: "patentes-51d85.firebasestorage.app",
-            messagingSenderId: "278792677855",
-            appId: "1:278792677855:web:a801a4894efe7aa1bbbc6a"
-        };
-
+        const firebaseConfig = { apiKey: "AIzaSyAHq5Tvn3qZvbj1D2GJdUW-BhPWiAURBJI", authDomain: "patentes-51d85.firebaseapp.com", projectId: "patentes-51d85", storageBucket: "patentes-51d85.firebasestorage.app", messagingSenderId: "278792677855", appId: "1:278792677855:web:a801a4894efe7aa1bbbc6a" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-
         let currentUser = null;
         let lastGeneratedCode = '';
-
-        // Check Auth + Admin
         onAuthStateChanged(auth, async (user) => {
-            if (!user) {
-                window.location.href = 'login.html';
-                return;
-            }
-
-            if (user.email !== 'daniel.mendes@dataholics.io') {
-                alert('⛔ Acesso negado. Apenas Sudo Admins podem acessar esta página.');
-                window.location.href = 'index.html';
-                return;
-            }
-
+            if (!user) { window.location.href = 'login.html'; return; }
+            if (user.email !== 'daniel.mendes@dataholics.io') { alert('⛔ Acesso negado'); window.location.href = 'index.html'; return; }
             currentUser = user;
             document.getElementById('adminEmail').textContent = user.email;
             await loadInvites();
             await loadStats();
         });
-
-        // Generate Code
         function generateCode() {
             const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
             let code = '';
-            for (let i = 0; i < 6; i++) {
-                code += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
+            for (let i = 0; i < 6; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
             return code;
         }
-
-        // Create Invite
         document.getElementById('inviteForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-
             const email = document.getElementById('inviteEmail').value.trim().toLowerCase();
             const btn = document.getElementById('btnCreateInvite');
             const successMsg = document.getElementById('successMessage');
             const errorMsg = document.getElementById('errorMessage');
-
             successMsg.classList.remove('show');
             errorMsg.classList.remove('show');
-
             btn.disabled = true;
             btn.textContent = 'Gerando...';
-
             try {
-                const existingQuery = query(
-                    collection(db, 'invites'),
-                    where('email', '==', email),
-                    where('status', '==', 'pending')
-                );
+                const existingQuery = query(collection(db, 'invites'), where('email', '==', email), where('status', '==', 'pending'));
                 const existingSnap = await getDocs(existingQuery);
-
-                if (!existingSnap.empty) {
-                    throw new Error('Este e-mail já possui um convite pendente');
-                }
-
+                if (!existingSnap.empty) throw new Error('E-mail já tem convite pendente');
                 let code = generateCode();
-                let attempts = 0;
-                while (attempts < 10) {
-                    const codeQuery = query(
-                        collection(db, 'invites'),
-                        where('code', '==', code)
-                    );
-                    const codeSnap = await getDocs(codeQuery);
-                    
-                    if (codeSnap.empty) break;
-                    
-                    code = generateCode();
-                    attempts++;
-                }
-
-                if (attempts >= 10) {
-                    throw new Error('Erro ao gerar código único');
-                }
-
-                await addDoc(collection(db, 'invites'), {
-                    code: code,
-                    email: email,
-                    createdBy: currentUser.email,
-                    createdAt: serverTimestamp(),
-                    usedAt: null,
-                    usedBy: null,
-                    status: 'pending',
-                    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-                });
-
+                await addDoc(collection(db, 'invites'), { code, email, createdBy: currentUser.email, createdAt: serverTimestamp(), usedAt: null, usedBy: null, status: 'pending', expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) });
                 lastGeneratedCode = code;
                 document.getElementById('generatedCode').textContent = code;
-                document.getElementById('invitedEmail').textContent = email;
                 successMsg.classList.add('show');
-
                 document.getElementById('inviteEmail').value = '';
-
                 await loadInvites();
                 await loadStats();
-
             } catch (error) {
-                console.error('Erro:', error);
                 errorMsg.textContent = '❌ ' + error.message;
                 errorMsg.classList.add('show');
             } finally {
                 btn.disabled = false;
-                btn.textContent = 'Gerar Código de Convite';
+                btn.textContent = 'Gerar Código';
             }
         });
-
-        // Copy Code
         window.copyCode = function() {
             navigator.clipboard.writeText(lastGeneratedCode);
             const btn = event.target;
-            const originalText = btn.textContent;
             btn.textContent = '✅ Copiado!';
-            setTimeout(() => {
-                btn.textContent = originalText;
-            }, 2000);
+            setTimeout(() => btn.textContent = '📋 Copiar', 2000);
         };
-
-        // Load Invites
         async function loadInvites() {
-            const invitesQuery = query(
-                collection(db, 'invites'),
-                orderBy('createdAt', 'desc')
-            );
-
+            const invitesQuery = query(collection(db, 'invites'), orderBy('createdAt', 'desc'));
             const snapshot = await getDocs(invitesQuery);
             const invitesList = document.getElementById('invitesList');
-
-            if (snapshot.empty) {
-                invitesList.innerHTML = '<div class="loading">Nenhum convite criado ainda</div>';
-                return;
-            }
-
+            if (snapshot.empty) { invitesList.innerHTML = '<div class="loading">Nenhum convite</div>'; return; }
             let html = '';
             snapshot.forEach(doc => {
-                const invite = doc.data();
-                const statusClass = `status-${invite.status}`;
-                const statusText = {
-                    'pending': 'Pendente',
-                    'used': 'Utilizado',
-                    'expired': 'Expirado'
-                }[invite.status];
-
-                html += `
-                    <div class="invite-item">
-                        <div class="invite-code">${invite.code}</div>
-                        <div class="invite-email">${invite.email}</div>
-                        <div class="invite-status ${statusClass}">${statusText}</div>
-                        <button class="btn-copy" onclick="copyToClipboard('${invite.code}')">
-                            Copiar
-                        </button>
-                    </div>
-                `;
+                const inv = doc.data();
+                const statusClass = `status-${inv.status}`;
+                const statusText = { 'pending': 'Pendente', 'used': 'Usado', 'expired': 'Expirado' }[inv.status];
+                html += `<div class="invite-item"><div class="invite-code">${inv.code}</div><div class="invite-email">${inv.email}</div><div class="invite-status ${statusClass}">${statusText}</div><button class="btn-copy" onclick="copyToClipboard('${inv.code}')">Copiar</button></div>`;
             });
-
             invitesList.innerHTML = html;
         }
-
-        // Load Stats
         async function loadStats() {
             const invitesSnap = await getDocs(collection(db, 'invites'));
             const usersSnap = await getDocs(collection(db, 'users'));
-
             const total = invitesSnap.size;
-            let pending = 0;
-            let used = 0;
-            let today = 0;
-
-            const todayStart = new Date();
-            todayStart.setHours(0, 0, 0, 0);
-
+            let pending = 0, used = 0, today = 0;
+            const todayStart = new Date(); todayStart.setHours(0,0,0,0);
             invitesSnap.forEach(doc => {
-                const invite = doc.data();
-                if (invite.status === 'pending') pending++;
-                if (invite.status === 'used') used++;
-                
-                if (invite.createdAt && invite.createdAt.toDate() >= todayStart) {
-                    today++;
-                }
+                const inv = doc.data();
+                if (inv.status === 'pending') pending++;
+                if (inv.status === 'used') used++;
+                if (inv.createdAt && inv.createdAt.toDate() >= todayStart) today++;
             });
-
             document.getElementById('totalInvites').textContent = total;
             document.getElementById('pendingInvites').textContent = pending;
             document.getElementById('usedInvites').textContent = used;
             document.getElementById('todayInvites').textContent = today;
             document.getElementById('activeUsers').textContent = usersSnap.size;
-
             const conversionRate = total > 0 ? ((used / total) * 100).toFixed(1) : 0;
             document.getElementById('conversionRate').textContent = conversionRate + '%';
         }
-
-        // Copy to Clipboard
         window.copyToClipboard = function(text) {
             navigator.clipboard.writeText(text);
             const btn = event.target;
-            const originalText = btn.textContent;
             btn.textContent = '✅';
-            setTimeout(() => {
-                btn.textContent = originalText;
-            }, 1500);
+            setTimeout(() => btn.textContent = 'Copiar', 1500);
         };
-
-        // Show Tab
         window.showTab = async function(tabName) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.getElementById('tab-' + tabName).classList.add('active');
             event.target.classList.add('active');
-            
-            if (tabName === 'contratos') {
-                await loadContracts();
-            }
+            if (tabName === 'contratos') await loadContracts();
         };
-
-        // Load Contracts
+        
+        // === LOAD CONTRACTS ===
         async function loadContracts() {
             const tbody = document.getElementById('contractsTable');
-            tbody.innerHTML = '<tr><td colspan="7"><div class="loading">Carregando contratos...</div></td></tr>';
-            
+            tbody.innerHTML = '<tr><td colspan="7"><div class="loading">Carregando...</div></td></tr>';
             try {
                 const contractsSnap = await getDocs(collection(db, 'contracts'));
-                
                 if (contractsSnap.empty) {
-                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:rgba(255,255,255,0.5)">Nenhum contrato encontrado</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem">Nenhum contrato</td></tr>';
                     return;
                 }
-
                 let html = '';
-                
                 for (const contractDoc of contractsSnap.docs) {
                     const contract = contractDoc.data();
-                    
-                    // Buscar searches do usuário
-                    const searchesQuery = query(
-                        collection(db, 'searches'),
-                        where('userId', '==', contract.userId)
-                    );
+                    const searchesQuery = query(collection(db, 'searches'), where('userId', '==', contract.userId));
                     const searchesSnap = await getDocs(searchesQuery);
                     const totalSearches = searchesSnap.size;
-                    
-                    const date = contract.acceptedAt ? 
-                        new Date(contract.acceptedAt.toMillis()).toLocaleDateString('pt-BR') : 
-                        'N/A';
-                    
-                    html += `
-                        <tr>
-                            <td><span class="contract-id">${contract.contractId}</span></td>
-                            <td>${contract.userName}</td>
-                            <td>${contract.userEmail}</td>
-                            <td>${contract.userCompany}</td>
-                            <td>${date}</td>
-                            <td><strong>${totalSearches}</strong> buscas</td>
-                            <td>
-                                <button class="btn-pdf" onclick="generateContractPDF('${contractDoc.id}')">
-                                    📄 PDF
-                                </button>
-                            </td>
-                        </tr>
-                    `;
+                    const date = contract.acceptedAt ? new Date(contract.acceptedAt.toMillis()).toLocaleDateString('pt-BR') : 'N/A';
+                    html += `<tr>
+                        <td><span class="contract-id">${contract.contractId.substring(0,16)}...</span></td>
+                        <td>${contract.userName}</td>
+                        <td>${contract.userEmail}</td>
+                        <td>${contract.userCompany}</td>
+                        <td>${date}</td>
+                        <td><strong>${totalSearches}</strong></td>
+                        <td><button class="btn-pdf" onclick="generatePDF('${contractDoc.id}')">📄 PDF</button></td>
+                    </tr>`;
                 }
-                
                 tbody.innerHTML = html;
-                
             } catch (error) {
-                console.error('Erro ao carregar contratos:', error);
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:#ef4444">Erro ao carregar contratos</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#ef4444">Erro</td></tr>';
             }
         }
-
-        // Generate Contract PDF
-        window.generateContractPDF = async function(contractId) {
+        
+        // === GENERATE PDF COM TUDO ===
+        window.generatePDF = async function(contractId) {
             const btn = event.target;
             btn.disabled = true;
-            btn.textContent = '⏳ Gerando...';
-            
+            btn.textContent = '⏳...';
             try {
-                // Buscar dados do contrato
                 const contractDoc = await getDoc(doc(db, 'contracts', contractId));
                 const contract = contractDoc.data();
-                
-                // Buscar dados do usuário
-                const userDoc = await getDoc(doc(db, 'users', contract.userId));
-                const user = userDoc.exists() ? userDoc.data() : {};
-                
-                // Buscar todas as buscas do usuário
-                const searchesQuery = query(
-                    collection(db, 'searches'),
-                    where('userId', '==', contract.userId)
-                );
+                const searchesQuery = query(collection(db, 'searches'), where('userId', '==', contract.userId));
                 const searchesSnap = await getDocs(searchesQuery);
                 const searches = [];
-                searchesSnap.forEach(doc => searches.push(doc.data()));
-                
-                // Ordenar localmente por timestamp
+                searchesSnap.forEach(d => searches.push(d.data()));
                 searches.sort((a, b) => {
                     if (!a.timestamp) return 1;
                     if (!b.timestamp) return -1;
                     return b.timestamp.toMillis() - a.timestamp.toMillis();
                 });
                 
-                // Gerar PDF
+                // AGRUPAR POR SEMANA
+                const searchesByWeek = {};
+                searches.forEach(s => {
+                    if (s.week && s.year) {
+                        const key = `${s.year}-W${s.week}`;
+                        if (!searchesByWeek[key]) searchesByWeek[key] = 0;
+                        searchesByWeek[key]++;
+                    }
+                });
+                
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF();
-                
                 let y = 20;
                 const pageWidth = pdf.internal.pageSize.width;
                 const margin = 20;
+                const maxY = 280;
                 
-                // Header verde
+                function checkPage() {
+                    if (y > maxY) {
+                        pdf.addPage();
+                        y = 20;
+                    }
+                }
+                
+                // HEADER VERDE
                 pdf.setFillColor(16, 185, 129);
                 pdf.rect(0, 0, pageWidth, 45, 'F');
-                
                 pdf.setTextColor(255, 255, 255);
                 pdf.setFontSize(20);
                 pdf.setFont(undefined, 'bold');
                 pdf.text('PHARMYRUS', margin, 20);
-                
                 pdf.setFontSize(14);
-                pdf.text('CONTRATO OFICIAL DE USO DA PLATAFORMA', margin, 30);
-                
+                pdf.text('CONTRATO OFICIAL - VALOR LEGAL', margin, 30);
                 pdf.setFontSize(10);
                 pdf.setFont(undefined, 'normal');
-                pdf.text('Documento com Valor Legal Probatório', margin, 38);
+                pdf.text('Documento com Força Probatória - MP 2.200-2/2001', margin, 38);
                 
                 y = 55;
                 pdf.setTextColor(0, 0, 0);
-                
-                // Emissão
                 pdf.setFontSize(9);
-                pdf.setTextColor(100, 100, 100);
+                pdf.setTextColor(100);
                 pdf.text(`Emitido em: ${new Date().toLocaleString('pt-BR')}`, margin, y);
                 y += 15;
                 
-                // Seção 1: Dados do Contrato
+                // 1. DADOS DO CONTRATO
                 pdf.setFontSize(14);
                 pdf.setTextColor(5, 150, 105);
                 pdf.setFont(undefined, 'bold');
                 pdf.text('1. DADOS DO CONTRATO DIGITAL', margin, y);
                 y += 3;
                 pdf.setDrawColor(5, 150, 105);
-                pdf.setLineWidth(0.5);
                 pdf.line(margin, y, pageWidth - margin, y);
                 y += 10;
                 
                 pdf.setFontSize(10);
-                pdf.setTextColor(0, 0, 0);
+                pdf.setTextColor(0);
                 pdf.setFont(undefined, 'bold');
-                pdf.text('Transaction ID (Contract ID):', margin, y);
+                pdf.text('Contract ID (Transaction ID Principal):', margin, y);
                 y += 7;
                 pdf.setFont(undefined, 'normal');
                 pdf.setFontSize(9);
                 pdf.text(`  ${contract.contractId}`, margin, y);
                 y += 10;
                 
+                const acceptDate = contract.acceptedAt ? new Date(contract.acceptedAt.toMillis()).toLocaleString('pt-BR') : 'N/A';
                 pdf.setFontSize(10);
                 pdf.setFont(undefined, 'bold');
-                pdf.text('Data e Hora de Aceite:', margin, y);
+                pdf.text('Data e Hora do Aceite:', margin, y);
                 y += 7;
                 pdf.setFont(undefined, 'normal');
-                const acceptDate = contract.acceptedAt ? 
-                    new Date(contract.acceptedAt.toMillis()).toLocaleString('pt-BR') : 
-                    'N/A';
-                pdf.text(`  ${acceptDate} (horário de Brasília)`, margin, y);
-                y += 7;
-                if (contract.acceptedAtISO) {
-                    pdf.setFontSize(9);
-                    pdf.setTextColor(100, 100, 100);
-                    pdf.text(`  ISO 8601: ${contract.acceptedAtISO}`, margin, y);
-                    y += 7;
-                    pdf.setTextColor(0, 0, 0);
-                }
-                y += 3;
+                pdf.text(`  ${acceptDate}`, margin, y);
+                y += 10;
                 
-                pdf.setFontSize(10);
                 pdf.setFont(undefined, 'bold');
-                pdf.text('Endereço IP do Aceite:', margin, y);
+                pdf.text('Endereço IP:', margin, y);
                 y += 7;
                 pdf.setFont(undefined, 'normal');
                 pdf.text(`  ${contract.ipAddress || 'N/A'}`, margin, y);
                 y += 10;
                 
                 pdf.setFont(undefined, 'bold');
-                pdf.text('Navegador e Sistema:', margin, y);
+                pdf.text('Versão dos Termos:', margin, y);
                 y += 7;
                 pdf.setFont(undefined, 'normal');
-                pdf.setFontSize(9);
-                pdf.text(`  ${contract.userAgent ? contract.userAgent.substring(0, 80) : 'N/A'}`, margin, y);
-                y += 10;
-                
-                pdf.setFontSize(10);
-                pdf.setFont(undefined, 'bold');
-                pdf.text('Versão dos Termos Aceita:', margin, y);
-                y += 7;
-                pdf.setFont(undefined, 'normal');
-                pdf.text(`  v${contract.termsVersion}`, margin, y);
+                pdf.text(`  v${contract.termsVersion || '1.0'}`, margin, y);
                 y += 15;
                 
-                // Seção 2: Dados Cadastrais
-                if (y > 240) {
-                    pdf.addPage();
-                    y = 20;
-                }
-                
+                // 2. TRANSACTION ID DO ACEITE DOS TERMOS
+                checkPage();
                 pdf.setFontSize(14);
                 pdf.setTextColor(5, 150, 105);
                 pdf.setFont(undefined, 'bold');
-                pdf.text('2. DADOS CADASTRAIS', margin, y);
+                pdf.text('2. TRANSACTION ID DO ACEITE DOS TERMOS', margin, y);
                 y += 3;
                 pdf.setDrawColor(5, 150, 105);
                 pdf.line(margin, y, pageWidth - margin, y);
                 y += 10;
                 
                 pdf.setFontSize(10);
-                pdf.setTextColor(0, 0, 0);
+                pdf.setTextColor(0);
                 pdf.setFont(undefined, 'bold');
-                pdf.text('Nome Completo:', margin, y);
+                pdf.text('Transaction ID:', margin, y);
+                y += 7;
+                pdf.setFont(undefined, 'normal');
+                pdf.setFontSize(9);
+                const termsAcceptanceId = contract.termsAcceptanceId || contract.contractId;
+                pdf.text(`  ${termsAcceptanceId}`, margin, y);
+                y += 10;
+                
+                pdf.setFontSize(10);
+                pdf.text(`  Aceito em: ${acceptDate}`, margin, y);
+                y += 15;
+                
+                // 3. DADOS CADASTRAIS
+                checkPage();
+                pdf.setFontSize(14);
+                pdf.setTextColor(5, 150, 105);
+                pdf.setFont(undefined, 'bold');
+                pdf.text('3. DADOS CADASTRAIS', margin, y);
+                y += 3;
+                pdf.line(margin, y, pageWidth - margin, y);
+                y += 10;
+                
+                pdf.setFontSize(10);
+                pdf.setTextColor(0);
+                pdf.setFont(undefined, 'bold');
+                pdf.text('Nome:', margin, y);
                 y += 7;
                 pdf.setFont(undefined, 'normal');
                 pdf.text(`  ${contract.userName}`, margin, y);
@@ -663,141 +432,169 @@
                 y += 7;
                 pdf.setFont(undefined, 'normal');
                 pdf.text(`  ${contract.userCompany}`, margin, y);
-                y += 10;
-                
-                pdf.setFont(undefined, 'bold');
-                pdf.text('User ID (Firebase):', margin, y);
-                y += 7;
-                pdf.setFont(undefined, 'normal');
-                pdf.setFontSize(9);
-                pdf.text(`  ${contract.userId}`, margin, y);
                 y += 15;
                 
-                // Seção 3: Registro de Atividades
-                if (y > 220) {
-                    pdf.addPage();
-                    y = 20;
-                }
-                
+                // 4. RELATÓRIO SEMANAL DE BUSCAS
+                checkPage();
                 pdf.setFontSize(14);
                 pdf.setTextColor(5, 150, 105);
                 pdf.setFont(undefined, 'bold');
-                pdf.text('3. REGISTRO DE ATIVIDADES NA PLATAFORMA', margin, y);
+                pdf.text('4. REGISTRO DE BUSCAS POR SEMANA', margin, y);
                 y += 3;
-                pdf.setDrawColor(5, 150, 105);
                 pdf.line(margin, y, pageWidth - margin, y);
                 y += 10;
                 
-                pdf.setFontSize(10);
-                pdf.setTextColor(0, 0, 0);
-                pdf.setFont(undefined, 'bold');
-                pdf.text('Total de Buscas Realizadas:', margin, y);
-                y += 7;
-                pdf.setFont(undefined, 'normal');
                 pdf.setFontSize(12);
                 pdf.setTextColor(16, 185, 129);
-                pdf.text(`  ${searches.length} buscas`, margin, y);
-                pdf.setTextColor(0, 0, 0);
-                pdf.setFontSize(10);
+                pdf.text(`TOTAL: ${searches.length} buscas realizadas`, margin, y);
                 y += 12;
                 
+                pdf.setFontSize(10);
+                pdf.setTextColor(0);
+                if (Object.keys(searchesByWeek).length > 0) {
+                    const weeks = Object.keys(searchesByWeek).sort().reverse();
+                    weeks.forEach(week => {
+                        checkPage();
+                        const [year, weekNum] = week.split('-W');
+                        pdf.text(`  Semana ${weekNum}/${year}: ${searchesByWeek[week]} buscas`, margin, y);
+                        y += 7;
+                    });
+                } else {
+                    pdf.setTextColor(150);
+                    pdf.text('  Nenhuma busca registrada ainda', margin, y);
+                    y += 7;
+                }
+                y += 10;
+                
+                // 5. HISTÓRICO DETALHADO
+                checkPage();
+                pdf.setFontSize(14);
+                pdf.setTextColor(5, 150, 105);
+                pdf.setFont(undefined, 'bold');
+                pdf.text('5. HISTÓRICO DETALHADO DE BUSCAS', margin, y);
+                y += 3;
+                pdf.line(margin, y, pageWidth - margin, y);
+                y += 10;
+                
+                pdf.setFontSize(9);
+                pdf.setTextColor(0);
+                pdf.setFont(undefined, 'normal');
+                
                 if (searches.length > 0) {
-                    pdf.setFont(undefined, 'bold');
-                    pdf.text('Últimas 10 Buscas (com Transaction IDs):', margin, y);
-                    y += 10;
-                    
-                    pdf.setFont(undefined, 'normal');
-                    pdf.setFontSize(9);
-                    
-                    searches.slice(0, 10).forEach((search, idx) => {
-                        if (y > 270) {
-                            pdf.addPage();
-                            y = 20;
-                        }
-                        
-                        const searchDate = search.timestamp ? 
-                            new Date(search.timestamp.toMillis()).toLocaleString('pt-BR') : 
-                            'N/A';
-                        
-                        pdf.text(`${idx + 1}. ${searchDate}`, margin + 5, y);
+                    searches.slice(0, 50).forEach((s, idx) => {
+                        checkPage();
+                        const sDate = s.timestamp ? new Date(s.timestamp.toMillis()).toLocaleString('pt-BR') : 'N/A';
+                        pdf.setFont(undefined, 'bold');
+                        pdf.text(`${idx + 1}. ${sDate}`, margin + 3, y);
                         y += 5;
-                        pdf.text(`   Busca: "${search.query}"`, margin + 5, y);
+                        pdf.setFont(undefined, 'normal');
+                        pdf.text(`   Busca: "${s.query}"`, margin + 3, y);
                         y += 5;
-                        pdf.text(`   Transaction ID: ${search.searchId || 'N/A'}`, margin + 5, y);
+                        pdf.text(`   Transaction ID: ${s.searchId || 'N/A'}`, margin + 3, y);
                         y += 8;
                     });
                 } else {
-                    pdf.setFont(undefined, 'normal');
-                    pdf.setTextColor(156, 163, 175);
-                    pdf.text('  Nenhuma busca realizada ainda', margin, y);
+                    pdf.setTextColor(150);
+                    pdf.text('  Nenhuma busca realizada', margin, y);
                     y += 10;
                 }
                 
-                // Seção 4: Comprovação Legal
+                // 6. TEXTO COMPLETO DOS TERMOS
                 pdf.addPage();
                 y = 20;
-                
                 pdf.setFontSize(14);
                 pdf.setTextColor(5, 150, 105);
                 pdf.setFont(undefined, 'bold');
-                pdf.text('4. COMPROVAÇÃO LEGAL', margin, y);
+                pdf.text('6. TERMOS E CONDIÇÕES (TEXTO COMPLETO)', margin, y);
                 y += 3;
-                pdf.setDrawColor(5, 150, 105);
                 pdf.line(margin, y, pageWidth - margin, y);
-                y += 15;
+                y += 10;
                 
-                pdf.setFontSize(10);
-                pdf.setTextColor(0, 0, 0);
+                pdf.setFontSize(9);
+                pdf.setTextColor(0);
                 pdf.setFont(undefined, 'normal');
                 
-                const legalText = [
-                    'Este documento foi gerado digitalmente e possui valor legal probatório',
-                    'conforme MP 2.200-2/2001 (ICP-Brasil) e Lei 13.709/2018 (LGPD).',
+                const termsText = [
+                    '1. OBJETO DO CONTRATO',
+                    'Este instrumento estabelece os termos e condições de uso da plataforma',
+                    'Pharmyrus, que oferece serviços de busca e análise de patentes.',
                     '',
-                    'O Transaction ID (Contract ID) é único e irrepetível, garantindo a',
-                    'autenticidade e rastreabilidade de todas as ações registradas.',
+                    '2. LICENÇA DE USO',
+                    'A Pharmyrus concede ao USUÁRIO uma licença limitada, não exclusiva,',
+                    'intransferível e revogável para acessar e utilizar a plataforma.',
                     '',
-                    'Todos os registros de atividade possuem Transaction IDs únicos,',
-                    'permitindo auditoria completa e verificação de integridade.'
+                    '3. CADASTRO E RESPONSABILIDADES',
+                    'O USUÁRIO compromete-se a fornecer informações verdadeiras, sendo',
+                    'responsável pela confidencialidade de suas credenciais.',
+                    '',
+                    '4. PROPRIEDADE INTELECTUAL',
+                    'Todo o conteúdo da plataforma é de propriedade exclusiva da Pharmyrus,',
+                    'protegido por direitos autorais e propriedade intelectual.',
+                    '',
+                    '5. PRIVACIDADE E PROTEÇÃO DE DADOS',
+                    'A Pharmyrus protege os dados pessoais conforme a LGPD (Lei 13.709/2018).',
+                    '',
+                    '6. USO ADEQUADO DA PLATAFORMA',
+                    'O USUÁRIO deve utilizar a plataforma de forma ética e legal.',
+                    '',
+                    '7. QUOTA DE CONSULTAS',
+                    'Cada usuário possui um limite de consultas mensais conforme seu plano.',
+                    '',
+                    '8. LIMITAÇÃO DE RESPONSABILIDADE',
+                    'A Pharmyrus não se responsabiliza por imprecisões nas informações.',
+                    '',
+                    '9. MODIFICAÇÕES DOS TERMOS',
+                    'A Pharmyrus pode modificar estes termos mediante notificação.',
+                    '',
+                    '10. SUSPENSÃO E CANCELAMENTO',
+                    'A Pharmyrus pode suspender o acesso em caso de violação.',
+                    '',
+                    '11. LEGISLAÇÃO APLICÁVEL',
+                    'Regido pelas leis da República Federativa do Brasil.',
+                    '',
+                    '12. FORO COMPETENTE',
+                    'Foro da comarca de São Paulo/SP.',
+                    '',
+                    '13. ACEITAÇÃO ELETRÔNICA',
+                    'A aceitação eletrônica tem validade jurídica (MP 2.200-2/2001).',
+                    '',
+                    '14. REGISTRO DE ATIVIDADES',
+                    'Todas as atividades são registradas com Transaction IDs únicos.'
                 ];
                 
-                legalText.forEach(line => {
+                termsText.forEach(line => {
+                    checkPage();
+                    if (line.match(/^\d+\./)) {
+                        pdf.setFont(undefined, 'bold');
+                    } else {
+                        pdf.setFont(undefined, 'normal');
+                    }
                     pdf.text(line, margin, y);
-                    y += 7;
+                    y += 5;
                 });
                 
-                // Footer em todas as páginas
+                // FOOTER EM TODAS AS PÁGINAS
                 const totalPages = pdf.internal.pages.length - 1;
                 for (let i = 1; i <= totalPages; i++) {
                     pdf.setPage(i);
-                    
-                    const footerY = pdf.internal.pageSize.height - 30;
-                    pdf.setDrawColor(200, 200, 200);
-                    pdf.setLineWidth(0.5);
-                    pdf.rect(margin, footerY, pageWidth - (margin * 2), 20);
-                    
+                    const footerY = pdf.internal.pageSize.height - 25;
                     pdf.setFontSize(8);
-                    pdf.setTextColor(100, 100, 100);
-                    pdf.setFont(undefined, 'normal');
-                    
-                    pdf.text('Pharmyrus - Plataforma de Busca de Patentes', margin + 5, footerY + 7);
-                    pdf.text(`Contract ID: ${contract.contractId}`, margin + 5, footerY + 13);
-                    pdf.text(`Página ${i}/${totalPages}`, pageWidth - margin - 20, footerY + 13);
+                    pdf.setTextColor(100);
+                    pdf.text('Pharmyrus - Plataforma de Busca de Patentes', margin, footerY);
+                    pdf.text(`Contract ID: ${contract.contractId.substring(0,20)}...`, margin, footerY + 5);
+                    pdf.text(`Página ${i}/${totalPages}`, pageWidth - margin - 20, footerY + 5);
                 }
                 
-                // Salvar PDF
-                pdf.save(`contrato-${contract.contractId.substring(0, 12)}.pdf`);
+                pdf.save(`contrato-${contract.contractId.substring(0,12)}.pdf`);
                 
             } catch (error) {
-                console.error('Erro ao gerar PDF:', error);
-                alert('Erro ao gerar PDF: ' + error.message);
+                alert('Erro: ' + error.message);
             } finally {
                 btn.disabled = false;
                 btn.textContent = '📄 PDF';
             }
         };
-
-        // Logout
+        
         window.logout = async function() {
             await signOut(auth);
             window.location.href = 'login.html';
