@@ -6,17 +6,21 @@
     <title>Pharmyrus - Busca Avançada de Patentes</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 2rem; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 2rem; padding-bottom: 120px; }
         
-        /* USER BAR - NOVO LAYOUT */
+        /* USER BAR - AGORA NO FOOTER! */
         .user-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
             background: white;
             padding: 1.5rem 3rem;
-            margin-bottom: 2rem;
             display: none;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+            z-index: 1000;
         }
         .user-bar.show { display: flex; }
         
@@ -138,7 +142,6 @@
         .btn-secondary { flex: 1; padding: 1rem; background: #6b7280; color: white; border: none; border-radius: 0.5rem; font-weight: 600; font-size: 1rem; cursor: pointer; }
         .btn-secondary:hover { background: #4b5563; }
         .test-mode { text-align: center; }
-        /* Esconder botões de teste por padrão */
         .btn-test-only {
             display: none;
         }
@@ -165,26 +168,6 @@
     </style>
 </head>
 <body>
-    <!-- USER BAR -->
-    <div class="user-bar" id="userBar">
-        <div class="header-logo">
-            <img src="images/logo.png" alt="Pharmyrus Logo">
-        </div>
-        <div class="user-info-container">
-            <div class="user-info">
-                <div class="user-avatar" id="userAvatar">U</div>
-                <div class="user-details">
-                    <h3 id="userName">Carregando...</h3>
-                    <p class="quota-info" id="quotaInfo">Carregando quota...</p>
-                </div>
-            </div>
-            <div class="user-actions">
-                <a href="sudo-admin.html" class="btn-sudo-admin" id="btnSudoAdmin">👑 Sudo Admin</a>
-                <button class="btn-logout" onclick="logout()">Sair</button>
-            </div>
-        </div>
-    </div>
-
     <div class="container">
         <div class="search-card">
             <div class="logo-center">
@@ -273,10 +256,30 @@
         </div>
     </div>
 
+    <!-- USER BAR - AGORA NO FOOTER! -->
+    <footer class="user-bar" id="userBar">
+        <div class="header-logo">
+            <img src="images/logo.png" alt="Pharmyrus Logo">
+        </div>
+        <div class="user-info-container">
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">U</div>
+                <div class="user-details">
+                    <h3 id="userName">Carregando...</h3>
+                    <p class="quota-info" id="quotaInfo">Carregando quota...</p>
+                </div>
+            </div>
+            <div class="user-actions">
+                <a href="sudo-admin.html" class="btn-sudo-admin" id="btnSudoAdmin">👑 Sudo Admin</a>
+                <button class="btn-logout" onclick="logout()">Sair</button>
+            </div>
+        </div>
+    </footer>
+
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-        import { getFirestore, doc, getDoc, updateDoc, increment } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getFirestore, doc, getDoc, updateDoc, increment, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
         // Firebase Config
         const firebaseConfig = {
@@ -295,26 +298,82 @@
         let currentUser = null;
         let userData = null;
 
+        // ==========================================
+        // TRANSACTION ID FUNCTIONS
+        // ==========================================
+        
+        function generateTransactionId(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hour = String(date.getHours()).padStart(2, '0');
+            const minute = String(date.getMinutes()).padStart(2, '0');
+            const second = String(date.getSeconds()).padStart(2, '0');
+            const random = Math.random().toString(36).substring(2, 7).toUpperCase();
+            
+            return `search_${year}${month}${day}_${hour}${minute}${second}_${random}`;
+        }
+
+        function getWeekNumber(date) {
+            const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+            const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
+            return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+        }
+
+        // ==========================================
+        // SAVE SEARCH TO FIRESTORE
+        // ==========================================
+        
+        async function saveSearchToFirestore(query, resultsCount = 0) {
+            const now = new Date();
+            const transactionId = generateTransactionId(now);
+            
+            try {
+                console.log('💾 Salvando busca no Firestore...');
+                console.log('🔑 Transaction ID:', transactionId);
+                console.log('🔍 Query:', query);
+                
+                await addDoc(collection(db, 'searches'), {
+                    searchId: transactionId,
+                    userId: currentUser.uid,
+                    userEmail: currentUser.email,
+                    query: query,
+                    timestamp: serverTimestamp(),
+                    year: now.getFullYear(),
+                    month: now.getMonth() + 1,
+                    week: getWeekNumber(now),
+                    day: now.getDate(),
+                    hour: now.getHours(),
+                    minute: now.getMinutes(),
+                    second: now.getSeconds(),
+                    resultsCount: resultsCount
+                });
+                
+                console.log('✅ Busca salva com sucesso!');
+                return transactionId;
+                
+            } catch (error) {
+                console.error('❌ Erro ao salvar busca:', error);
+                throw error;
+            }
+        }
+
         // Check Auth State
-        // CORREÇÃO: Aguardar Firebase propagar + verificar localStorage
         let authCheckTimeout = null;
 
         onAuthStateChanged(auth, async (user) => {
             console.log('🔐 Auth state changed:', user ? user.email : 'null');
             
-            // Verificar se acabou de fazer login
             const justLoggedIn = localStorage.getItem('pharmyrus_logged_in') === 'true';
             console.log('💾 localStorage justLoggedIn:', justLoggedIn);
             
             if (!user && !justLoggedIn) {
                 console.log('⏳ Usuário não autenticado, aguardando...');
                 
-                // Limpar timeout anterior
                 if (authCheckTimeout) {
                     clearTimeout(authCheckTimeout);
                 }
                 
-                // Aguardar 2 segundos antes de redirecionar
                 authCheckTimeout = setTimeout(() => {
                     if (!auth.currentUser) {
                         console.log('❌ Ainda não autenticado após 2s, redirecionando para login');
@@ -322,22 +381,19 @@
                     }
                 }, 2000);
                 
-                return; // NÃO executar o resto do código
+                return;
             }
             
             if (user) {
                 console.log('✅ Usuário autenticado:', user.email);
                 
-                // Limpar flag de login
                 localStorage.removeItem('pharmyrus_logged_in');
                 
-                // Limpar timeout se existir
                 if (authCheckTimeout) {
                     clearTimeout(authCheckTimeout);
                     authCheckTimeout = null;
                 }
                 
-                // Continuar com o carregamento normal
                 currentUser = user;
                 await loadUserData();
                 document.getElementById('userBar').classList.add('show');
@@ -379,12 +435,10 @@
             avatar.textContent = displayText.charAt(0).toUpperCase();
             name.textContent = displayText;
 
-            // Mostrar botão Sudo Admin se for admin
             if (userData.isAdmin === true) {
                 console.log('👑 Usuário é ADMIN - Mostrando botão Sudo Admin');
                 btnSudoAdmin.classList.add('show');
                 
-                // Mostrar botões de teste para admin
                 const btnTest = document.getElementById('btnTest');
                 const testModeContainer = document.getElementById('testModeContainer');
                 if (btnTest) {
@@ -450,9 +504,9 @@
             window.location.href = 'login.html';
         };
 
-        // ORIGINAL SCRIPT (mantido 100%)
+        // ORIGINAL SCRIPT (com tracking)
         function initOriginalScript() {
-            console.log('🚀 Pharmyrus v10 - INDEX COM AUTH');
+            console.log('🚀 Pharmyrus v11 - COM TRACKING DE BUSCAS');
             
             var WEBHOOK_PROD = 'https://primary-production-2e3b.up.railway.app/webhook/analise-patentes';
             var WEBHOOK_TEST = 'https://primary-production-2e3b.up.railway.app/webhook-test/analise-patentes';
@@ -495,7 +549,6 @@
                     return; 
                 }
                 
-                // CHECK QUOTA ANTES DE BUSCAR
                 if (!await checkQuota()) {
                     return;
                 }
@@ -504,7 +557,6 @@
             };
             
             btnTest.onclick = async function() {
-                // CHECK QUOTA ANTES DO TESTE
                 if (!await checkQuota()) {
                     return;
                 }
@@ -620,7 +672,7 @@
                     sessionStorage.clear();
                     
                     return new Promise(function(resolve) {
-                        setTimeout(function() {
+                        setTimeout(async function() {
                             var json = JSON.stringify(
                                 Array.isArray(resultado) 
                                     ? resultado 
@@ -639,10 +691,20 @@
                                 
                                 console.log('✅ SALVO COM SUCESSO');
                                 
-                                // DECREMENT QUOTA AFTER SUCCESS
-                                decrementQuota().then(() => {
-                                    console.log('📊 Quota decrementada');
-                                });
+                                // SALVAR BUSCA NO FIRESTORE COM TRANSACTION ID
+                                const searchQuery = `${mol} (${com})`;
+                                const resultsCount = Array.isArray(resultado) ? resultado.length : 1;
+                                
+                                try {
+                                    const txId = await saveSearchToFirestore(searchQuery, resultsCount);
+                                    console.log('💾 Busca registrada no Firestore:', txId);
+                                } catch (err) {
+                                    console.error('⚠️ Erro ao salvar busca (não crítico):', err);
+                                }
+                                
+                                // DECREMENTAR QUOTA
+                                await decrementQuota();
+                                console.log('📊 Quota decrementada');
                                 
                                 resolve(moleculaRecebida);
                             } catch (e) {
