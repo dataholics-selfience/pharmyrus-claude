@@ -6,21 +6,18 @@
     <title>Pharmyrus - Busca Avançada de Patentes</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 2rem; padding-bottom: 120px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 2rem; }
         
         /* USER BAR - AGORA NO FOOTER! */
         .user-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
             background: white;
             padding: 1.5rem 3rem;
+            margin-top: 2rem;
             display: none;
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
-            z-index: 1000;
+            border-radius: 1rem;
         }
         .user-bar.show { display: flex; }
         
@@ -234,7 +231,7 @@
                     <div class="progress-bar">
                         <div class="progress-fill" id="progressFill"></div>
                     </div>
-                    <p class="status-time" id="statusTime">Tempo estimado: 3-5 minutos</p>
+                    <p class="status-time" id="statusTime">Tempo estimado: 05:00 min</p>
                 </div>
             </div>
 
@@ -606,15 +603,20 @@
                 progressFill.style.width = '5%';
                 
                 var startTime = Date.now();
+                var estimatedTime = 300; // 5 minutos em segundos
                 var prog = 5;
                 var timer = setInterval(function() {
                     prog += 0.3;
                     if (prog <= 90) {
                         progressFill.style.width = prog + '%';
                         var elapsed = Math.floor((Date.now() - startTime) / 1000);
-                        statusMessage.textContent = 'Processando ' + mol + '... ' + elapsed + 's';
+                        var remaining = Math.max(0, estimatedTime - elapsed);
+                        var minutes = Math.floor(remaining / 60);
+                        var seconds = remaining % 60;
+                        var timeStr = String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+                        statusMessage.textContent = 'Processando ' + mol + '... ' + timeStr + ' min';
                     }
-                }, 2000);
+                }, 1000);
                 
                 console.log('📡 Fetch START:', new Date().toLocaleTimeString());
                 
